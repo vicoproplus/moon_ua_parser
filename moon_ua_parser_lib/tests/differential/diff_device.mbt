@@ -16181,25 +16181,64 @@ fn device_is_exempted(i : Int) -> Bool {
 pub let device_exempted_count : Int = 0
 
 ///|
-/// Differential test: 16129 of 16129 device cases asserted field-by-field.
-/// Failures print "<index>|<input>|<field>=<value>" for both sides.
-test "differential device: 16129 asserted / 16129 total (0 exempted)" {
+/// Render one optional value for a failure message as a PLAIN string:
+/// `Some(s)` renders as `s`; `None` renders as `<none>`. Rendering both
+/// sides through this helper keeps the `Option` wrapper out of every
+/// message and makes no-expectation visually distinct.
+fn device_render_opt(v : String?) -> String {
+  match v {
+    Some(s) => s
+    None => "<none>"
+  }
+}
+
+///|
+/// Record one field comparison: append a failure message on mismatch.
+fn device_check(
+  failures : Array[String],
+  i : Int,
+  input : String,
+  field : String,
+  expected : String,
+  got : String,
+) -> Unit {
+  if expected != got {
+    failures.push("device[\{i}] field=\{field} expected=\{expected} got=\{got} input=\{input}")
+  }
+}
+
+///|
+/// Run EVERY device case against the engine and collect one
+/// message per field mismatch (collect-all-then-assert: a failing run
+/// lists all mismatches at once). Exempted cases are skipped. Used by
+/// the test block below and by the tests/diffstats reporter.
+pub fn device_failures() -> Array[String] {
+  let failures : Array[String] = []
   for i, c in device_cases {
     if device_is_exempted(i) {
       continue
     }
     let got = @ua_parser.parse_device(c.input)
-    assert_eq(
-      "\{i}|\{c.input}|family=\{c.family}",
-      "\{i}|\{c.input}|family=\{got.family}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|brand=\{c.brand}",
-      "\{i}|\{c.input}|brand=\{got.brand}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|model=\{c.model}",
-      "\{i}|\{c.input}|model=\{got.model}",
-    )
+    device_check(failures, i, c.input, "family", device_render_opt(c.family), got.family)
+    device_check(failures, i, c.input, "brand", device_render_opt(c.brand), device_render_opt(got.brand))
+    device_check(failures, i, c.input, "model", device_render_opt(c.model), device_render_opt(got.model))
   }
+  failures
+}
+
+///|
+/// Differential test: 16129 of 16129 device cases asserted field-by-field.
+/// The failure list is printed ONLY when non-empty, so a green run
+/// is silent; a failing run lists every mismatch at once.
+test "differential device: 16129 asserted / 16129 total (0 exempted)" {
+  let failures = device_failures()
+  if failures.length() > 0 {
+    let buf = StringBuilder()
+    for msg in failures {
+      buf.write_string(msg)
+      buf.write_string("\n")
+    }
+    println(buf.to_string())
+  }
+  assert_eq(failures.length(), 0)
 }

@@ -5,14 +5,12 @@ Reads the vendored uap-core snapshot test files
 (``uap-core/tests/test_ua.yaml``, ``test_os.yaml``, ``test_device.yaml``)
 and writes, into ``moon_ua_parser_lib/tests/differential/``:
 
-- ``diff_ua.mbt``     -- 1601 (snapshot count) UaCase entries + one ``test``
-                          block looping every case and asserting
-                          ``parse_browser(input).family/major/minor/patch/``
-                          ``patch_minor`` field-by-field.
-- ``diff_os.mbt``     -- OS cases, asserting ``parse_os`` on
-                          ``family/major/minor/patch/patch_minor``.
-- ``diff_device.mbt`` -- device cases, asserting ``parse_device`` on
-                          ``family/brand/model``.
+- ``diff_ua.mbt``     -- 1601 (snapshot count) UaCase entries, a
+                          ``pub fn ua_failures()`` collecting-everything
+                          loop, and one ``test`` block asserting the
+                          failure list is empty.
+- ``diff_os.mbt``     -- OS cases likewise over ``parse_os``.
+- ``diff_device.mbt`` -- device cases likewise over ``parse_device``.
 - ``moon.pkg``        -- package manifest (imports ``src/ua_parser``).
 
 Encoding contract (None vs Some):
@@ -22,10 +20,27 @@ Encoding contract (None vs Some):
 - Each expected field is generated as ``String?`` so a missing expectation
   can never be asserted as the literal empty string.
 
+COLLECT-ALL-THEN-ASSERT (T-08): each domain exposes
+``pub fn <domain>_failures() -> Array[String]`` which loops EVERY case and
+appends one message per field mismatch, formatted
+``<domain>[<i>] field=<f> expected=<e> got=<g> input=<ua>``. Expectations
+and actual values are rendered as PLAIN strings (``Some(s)`` -> ``s``;
+``None`` -> ``<none>``) so both sides are compared in the same rendering —
+an ``Option`` wrapper never leaks into a message. The ``test`` block runs
+the function, prints the failures ONLY when there are any (a green run is
+silent), and asserts the list is empty. A failing run therefore lists ALL
+failing cases of the domain at once instead of aborting at the first.
+
+STATS (T-08): ``tests/diffstats`` (a tiny executable package) imports this
+package and computes per-domain pass rates from the same data:
+``rate = passed / total`` where ``total = <domain>_cases.length()``,
+``passed = total - exempted - failures.length()`` — exempted cases count in
+the denominator but neither as a pass nor as a failure.
+
 Case identity: the generated cases array keeps upstream order, so the
-0-based array position IS the 0-based ``test_cases`` YAML index. Assertion
-messages embed ``index|input|field=value`` on BOTH sides of ``assert_eq``,
-so any failure output identifies the offending case directly.
+0-based array position IS the 0-based ``test_cases`` YAML index. Failure
+messages embed ``[index]`` and the full input, so any failure output
+identifies the offending case directly.
 
 EXEMPTION HOOK (T-08 reconciliation; the differential suite must end green
 at thresholds <100% with exemptions REGISTERED, never silent):
@@ -352,25 +367,97 @@ def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -
     lines.append("")
     lines.append("///|")
     lines.append(
-        f'/// Differential test: {len(cases) - len(exempted)} of {len(cases)} '
-        f"{domain.key} cases asserted field-by-field."
+        "/// Render one optional value for a failure message as a PLAIN string:"
     )
-    lines.append(f'/// Failures print "<index>|<input>|<field>=<value>" for both sides.')
     lines.append(
-        f'test "differential {domain.key}: {len(cases) - len(exempted)} asserted '
-        f'/ {len(cases)} total ({len(exempted)} exempted)" {{'
+        '/// `Some(s)` renders as `s`; `None` renders as `<none>`. Rendering both'
     )
+    lines.append(
+        "/// sides through this helper keeps the `Option` wrapper out of every"
+    )
+    lines.append("/// message and makes no-expectation visually distinct.")
+    lines.append(f"fn {domain.key}_render_opt(v : String?) -> String {{")
+    lines.append("  match v {")
+    lines.append("    Some(s) => s")
+    lines.append('    None => "<none>"')
+    lines.append("  }")
+    lines.append("}")
+    lines.append("")
+    lines.append("///|")
+    lines.append("/// Record one field comparison: append a failure message on mismatch.")
+    lines.append(f"fn {domain.key}_check(")
+    lines.append("  failures : Array[String],")
+    lines.append("  i : Int,")
+    lines.append("  input : String,")
+    lines.append("  field : String,")
+    lines.append("  expected : String,")
+    lines.append("  got : String,")
+    lines.append(") -> Unit {")
+    lines.append("  if expected != got {")
+    lines.append(
+        f'    failures.push("{domain.key}[\\{{i}}] field=\\{{field}} '
+        f'expected=\\{{expected}} got=\\{{got}} input=\\{{input}}")'
+    )
+    lines.append("  }")
+    lines.append("}")
+    lines.append("")
+    lines.append("///|")
+    lines.append(
+        f"/// Run EVERY {domain.key} case against the engine and collect one"
+    )
+    lines.append(
+        "/// message per field mismatch (collect-all-then-assert: a failing run"
+    )
+    lines.append(
+        "/// lists all mismatches at once). Exempted cases are skipped. Used by"
+    )
+    lines.append("/// the test block below and by the tests/diffstats reporter.")
+    lines.append(f"pub fn {domain.key}_failures() -> Array[String] {{")
+    lines.append("  let failures : Array[String] = []")
     lines.append(f"  for i, c in {domain.array_name} {{")
     lines.append(f"    if {domain.key}_is_exempted(i) {{")
     lines.append("      continue")
     lines.append("    }")
     lines.append(f"    let got = @ua_parser.{domain.parser}(c.input)")
-    for field in domain.fields:
-        lines.append("    assert_eq(")
-        lines.append(f'      "\\{{i}}|\\{{c.input}}|{field}=\\{{c.{field}}}",')
-        lines.append(f'      "\\{{i}}|\\{{c.input}}|{field}=\\{{got.{field}}}",')
-        lines.append("    )")
+    for pos, field in enumerate(domain.fields):
+        # The engine's `family` is a plain String (never absent); every other
+        # field is `String?` and renders through the same helper as the
+        # expectation side.
+        if pos == 0:
+            got_expr = f"got.{field}"
+        else:
+            got_expr = f"{domain.key}_render_opt(got.{field})"
+        lines.append(
+            f'    {domain.key}_check(failures, i, c.input, "{field}", '
+            f"{domain.key}_render_opt(c.{field}), {got_expr})"
+        )
     lines.append("  }")
+    lines.append("  failures")
+    lines.append("}")
+    lines.append("")
+    lines.append("///|")
+    lines.append(
+        f'/// Differential test: {len(cases) - len(exempted)} of {len(cases)} '
+        f"{domain.key} cases asserted field-by-field."
+    )
+    lines.append(
+        "/// The failure list is printed ONLY when non-empty, so a green run"
+    )
+    lines.append("/// is silent; a failing run lists every mismatch at once.")
+    lines.append(
+        f'test "differential {domain.key}: {len(cases) - len(exempted)} asserted '
+        f'/ {len(cases)} total ({len(exempted)} exempted)" {{'
+    )
+    lines.append(f"  let failures = {domain.key}_failures()")
+    lines.append("  if failures.length() > 0 {")
+    lines.append("    let buf = StringBuilder()")
+    lines.append("    for msg in failures {")
+    lines.append("      buf.write_string(msg)")
+    lines.append('      buf.write_string("\\n")')
+    lines.append("    }")
+    lines.append("    println(buf.to_string())")
+    lines.append("  }")
+    lines.append("  assert_eq(failures.length(), 0)")
     lines.append("}")
     lines.append("")
     return "\n".join(lines)

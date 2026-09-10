@@ -537,33 +537,66 @@ fn os_is_exempted(i : Int) -> Bool {
 pub let os_exempted_count : Int = 0
 
 ///|
-/// Differential test: 483 of 483 os cases asserted field-by-field.
-/// Failures print "<index>|<input>|<field>=<value>" for both sides.
-test "differential os: 483 asserted / 483 total (0 exempted)" {
+/// Render one optional value for a failure message as a PLAIN string:
+/// `Some(s)` renders as `s`; `None` renders as `<none>`. Rendering both
+/// sides through this helper keeps the `Option` wrapper out of every
+/// message and makes no-expectation visually distinct.
+fn os_render_opt(v : String?) -> String {
+  match v {
+    Some(s) => s
+    None => "<none>"
+  }
+}
+
+///|
+/// Record one field comparison: append a failure message on mismatch.
+fn os_check(
+  failures : Array[String],
+  i : Int,
+  input : String,
+  field : String,
+  expected : String,
+  got : String,
+) -> Unit {
+  if expected != got {
+    failures.push("os[\{i}] field=\{field} expected=\{expected} got=\{got} input=\{input}")
+  }
+}
+
+///|
+/// Run EVERY os case against the engine and collect one
+/// message per field mismatch (collect-all-then-assert: a failing run
+/// lists all mismatches at once). Exempted cases are skipped. Used by
+/// the test block below and by the tests/diffstats reporter.
+pub fn os_failures() -> Array[String] {
+  let failures : Array[String] = []
   for i, c in os_cases {
     if os_is_exempted(i) {
       continue
     }
     let got = @ua_parser.parse_os(c.input)
-    assert_eq(
-      "\{i}|\{c.input}|family=\{c.family}",
-      "\{i}|\{c.input}|family=\{got.family}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|major=\{c.major}",
-      "\{i}|\{c.input}|major=\{got.major}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|minor=\{c.minor}",
-      "\{i}|\{c.input}|minor=\{got.minor}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|patch=\{c.patch}",
-      "\{i}|\{c.input}|patch=\{got.patch}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|patch_minor=\{c.patch_minor}",
-      "\{i}|\{c.input}|patch_minor=\{got.patch_minor}",
-    )
+    os_check(failures, i, c.input, "family", os_render_opt(c.family), got.family)
+    os_check(failures, i, c.input, "major", os_render_opt(c.major), os_render_opt(got.major))
+    os_check(failures, i, c.input, "minor", os_render_opt(c.minor), os_render_opt(got.minor))
+    os_check(failures, i, c.input, "patch", os_render_opt(c.patch), os_render_opt(got.patch))
+    os_check(failures, i, c.input, "patch_minor", os_render_opt(c.patch_minor), os_render_opt(got.patch_minor))
   }
+  failures
+}
+
+///|
+/// Differential test: 483 of 483 os cases asserted field-by-field.
+/// The failure list is printed ONLY when non-empty, so a green run
+/// is silent; a failing run lists every mismatch at once.
+test "differential os: 483 asserted / 483 total (0 exempted)" {
+  let failures = os_failures()
+  if failures.length() > 0 {
+    let buf = StringBuilder()
+    for msg in failures {
+      buf.write_string(msg)
+      buf.write_string("\n")
+    }
+    println(buf.to_string())
+  }
+  assert_eq(failures.length(), 0)
 }

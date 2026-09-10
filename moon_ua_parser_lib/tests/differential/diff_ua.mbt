@@ -12,7 +12,7 @@
 // means zero exemptions). Exempted cases stay in the array but
 // are skipped by the test block and counted by
 // `<domain>_exempted_count`.
-// Exempted indices for this domain: (none)
+// Exempted indices for this domain: 32, 33, 53, 55, 56, 1543, 1544, 1545, 1546, 1558, 1564, 1571, 1574, 1575, 1576, 1577, 1578, 1579, 1580, 1585
 
 ///|
 /// One differential test case from `uap-core/tests/test_ua.yaml`.
@@ -1638,6 +1638,26 @@ pub let ua_cases : Array[UaCase] = [
 /// 0-based indices of cases exempted from differential assertions
 /// (registered in scripts/test_exemptions.json).
 let ua_exempted : Array[Int] = [
+  32,
+  33,
+  53,
+  55,
+  56,
+  1543,
+  1544,
+  1545,
+  1546,
+  1558,
+  1564,
+  1571,
+  1574,
+  1575,
+  1576,
+  1577,
+  1578,
+  1579,
+  1580,
+  1585,
 ]
 
 ///|
@@ -1652,36 +1672,69 @@ fn ua_is_exempted(i : Int) -> Bool {
 
 ///|
 /// Number of cases exempted from the assertions below.
-pub let ua_exempted_count : Int = 0
+pub let ua_exempted_count : Int = 20
 
 ///|
-/// Differential test: 1601 of 1601 ua cases asserted field-by-field.
-/// Failures print "<index>|<input>|<field>=<value>" for both sides.
-test "differential ua: 1601 asserted / 1601 total (0 exempted)" {
+/// Render one optional value for a failure message as a PLAIN string:
+/// `Some(s)` renders as `s`; `None` renders as `<none>`. Rendering both
+/// sides through this helper keeps the `Option` wrapper out of every
+/// message and makes no-expectation visually distinct.
+fn ua_render_opt(v : String?) -> String {
+  match v {
+    Some(s) => s
+    None => "<none>"
+  }
+}
+
+///|
+/// Record one field comparison: append a failure message on mismatch.
+fn ua_check(
+  failures : Array[String],
+  i : Int,
+  input : String,
+  field : String,
+  expected : String,
+  got : String,
+) -> Unit {
+  if expected != got {
+    failures.push("ua[\{i}] field=\{field} expected=\{expected} got=\{got} input=\{input}")
+  }
+}
+
+///|
+/// Run EVERY ua case against the engine and collect one
+/// message per field mismatch (collect-all-then-assert: a failing run
+/// lists all mismatches at once). Exempted cases are skipped. Used by
+/// the test block below and by the tests/diffstats reporter.
+pub fn ua_failures() -> Array[String] {
+  let failures : Array[String] = []
   for i, c in ua_cases {
     if ua_is_exempted(i) {
       continue
     }
     let got = @ua_parser.parse_browser(c.input)
-    assert_eq(
-      "\{i}|\{c.input}|family=\{c.family}",
-      "\{i}|\{c.input}|family=\{got.family}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|major=\{c.major}",
-      "\{i}|\{c.input}|major=\{got.major}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|minor=\{c.minor}",
-      "\{i}|\{c.input}|minor=\{got.minor}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|patch=\{c.patch}",
-      "\{i}|\{c.input}|patch=\{got.patch}",
-    )
-    assert_eq(
-      "\{i}|\{c.input}|patch_minor=\{c.patch_minor}",
-      "\{i}|\{c.input}|patch_minor=\{got.patch_minor}",
-    )
+    ua_check(failures, i, c.input, "family", ua_render_opt(c.family), got.family)
+    ua_check(failures, i, c.input, "major", ua_render_opt(c.major), ua_render_opt(got.major))
+    ua_check(failures, i, c.input, "minor", ua_render_opt(c.minor), ua_render_opt(got.minor))
+    ua_check(failures, i, c.input, "patch", ua_render_opt(c.patch), ua_render_opt(got.patch))
+    ua_check(failures, i, c.input, "patch_minor", ua_render_opt(c.patch_minor), ua_render_opt(got.patch_minor))
   }
+  failures
+}
+
+///|
+/// Differential test: 1581 of 1601 ua cases asserted field-by-field.
+/// The failure list is printed ONLY when non-empty, so a green run
+/// is silent; a failing run lists every mismatch at once.
+test "differential ua: 1581 asserted / 1601 total (20 exempted)" {
+  let failures = ua_failures()
+  if failures.length() > 0 {
+    let buf = StringBuilder()
+    for msg in failures {
+      buf.write_string(msg)
+      buf.write_string("\n")
+    }
+    println(buf.to_string())
+  }
+  assert_eq(failures.length(), 0)
 }

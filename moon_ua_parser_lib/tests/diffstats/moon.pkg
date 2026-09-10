@@ -1,0 +1,18 @@
+// Differential pass-rate reporter (T-08 stats).
+//
+// Executable package: run with `moon run tests/diffstats --release` from the
+// moon project root. Imports the generated differential package and computes
+// the per-domain pass-rate table mandated by docs/regex-migration.md:
+//
+//   rate = passed / total, where exempted cases count in the DENOMINATOR
+//   but neither as a pass nor as a failure:
+//     total  = <domain>_cases.length()
+//     exempt = <domain>_exempted_count
+//     failed = <domain>_failures().length()
+//     passed = total - exempt - failed
+
+pkgtype(kind: "executable")
+
+import {
+  "vicoproplus/moon_ua_parser/tests/differential",
+}
