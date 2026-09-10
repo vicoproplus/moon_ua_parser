@@ -54,16 +54,16 @@ PRD C1：MoonBit 生态缺 UA 解析库（mooncakes 2363 包零命中），10 �
 ## 2. 架构（D2）
 
 ```
-uap-core/regexes.yaml ──(构建期: scripts/gen_rules.py)──▶ src/ua_parser/rules/*.mbt（生成物）
-uap-core/tests/*.yaml ──(构建期: scripts/gen_tests.py)──▶ tests/differential/*.mbt（生成物）
+uap-core/regexes.yaml ──(构建期: scripts/gen_rules.py)──▶ moon_ua_parser_lib/src/ua_parser/rules/*.mbt（生成物）
+uap-core/tests/*.yaml ──(构建期: scripts/gen_tests.py)──▶ moon_ua_parser_lib/tests/differential/*.mbt（生成物）
                                     │
                                     ▼
-src/ua_parser/  ├─ types.mbt      （Browser/OS/Device/UaInfo 数据模型）
-               ├─ template.mbt   （$N 模板求值：构建期已预解析为组号序列）
-               ├─ matcher.mbt    （单条规则 = 正则 + 模板 + flag；三域列表）
-               ├─ engine.mbt     （逐域顺序匹配、首条命中、fallback Other）
-               └─ api.mbt        （parse / parse_browser / parse_os / parse_device + 规则编号选项）
-examples/       └─ middleware/    （中间件示例，FR-10）
+moon_ua_parser_lib/src/ua_parser/  ├─ types.mbt      （Browser/OS/Device/UaInfo 数据模型）
+                                   ├─ template.mbt   （$N 模板求值：构建期已预解析为组号序列）
+                                   ├─ matcher.mbt    （单条规则 = 正则 + 模板 + flag；三域列表）
+                                   ├─ engine.mbt     （逐域顺序匹配、首条命中、fallback Other）
+                                   └─ api.mbt        （parse / parse_browser / parse_os / parse_device + 规则编号选项）
+examples/                          └─ middleware/    （中间件示例，FR-10）
 ```
 
 - 数据流：规则与用例一律**构建期转换**（生成物，禁止手改），运行时纯查表 + 正则执行，零 YAML/网络依赖（FR-05）。
@@ -73,8 +73,8 @@ examples/       └─ middleware/    （中间件示例，FR-10）
 
 | 目录 | 生成工具 | 权威命令 | 覆盖行为 | 禁手改 |
 |------|----------|----------|----------|--------|
-| `src/ua_parser/rules/` | `scripts/gen_rules.py` | `python scripts/gen_rules.py`（读 `uap-core/regexes.yaml`，写 `rules_data.mbt` + `rules_version.mbt`） | 全量重建（整文件覆盖） | 是（全部 .mbt） |
-| `tests/differential/` | `scripts/gen_tests.py` | `python scripts/gen_tests.py`（读 `uap-core/tests/*.yaml`） | 全量重建 | 是（生成 .mbt） |
+| `moon_ua_parser_lib/src/ua_parser/rules/` | `scripts/gen_rules.py` | `python scripts/gen_rules.py`（读 `uap-core/regexes.yaml`，写 `rules_data.mbt` + `rules_version.mbt`） | 全量重建（整文件覆盖） | 是（全部 .mbt） |
+| `moon_ua_parser_lib/tests/differential/` | `scripts/gen_tests.py` | `python scripts/gen_tests.py`（读 `uap-core/tests/*.yaml`） | 全量重建 | 是（生成 .mbt） |
 
   修改一律改生成源（脚本/上游 YAML），重跑权威命令。
 
