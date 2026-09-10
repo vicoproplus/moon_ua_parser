@@ -4,4 +4,10 @@
 // uap-core snapshot : commit 73e7340, date 2026-08-24
 // Regenerate with   : python scripts/gen_rules.py
 //
-// Data-only package: no imports required.
+// The handwritten rules_init.mbt (registered exception, spec section
+// 2 GO registry) precompiles every pattern with the regexp engine
+// imported below.
+
+import {
+  "moonbitlang/regexp",
+}

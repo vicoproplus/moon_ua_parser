@@ -9,7 +9,10 @@ and writes, into ``moon_ua_parser_lib/src/ua_parser/rules/``:
                            templates pre-parsed into ``TemplatePart``
                            (``Literal(String) | Group(Int)``) sequences.
 - ``rules_version.mbt`` -- constants pinning the uap-core snapshot.
-- ``moon.pkg``          -- package manifest (data-only: no imports).
+- ``moon.pkg``          -- package manifest (imports ``moonbitlang/regexp``
+                           for the handwritten ``rules_init.mbt`` compile
+                           layer, a registered exception inside this
+                           generated directory).
 
 Semantics follow uap-python (the engine authority):
 - UA rules    : family_replacement / v1..v3_replacement (v1..v3 fallback to
@@ -399,7 +402,13 @@ def generate_moon_pkg() -> str:
         [
             header(),
             "//",
-            "// Data-only package: no imports required.",
+            "// The handwritten rules_init.mbt (registered exception, spec section",
+            "// 2 GO registry) precompiles every pattern with the regexp engine",
+            "// imported below.",
+            "",
+            "import {",
+            '  "moonbitlang/regexp",',
+            "}",
             "",
         ]
     )

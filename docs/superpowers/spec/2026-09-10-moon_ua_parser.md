@@ -14,11 +14,11 @@
 |---|------|---------------------|
 | V1 | uap-core 规则快照 commit `73e7340`（2026-08-24） | `git -C uap-core rev-parse --short HEAD` → `73e7340`；`git -C uap-core log -1 --format=%cd --date=short` → `2026-08-24` |
 | V2 | uap-python 差分对照 commit `6dd8c39`（2026-05-27） | `git -C uap-python rev-parse --short HEAD` → `6dd8c39` |
-| V3 | 规则总数 1274（ua 433 / os 207 / device 634） | Python 正则统计 `- regex:` 于 `uap-core/regexes.yaml` 分节 |
+| V3 | 规则总数 1270（ua 433 / os 204 / device 633） | Python 正则统计 `- regex:` 于 `uap-core/regexes.yaml` 分节 |
 | V4 | 上游 tests 用例 18213 条：test_ua.yaml 1601 / test_os.yaml 483 / test_device.yaml 16129 | Python 逐文件统计 `- user_agent_string:` 行 |
 | V6 | 规则集零 lookaround/原子组/possessive/POSIX 类/{,n}；非捕获组 944 处 | Python 扫描 `uap-core/regexes.yaml`：`(?=`/`(?!`/`(?<=`/`(?<!`/`(?>`/`(?P<` 均为 0 |
 | V7 | `regex_flag: 'i'` 仅存在于 device 节（65 条） | Python 扫描：ua/os 节 0 条、device 节 65 条 |
-| V8 | moonbitlang/regexp@0.3.5 全量 1274 条编译 0 失败（native 后端实测，2026-09-10 本机） | 探针程序 `moon run --target native cmd/main` 输出 `total rules: 1274` / `compile failures: 0`；探针脚本已按 spike 纪律清理 |
+| V8 | moonbitlang/regexp@0.3.5 全量 1270 条编译 0 失败（native 后端实测，2026-09-10 本机） | 探针程序 `moon run --target native cmd/main` 输出 `total rules: 1270` / `compile failures: 0`；探针脚本已按 spike 纪律清理 |
 | V9 | regexp compile 支持 `flags="i"` 且大小写折叠双向对称（ASCII） | 探针测试：`compile("HUAWEI", flags="i").execute("huawei")` 与 `compile("huawei", flags="i").execute("HUAWEI")` 均命中 |
 | V10 | regexp@0.3.5 匹配为 leftmost-first（PCRE 风格） | mooncakes.io 官方文档 `Regexp::execute`：「Uses a leftmost-first matching strategy」（https://mooncakes.io/docs/moonbitlang/regexp/） |
 | V11 | moon 工具链 0.1.20260904 本机可用，native/js 双后端测试通过 | `moon version` → `0.1.20260904 (94521db)`；探针 `moon test --target native`、`--target js` 均 passed |
@@ -38,7 +38,7 @@
 
 | 原语/语言特性 | wasm | native | js | 证据 |
 |---------------|------|--------|----|------|
-| regexp.compile 全量 1274 条规则 | B（同 VM 内核，moon 默认目标；发布前 wasm 后端回归覆盖） | A | A | V8/V11 |
+| regexp.compile 全量 1270 条规则 | B（同 VM 内核，moon 默认目标；发布前 wasm 后端回归覆盖） | A | A | V8/V11 |
 | 命名捕获组 `(?<name>…)` + `groups()` | B | B | B | mooncakes.io/docs/moonbitlang/regexp 语法表与示例 |
 | flags 参数（"i"） | B | A | A | V9 |
 | search 语义 + 空可选组取组两态 | B | A | A | V15 |
@@ -68,15 +68,17 @@ examples/                          └─ middleware/    （中间件示例，FR
 
 - 数据流：规则与用例一律**构建期转换**（生成物，禁止手改），运行时纯查表 + 正则执行，零 YAML/网络依赖（FR-05）。
 - 模块边界：types / template / matcher / engine / api 五文件分层；`rules` 生成目录独立包。
-- 初始化：`rules` 包顶层 let 预编译全部 1274 条 Regexp（进程一次），失败 fail-loud 抛含规则序号的错误（FR-06，设计 D8）。
+- 初始化：`rules` 包顶层 let 预编译全部 1270 条 Regexp（进程一次），失败 fail-loud 抛含规则序号的错误（FR-06，设计 D8）。
 - 生成目录所有权登记（GO1-GO3）：
 
 | 目录 | 生成工具 | 权威命令 | 覆盖行为 | 禁手改 |
 |------|----------|----------|----------|--------|
-| `moon_ua_parser_lib/src/ua_parser/rules/` | `scripts/gen_rules.py` | `python scripts/gen_rules.py`（读 `uap-core/regexes.yaml`，写 `rules_data.mbt` + `rules_version.mbt`） | 全量重建（整文件覆盖） | 是（全部 .mbt） |
+| `moon_ua_parser_lib/src/ua_parser/rules/` | `scripts/gen_rules.py` | `python scripts/gen_rules.py`（读 `uap-core/regexes.yaml`，写 `rules_data.mbt` + `rules_version.mbt` + `moon.pkg`） | 全量重建（整文件覆盖） | 是（全部 .mbt；手写例外见下注） |
 | `moon_ua_parser_lib/tests/differential/` | `scripts/gen_tests.py` | `python scripts/gen_tests.py`（读 `uap-core/tests/*.yaml`） | 全量重建 | 是（生成 .mbt） |
 
   修改一律改生成源（脚本/上游 YAML），重跑权威命令。
+
+  **手写例外（计划登记）**：`rules_init.mbt` + `rules_init_test.mbt` 为 `src/ua_parser/rules/` 生成目录内的手写文件（预编译初始化层 + 其内联测试），不受生成器覆盖——生成器仅重写 `rules_data.mbt` / `rules_version.mbt` / `moon.pkg`，重跑权威命令不会触碰这两个手写文件。
 
 ## 3. 范式（D3）
 
