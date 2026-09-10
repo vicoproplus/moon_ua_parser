@@ -2,6 +2,13 @@
 package "vicoproplus/moon_ua_parser/src/ua_parser"
 
 // Values
+pub fn parse(String) -> Result[UaInfo, UaError]
+
+pub fn parse_browser(String) -> Browser
+
+pub fn parse_device(String) -> Device
+
+pub fn parse_os(String) -> OS
 
 // Errors
 pub suberror UaError {

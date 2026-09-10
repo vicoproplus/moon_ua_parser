@@ -1,3 +1,4 @@
 import {
   "moonbitlang/regexp",
+  "vicoproplus/moon_ua_parser/src/ua_parser/rules",
 }
