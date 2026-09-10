@@ -21,6 +21,7 @@ pub(all) struct Browser {
   major : String?
   minor : String?
   patch : String?
+  patch_minor : String?
 } derive(Eq, Show)
 
 pub(all) struct Device {

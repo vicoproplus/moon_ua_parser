@@ -7,8 +7,8 @@ and writes, into ``moon_ua_parser_lib/tests/differential/``:
 
 - ``diff_ua.mbt``     -- 1601 (snapshot count) UaCase entries + one ``test``
                           block looping every case and asserting
-                          ``parse_browser(input).family/major/minor/patch``
-                          field-by-field.
+                          ``parse_browser(input).family/major/minor/patch/``
+                          ``patch_minor`` field-by-field.
 - ``diff_os.mbt``     -- OS cases, asserting ``parse_os`` on
                           ``family/major/minor/patch/patch_minor``.
 - ``diff_device.mbt`` -- device cases, asserting ``parse_device`` on
@@ -129,11 +129,10 @@ DOMAINS = [
         struct_name="UaCase",
         array_name="ua_cases",
         parser="parse_browser",
-        # Browser has no patch_minor; upstream carries `patch_minor` on some
-        # ua cases anyway (and js_* variants on others) -- ignored, per the
-        # differential surface fixed by the controller.
-        fields=["family", "major", "minor", "patch"],
-        ignored_keys={"patch_minor"},
+        # Browser mirrors the upstream UserAgent record incl. patch_minor
+        # (group-5 fallback, matchers.py:50); 41 upstream cases assert it.
+        fields=["family", "major", "minor", "patch", "patch_minor"],
+        ignored_keys=set(),
     ),
     Domain(
         key="os",

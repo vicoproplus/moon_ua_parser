@@ -15,6 +15,8 @@ pub(all) struct Browser {
   minor : String?
   /// Patch version segment, or `None` when unknown.
   patch : String?
+  /// Fourth (patch-minor) version segment, or `None` when unknown.
+  patch_minor : String?
 } derive(Eq, Show)
 
 ///|

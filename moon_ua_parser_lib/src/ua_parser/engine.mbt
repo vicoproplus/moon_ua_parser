@@ -29,7 +29,7 @@ fn first_match(
 ///|
 /// The all-miss browser fallback: family `"Other"`, no version segments.
 fn other_browser() -> Browser {
-  { family: "Other", major: None, minor: None, patch: None, }
+  { family: "Other", major: None, minor: None, patch: None, patch_minor: None, }
 }
 
 ///|

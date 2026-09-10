@@ -12,10 +12,14 @@
 ///
 /// Goldens: browser family/version shape from uap-core tests/test_ua.yaml:3039
 /// (same `(Chromium|Chrome)/...` rule: family template absent -> group 1,
-/// versions from groups 2..4); OS `Windows`/`10` from
-/// tests/test_os.yaml:3197 (the `(Windows NT 10\.0)` rule with literal
-/// `Windows` / `10` templates — the family is NOT the string "Windows 10");
-/// device `"Other"`: no device rule matches a plain desktop UA.
+/// versions from groups 2..5 — that case carries `patch_minor: '78'` and the
+/// vendored uap-python `Resolver` returns `patch_minor='78'` for it and
+/// `patch_minor='0'` for this exact UA, both verified by running
+/// `loaders.load_yaml("uap-core/regexes.yaml")` + `basic.Resolver`); OS
+/// `Windows`/`10` from tests/test_os.yaml:3197 (the `(Windows NT 10\.0)`
+/// rule with literal `Windows` / `10` templates — the family is NOT the
+/// string "Windows 10"); device `"Other"`: no device rule matches a plain
+/// desktop UA.
 test "chrome desktop ua parses all three domains" {
   let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   match @ua_parser.parse(ua) {
@@ -25,6 +29,7 @@ test "chrome desktop ua parses all three domains" {
       assert_eq("major=\{b.major}", "major=Some(120)")
       assert_eq("minor=\{b.minor}", "minor=Some(0)")
       assert_eq("patch=\{b.patch}", "patch=Some(0)")
+      assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(0)")
       let o = info.os
       assert_eq("os family=\{o.family}", "os family=Windows")
       assert_eq("os major=\{o.major}", "os major=Some(10)")
@@ -100,4 +105,25 @@ test "iphone device rule derives family brand model" {
   assert_eq("family=\{d.family}", "family=iPhone")
   assert_eq("brand=\{d.brand}", "brand=Some(Apple)")
   assert_eq("model=\{d.model}", "model=Some(iPhone)")
+}
+
+///|
+/// Test 5 — browser `patch_minor` fidelity (fix round R1): the QQ Browser
+/// rule template chain populates the fourth version segment from capture
+/// group 5 (`patch_minor or get(m, 5)`, matchers.py:50).
+///
+/// Golden: uap-core tests/test_ua.yaml:205-211 — family `'QQ Browser'`,
+/// major `6`, minor `13`, patch `13719`, patch_minor `201`. Cross-verified
+/// by running the vendored uap-python (`loaders.load_yaml` +
+/// `basic.Resolver`), which returns exactly
+/// `UserAgent(family='QQ Browser', major='6', minor='13', patch='13719',
+/// patch_minor='201')` for this UA.
+test "qq browser golden asserts patch_minor group-5 fallback" {
+  let ua = "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.15 Safari/535.11 QQBrowser/6.13.13719.201"
+  let b = @ua_parser.parse_browser(ua)
+  assert_eq("family=\{b.family}", "family=QQ Browser")
+  assert_eq("major=\{b.major}", "major=Some(6)")
+  assert_eq("minor=\{b.minor}", "minor=Some(13)")
+  assert_eq("patch=\{b.patch}", "patch=Some(13719)")
+  assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
 }

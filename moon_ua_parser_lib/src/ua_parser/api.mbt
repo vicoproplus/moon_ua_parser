@@ -28,12 +28,13 @@ pub fn parse(ua : String) -> Result[UaInfo, UaError] {
 ///
 /// First matching UA rule wins; family comes from the rule's family
 /// template (literal or `$1` substitution), and the version segments fall
-/// back to capture groups 2/3/4 (missing or empty group -> `None`). When no
-/// rule matches, family is `"Other"` and all versions are `None`.
+/// back to capture groups 2/3/4/5 (missing or empty group -> `None`). When
+/// no rule matches, family is `"Other"` and all versions are `None`.
 ///
 /// Example: `parse_browser("Mozilla/5.0 (Windows NT 10.0; Win64; x64)
 /// AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")`
-/// yields family `"Chrome"`, major `"120"`, minor `"0"`, patch `"0"`.
+/// yields family `"Chrome"`, major `"120"`, minor `"0"`, patch `"0"`,
+/// patch_minor `"0"`.
 pub fn parse_browser(ua : String) -> Browser {
   match_browser(ua)
 }

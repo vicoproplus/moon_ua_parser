@@ -15,8 +15,9 @@ and writes, into ``moon_ua_parser_lib/src/ua_parser/rules/``:
                            generated directory).
 
 Semantics follow uap-python (the engine authority):
-- UA rules    : family_replacement / v1..v3_replacement (v1..v3 fallback to
-                capture groups 2..4 when absent).
+- UA rules    : family_replacement / v1..v4_replacement (v1..v4 fallback to
+                capture groups 2..5 when absent; upstream
+                ``UserAgentMatcher`` populates ``patch_minor`` from group 5).
 - OS rules    : os_replacement / os_v1..os_v4_replacement (fallback groups
                 1..5 when absent).
 - Device rules: device_replacement / brand_replacement / model_replacement;
@@ -105,12 +106,13 @@ SECTIONS = [
         yaml_key="user_agent_parsers",
         struct_name="UaRuleData",
         array_name="ua_rules",
-        fields=["family", "v1", "v2", "v3"],
+        fields=["family", "v1", "v2", "v3", "v4"],
         template_keys={
             "family_replacement": "family",
             "v1_replacement": "v1",
             "v2_replacement": "v2",
             "v3_replacement": "v3",
+            "v4_replacement": "v4",
         },
     ),
     Section(
@@ -343,6 +345,7 @@ def generate_rules_data(sections_data: list[tuple[Section, list[str], int]]) -> 
         "  v1 : Array[TemplatePart]?",
         "  v2 : Array[TemplatePart]?",
         "  v3 : Array[TemplatePart]?",
+        "  v4 : Array[TemplatePart]?",
         "}",
         "",
         "///|",

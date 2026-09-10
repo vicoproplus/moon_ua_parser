@@ -17,7 +17,8 @@
 ///|
 /// Match the browser (user-agent) domain: first matching rule wins; derive
 /// family via the raw-template flavor and versions via get-flavor fallbacks
-/// to capture groups 2/3/4. No match -> `"Other"` browser.
+/// to capture groups 2/3/4/5 (matchers.py:47-50, `or get(m, n)` chain). No
+/// match -> `"Other"` browser.
 fn match_browser(ua : String) -> Browser {
   match first_match(@rules.ua_rules.length(), @rules.ua_regexps, ua) {
     Some((index, m)) => {
@@ -27,6 +28,7 @@ fn match_browser(ua : String) -> Browser {
         major: eval_ua_version(rule.v1, 2, m),
         minor: eval_ua_version(rule.v2, 3, m),
         patch: eval_ua_version(rule.v3, 4, m),
+        patch_minor: eval_ua_version(rule.v4, 5, m),
       }
     }
     None => other_browser()
