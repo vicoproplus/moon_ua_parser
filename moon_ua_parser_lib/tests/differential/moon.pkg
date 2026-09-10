@@ -1,0 +1,11 @@
+// GENERATED — DO NOT EDIT.
+//
+// Generator         : scripts/gen_tests.py
+// uap-core snapshot : commit 73e7340, date 2026-08-24
+// Regenerate with   : python scripts/gen_tests.py
+//
+// Differential test package: imports the engine under test.
+
+import {
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}
