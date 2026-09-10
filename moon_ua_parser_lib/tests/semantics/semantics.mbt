@@ -127,3 +127,166 @@ test "qq browser golden asserts patch_minor group-5 fallback" {
   assert_eq("patch=\{b.patch}", "patch=Some(13719)")
   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
 }
+
+///|
+/// Test 6 — device `$1 $2` multi-group template: the uap-core device rule
+/// `\bSmartWatch {0,2}\( {0,2}([^;]{1,200}) {0,2}; {0,2}([^;]{1,200}) {0,2};`
+/// carries `device_replacement: '$1 $2'`, `brand_replacement: '$1'`,
+/// `model_replacement: '$2'`, so BOTH capture groups flow into the family
+/// string (no UA/OS rule in snapshot 73e7340 carries a 2+ `$n` template —
+/// verified by scanning regexes.yaml — multi-group templates live in the
+/// device section).
+///
+/// Goldens: uap-core tests/test_device.yaml:69093 — family `'Sony SW2'`,
+/// brand `'Sony'`, model `'SW2'`. Cross-verified by running the vendored
+/// uap-python (`loaders.load_yaml("uap-core/regexes.yaml")` matchers): it
+/// returns exactly `Device(family='Sony SW2', brand='Sony', model='SW2')`
+/// for this UA.
+test "smartwatch device rule combines two groups in family template" {
+  let ua = "Mozilla/5.0 (Linux; Android 4.4.2; C6833 Build/14.3.A.0.681) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36 SmartWatch(Sony;SW2;660x800)"
+  let d = @ua_parser.parse_device(ua)
+  assert_eq("family=\{d.family}", "family=Sony SW2")
+  assert_eq("brand=\{d.brand}", "brand=Some(Sony)")
+  assert_eq("model=\{d.model}", "model=Some(SW2)")
+}
+
+///|
+/// Test 7 — strip + empty group -> None under uap-python `replacer`
+/// semantics (utils.py: `re.sub(r"\$(\d)", ..., repl).strip() or None`):
+/// the device rule `Android Application[^\-]{1,300} - (Sony) ?(Ericsson|)
+/// (.{1,200}) \w{1,20} - ` carries `device_replacement: '$1 $2'` where the
+/// `Ericsson` group matched the EMPTY alternative, so `$1 $2` evaluates to
+/// `"Sony "` (trailing space) and the strip turns it into `"Sony"`; brand
+/// `'$1$2'` concatenates to `"Sony"`; model `'$3'` substitutes `C1505`.
+///
+/// Golden: uap-core tests/test_device.yaml:69098 — family `'Sony'`,
+/// brand `'Sony'` (model not pinned upstream). Cross-verified by running
+/// the vendored uap-python: it returns exactly
+/// `Device(family='Sony', brand='Sony', model='C1505')` for this UA.
+test "sony ericsson empty group exercises strip to family value" {
+  let ua = "ERO247 Android Application (13, ero247 v2.1) - Sony C1505 Sony - FFFFFFFF-9DDE-1B81-FFFF-FFFFA4625391"
+  let d = @ua_parser.parse_device(ua)
+  assert_eq("family=\{d.family}", "family=Sony")
+  assert_eq("brand=\{d.brand}", "brand=Some(Sony)")
+  assert_eq("model=\{d.model}", "model=Some(C1505)")
+}
+
+///|
+/// Test 8 — optional version group not participating -> `None`:
+/// (a) OS: the iOS rule `(CPU[ +]OS|iPhone[ +]OS|CPU[ +]iPhone|CPU IPhone
+/// OS|CPU iPad OS)[ +]+(\d+)[_\.](\d+)(?:[_\.](\d+)|)` has an OPTIONAL
+/// patch group; for `CPU iPhone OS 14_3` the input ends at `14_3`, group 4
+/// never participates, and uap-python (`matchers.py` OSMatcher +
+/// `utils.replacer`) yields `patch=None`.
+/// (b) Browser: the generic spiders rule `...Googlebot...
+/// (?:[ /]v?(\d+)(?:\.(\d+)(?:\.(\d+)|)|)|)` — for `Googlebot/2.1` the
+/// patch group does not participate -> `None` (uap-python
+/// `UserAgentMatcher`: `self.patch or get(m, 4)`).
+///
+/// Evidence: running the vendored uap-python on these exact UAs returns
+/// `OS(family='iOS', major='14', minor='3', patch=None, patch_minor=None)`
+/// and `UserAgent(family='Googlebot', major='2', minor='1', patch=None,
+/// patch_minor=None)`.
+test "optional version group absent yields None in OS and browser" {
+  let ios_ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 DuckDuckGo/7 Safari/605.1.15"
+  let o = @ua_parser.parse_os(ios_ua)
+  assert_eq("os family=\{o.family}", "os family=iOS")
+  assert_eq("os major=\{o.major}", "os major=Some(14)")
+  assert_eq("os minor=\{o.minor}", "os minor=Some(3)")
+  assert_eq("os patch=\{o.patch}", "os patch=None")
+  assert_eq("os patch_minor=\{o.patch_minor}", "os patch_minor=None")
+  let bot_ua = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+  let b = @ua_parser.parse_browser(bot_ua)
+  assert_eq("family=\{b.family}", "family=Googlebot")
+  assert_eq("major=\{b.major}", "major=Some(2)")
+  assert_eq("minor=\{b.minor}", "minor=Some(1)")
+  assert_eq("patch=\{b.patch}", "patch=None")
+  assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+}
+
+///|
+/// Test 9 — `regex_flag: i` case-insensitivity (65 uap-core device rules
+/// carry it in snapshot 73e7340; UA/OS matchers compile WITHOUT it —
+/// uap-python matchers.py: DeviceMatcher `re.compile(regex, flags=
+/// re.IGNORECASE if regex_flag == "i" else 0)` vs UserAgentMatcher plain
+/// `re.compile(regex)`):
+/// (a) the flag-i device rule `Android Application[^\-]{1,300} -
+/// (?:HTC|HUAWEI|LGE|LENOVO|MEDION|TCT) (HTC|HUAWEI|LG|LENOVO|MEDION|
+/// ALCATEL)[ _\-](.{1,200}) \w{1,20} - ` — lowercasing the upstream golden
+/// UA's `TCT` token (tests/test_device.yaml:1713) to `tct` must STILL match
+/// and give the identical device (vendored uap-python run confirms:
+/// `Device(family='ALCATEL one touch 890D', brand='ALCATEL',
+/// model='one touch 890D')` for the lowercased variant).
+/// (b) the contrast: `Yeti` -> `YETI` keeps the flag-i device spider rule
+/// matching (`Device(family='Spider', ...)`) while the case-sensitive UA
+/// rules all miss (`family='Other'`) — vendored uap-python returns UA None
+/// + Device(family='Spider', brand='Spider', model='Desktop') for
+/// `Mozilla/5.0 (compatible; YETI/1.1; +http://naver.me/spd)`.
+test "flag-i device rules match case variants exactly where uap-python does" {
+  let tct_lower = "SV1 Android Application (13, sv1 v2.1) - tct ALCATEL one touch 890D tct - FFFFFFFF-9EAF-9658-730A-F6590033C587"
+  let d = @ua_parser.parse_device(tct_lower)
+  assert_eq("family=\{d.family}", "family=ALCATEL one touch 890D")
+  assert_eq("brand=\{d.brand}", "brand=Some(ALCATEL)")
+  assert_eq("model=\{d.model}", "model=Some(one touch 890D)")
+  let yeti_upper = "Mozilla/5.0 (compatible; YETI/1.1; +http://naver.me/spd)"
+  let b = @ua_parser.parse_browser(yeti_upper)
+  assert_eq("family=\{b.family}", "family=Other")
+  let d2 = @ua_parser.parse_device(yeti_upper)
+  assert_eq("spider family=\{d2.family}", "spider family=Spider")
+  assert_eq("spider brand=\{d2.brand}", "spider brand=Some(Spider)")
+  assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+}
+
+///|
+/// Test 10 — `parse()` vs single-domain consistency (spec §4.9 B2): the
+/// aggregate `parse` must report exactly the same three components as the
+/// individual `parse_browser` / `parse_os` / `parse_device` calls, for
+/// three diverse UAs (Chrome desktop, iPhone third-party browser, bot).
+/// All structs derive `Eq`, so whole-struct equality is asserted via
+/// interpolated `Show` (a mismatch prints both sides).
+test "parse aggregates identical results to single-domain functions" {
+  let uas = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 DuckDuckGo/7 Safari/605.1.15",
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+  ]
+  for i, ua in uas {
+    let b = @ua_parser.parse_browser(ua)
+    let o = @ua_parser.parse_os(ua)
+    let d = @ua_parser.parse_device(ua)
+    match @ua_parser.parse(ua) {
+      Ok(info) => {
+        assert_eq("\{i} browser \{info.browser}", "\{i} browser \{b}")
+        assert_eq("\{i} os \{info.os}", "\{i} os \{o}")
+        assert_eq("\{i} device \{info.device}", "\{i} device \{d}")
+      }
+      Err(_) => fail("parse never fails with the precompiled rule set")
+    }
+  }
+}
+
+///|
+/// Test 11 — determinism (spec §4.9 B2): parsing the same input repeatedly
+/// must return structurally identical results (rule scan order and
+/// evaluation are static; no caching may alter outcomes). The same Chrome
+/// desktop UA is parsed 5 times via every entry point and each result is
+/// compared against the first.
+test "repeated parses of identical input are deterministic" {
+  let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  let first_b = @ua_parser.parse_browser(ua)
+  let first_o = @ua_parser.parse_os(ua)
+  let first_d = @ua_parser.parse_device(ua)
+  let first_info = match @ua_parser.parse(ua) {
+    Ok(info) => info
+    Err(_) => fail("parse never fails with the precompiled rule set")
+  }
+  for i in 0..<5 {
+    assert_eq("run\{i} browser \{@ua_parser.parse_browser(ua)}", "run\{i} browser \{first_b}")
+    assert_eq("run\{i} os \{@ua_parser.parse_os(ua)}", "run\{i} os \{first_o}")
+    assert_eq("run\{i} device \{@ua_parser.parse_device(ua)}", "run\{i} device \{first_d}")
+    match @ua_parser.parse(ua) {
+      Ok(info) => assert_eq("run\{i} info \{info}", "run\{i} info \{first_info}")
+      Err(_) => fail("parse never fails with the precompiled rule set")
+    }
+  }
+}

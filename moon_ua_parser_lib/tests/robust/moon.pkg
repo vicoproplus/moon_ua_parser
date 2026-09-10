@@ -1,0 +1,6 @@
+// Robust-input test package (T-07): malformed/oversized synthetic inputs
+// against the public API. Imports the engine under test.
+
+import {
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}
