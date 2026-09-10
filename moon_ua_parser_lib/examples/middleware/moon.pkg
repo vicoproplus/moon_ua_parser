@@ -1,0 +1,11 @@
+// Middleware-style demo (T-10). Executable package; run from the moon
+// project root with:
+//   moon run --target native examples/middleware
+// (pkgtype "executable" is how moon 0.1.20260904 marks a runnable entry
+// package, same as tests/diffstats.)
+
+pkgtype(kind: "executable")
+
+import {
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}
