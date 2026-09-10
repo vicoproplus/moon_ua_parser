@@ -1,0 +1,5 @@
+// import {
+//   "vicoproplus/moon_ua_parser" @lib,
+// }
+
+pkgtype(kind: "executable")

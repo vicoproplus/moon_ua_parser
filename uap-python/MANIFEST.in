@@ -1,0 +1,12 @@
+include README.rst
+include LICENSE
+
+graft uap-core
+
+prune .github
+prune uap-core/.github
+global-exclude *~
+global-exclude .*
+global-exclude *.js
+global-exclude __pycache__
+global-exclude *.py[co]
