@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser/src/ua_parser"
+
+// Values
+
+// Errors
+pub suberror UaError {
+  RegexpCompileError(String)
+} derive(Eq, Show)
+
+// Types and methods
+pub(all) struct Browser {
+  family : String
+  major : String?
+  minor : String?
+  patch : String?
+} derive(Eq, Show)
+
+pub(all) struct Device {
+  family : String
+  brand : String?
+  model : String?
+} derive(Eq, Show)
+
+pub(all) struct OS {
+  family : String
+  major : String?
+  minor : String?
+  patch : String?
+  patch_minor : String?
+} derive(Eq, Show)
+
+pub(all) struct UaInfo {
+  browser : Browser
+  os : OS
+  device : Device
+} derive(Eq, Show)
+
+// Type aliases
+
+// Traits
