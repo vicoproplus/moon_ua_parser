@@ -2,7 +2,7 @@
 package "vicoproplus/moon_ua_parser/src/ua_parser"
 
 // Values
-pub fn parse(String) -> Result[UaInfo, UaError]
+pub fn parse(String, with_rule_index? : Bool) -> Result[UaInfo, UaError]
 
 pub fn parse_browser(String) -> Browser
 
@@ -22,12 +22,14 @@ pub(all) struct Browser {
   minor : String?
   patch : String?
   patch_minor : String?
+  rule_index : Int?
 } derive(Eq, Show)
 
 pub(all) struct Device {
   family : String
   brand : String?
   model : String?
+  rule_index : Int?
 } derive(Eq, Show)
 
 pub(all) struct OS {
@@ -36,6 +38,7 @@ pub(all) struct OS {
   minor : String?
   patch : String?
   patch_minor : String?
+  rule_index : Int?
 } derive(Eq, Show)
 
 pub(all) struct UaInfo {

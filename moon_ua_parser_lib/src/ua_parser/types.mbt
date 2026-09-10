@@ -17,6 +17,12 @@ pub(all) struct Browser {
   patch : String?
   /// Fourth (patch-minor) version segment, or `None` when unknown.
   patch_minor : String?
+  /// Diagnostic metadata (T-09): 0-based index of the rule that produced
+  /// this result within the browser rule list (`@rules.ua_rules`, i.e. the
+  /// uap-core `user_agent_parsers` order). `Some` only when the parse was
+  /// run with `with_rule_index=true` AND a rule matched; `None` otherwise
+  /// (including the no-match `"Other"` fallback — no rule produced it).
+  rule_index : Int?
 } derive(Eq, Show)
 
 ///|
@@ -38,6 +44,12 @@ pub(all) struct OS {
   patch : String?
   /// Fourth (patch-minor) version segment, or `None` when unknown.
   patch_minor : String?
+  /// Diagnostic metadata (T-09): 0-based index of the rule that produced
+  /// this result within the OS rule list (`@rules.os_rules`, i.e. the
+  /// uap-core `os_parsers` order). `Some` only when the parse was run with
+  /// `with_rule_index=true` AND a rule matched; `None` otherwise (including
+  /// the no-match `"Other"` fallback — no rule produced it).
+  rule_index : Int?
 } derive(Eq, Show)
 
 ///|
@@ -53,6 +65,12 @@ pub(all) struct Device {
   brand : String?
   /// Device model, or `None` when unknown.
   model : String?
+  /// Diagnostic metadata (T-09): 0-based index of the rule that produced
+  /// this result within the device rule list (`@rules.device_rules`, i.e.
+  /// the uap-core `device_parsers` order). `Some` only when the parse was
+  /// run with `with_rule_index=true` AND a rule matched; `None` otherwise
+  /// (including the no-match `"Other"` fallback — no rule produced it).
+  rule_index : Int?
 } derive(Eq, Show)
 
 ///|

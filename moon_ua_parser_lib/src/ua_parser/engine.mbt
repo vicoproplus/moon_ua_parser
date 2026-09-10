@@ -28,18 +28,38 @@ fn first_match(
 
 ///|
 /// The all-miss browser fallback: family `"Other"`, no version segments.
+/// No rule produced it, so `rule_index` is `None` even under
+/// `with_rule_index=true` (T-09).
 fn other_browser() -> Browser {
-  { family: "Other", major: None, minor: None, patch: None, patch_minor: None, }
+  {
+    family: "Other",
+    major: None,
+    minor: None,
+    patch: None,
+    patch_minor: None,
+    rule_index: None,
+  }
 }
 
 ///|
 /// The all-miss OS fallback: family `"Other"`, no version segments.
+/// No rule produced it, so `rule_index` is `None` even under
+/// `with_rule_index=true` (T-09).
 fn other_os() -> OS {
-  { family: "Other", major: None, minor: None, patch: None, patch_minor: None, }
+  {
+    family: "Other",
+    major: None,
+    minor: None,
+    patch: None,
+    patch_minor: None,
+    rule_index: None,
+  }
 }
 
 ///|
 /// The all-miss device fallback: family `"Other"`, no brand or model.
+/// No rule produced it, so `rule_index` is `None` even under
+/// `with_rule_index=true` (T-09).
 fn other_device() -> Device {
-  { family: "Other", brand: None, model: None, }
+  { family: "Other", brand: None, model: None, rule_index: None, }
 }
