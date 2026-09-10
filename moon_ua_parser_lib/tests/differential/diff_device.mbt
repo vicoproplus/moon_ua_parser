@@ -16227,7 +16227,8 @@ pub fn device_failures() -> Array[String] {
 }
 
 ///|
-/// Differential test: 16129 of 16129 device cases asserted field-by-field.
+/// Differential test: 16129 of 16129 device cases asserted field-by-field
+/// (see header for the comparison policy).
 /// The failure list is printed ONLY when non-empty, so a green run
 /// is silent; a failing run lists every mismatch at once.
 test "differential device: 16129 asserted / 16129 total (0 exempted)" {

@@ -20,6 +20,21 @@ Encoding contract (None vs Some):
 - Each expected field is generated as ``String?`` so a missing expectation
   can never be asserted as the literal empty string.
 
+PATCH_MINOR COMPARISON POLICY (T-08, controller-ruled option B):
+- UA cases keep ``patch_minor`` as generated data (type fidelity), but the
+  differential loop does NOT assert it: the golden patch_minor column in
+  ``uap-core/tests/test_ua.yaml`` is unreliable — 20 rows carry an
+  absent/``null`` expectation where the semantic authority produces a value
+  (ua-parser/uap-core#562; full audit in ``docs/regex-migration.md``).
+- The comparison policy mirrors the vendored authority's own differential
+  protocol: ``uap-python/tests/test_core.py:93-97`` pops the column with
+  "there seems to be broken test cases which have a patch_minor of null
+  where it's not, as well as the reverse, so we can't test patch_minor
+  (ua-parser/uap-core#562)".
+- Engine patch_minor fidelity is unaffected and remains covered directly by
+  the semantics suite (group-5 fallback unit tests, verified against
+  uap-python output).
+
 COLLECT-ALL-THEN-ASSERT (T-08): each domain exposes
 ``pub fn <domain>_failures() -> Array[String]`` which loops EVERY case and
 appends one message per field mismatch, formatted
@@ -112,7 +127,19 @@ class GenError(Exception):
 
 
 class Domain:
-    """Per-domain schema: file, names, asserted fields, ignorable keys."""
+    """Per-domain schema: file, names, asserted fields, ignorable keys.
+
+    ``unasserted_fields`` are generated into the case struct (fidelity of the
+    data type) but EXCLUDED from the assertion list. For the UA domain this is
+    ``patch_minor``: the golden patch_minor column in ``uap-core/tests/
+    test_ua.yaml`` is unreliable — rows where the matched rule's group 5
+    participates carry a spurious absent/``null`` expectation
+    (ua-parser/uap-core#562). The comparison policy therefore mirrors the
+    vendored semantic authority itself, which pops the column from its
+    assertions: ``uap-python/tests/test_core.py:93-97``
+    ``res.pop("patch_minor", None)``. Engine patch_minor fidelity remains
+    covered by the semantics suite (group-5 fallback unit tests).
+    """
 
     def __init__(
         self,
@@ -123,6 +150,8 @@ class Domain:
         parser: str,
         fields: list[str],
         ignored_keys: set[str],
+        unasserted_fields: set[str] | None = None,
+        unasserted_reason: str = "",
     ):
         self.key = key  # exemption-file key
         self.yaml_name = yaml_name  # uap-core/tests/<yaml_name>
@@ -131,7 +160,24 @@ class Domain:
         self.parser = parser  # @ua_parser function name
         self.fields = fields  # expected fields asserted, in order
         self.ignored_keys = ignored_keys  # present upstream, not asserted
+        self.unasserted_fields = unasserted_fields or set()
+        # One-line reason segments (split on ";") rendered into the generated
+        # file header whenever `unasserted_fields` is non-empty.
+        self.unasserted_reason = unasserted_reason
         self.user_agent_key = "user_agent_string"
+
+    def asserted_fields(self) -> list[str]:
+        """Fields compared by the differential loop, in order."""
+        return [f for f in self.fields if f not in self.unasserted_fields]
+
+    def unasserted_note(self) -> list[str]:
+        """Header comment lines explaining any unasserted fields."""
+        if not self.unasserted_fields:
+            return []
+        names = ", ".join(sorted(self.unasserted_fields))
+        lines = [f"// NOT ASSERTED (kept as generated data): {names} --"]
+        lines.extend(f"// {ln}" for ln in self.unasserted_reason.split("; "))
+        return lines
 
     def allowed_keys(self) -> set[str]:
         return {self.user_agent_key, *self.ignored_keys} | set(self.fields)
@@ -146,8 +192,18 @@ DOMAINS = [
         parser="parse_browser",
         # Browser mirrors the upstream UserAgent record incl. patch_minor
         # (group-5 fallback, matchers.py:50); 41 upstream cases assert it.
+        # patch_minor stays GENERATED DATA but is NOT asserted: the golden
+        # patch_minor column is unreliable (ua-parser/uap-core#562) and the
+        # comparison policy mirrors uap-python tests/test_core.py:93-97
+        # res.pop("patch_minor").
         fields=["family", "major", "minor", "patch", "patch_minor"],
         ignored_keys=set(),
+        unasserted_fields={"patch_minor"},
+        unasserted_reason=(
+            "golden patch_minor column unreliable (ua-parser/uap-core#562);"
+            " comparison policy mirrors vendored uap-python"
+            " tests/test_core.py:93-97 res.pop(\"patch_minor\")."
+        ),
     ),
     Domain(
         key="os",
@@ -316,6 +372,10 @@ def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -
     lines = [header(domain.yaml_name)]
     exempt_note = ", ".join(str(i) for i in exempted) if exempted else "(none)"
     lines.append(f"// Exempted indices for this domain: {exempt_note}")
+    unasserted_lines = domain.unasserted_note()
+    if unasserted_lines:
+        lines.append("")
+        lines.extend(unasserted_lines)
     lines.append("")
     lines.append("///|")
     lines.append(
@@ -419,7 +479,8 @@ def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -
     lines.append("      continue")
     lines.append("    }")
     lines.append(f"    let got = @ua_parser.{domain.parser}(c.input)")
-    for pos, field in enumerate(domain.fields):
+    asserted = domain.asserted_fields()
+    for pos, field in enumerate(asserted):
         # The engine's `family` is a plain String (never absent); every other
         # field is `String?` and renders through the same helper as the
         # expectation side.
@@ -438,8 +499,12 @@ def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -
     lines.append("///|")
     lines.append(
         f'/// Differential test: {len(cases) - len(exempted)} of {len(cases)} '
-        f"{domain.key} cases asserted field-by-field."
+        f"{domain.key} cases asserted field-by-field"
     )
+    lines.append("/// (see header for the comparison policy).")
+    if unasserted_lines:
+        names = ", ".join(sorted(domain.unasserted_fields))
+        lines.append(f"/// Unasserted fields (data only): {names}.")
     lines.append(
         "/// The failure list is printed ONLY when non-empty, so a green run"
     )

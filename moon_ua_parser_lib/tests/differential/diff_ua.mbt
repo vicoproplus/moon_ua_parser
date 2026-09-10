@@ -12,7 +12,11 @@
 // means zero exemptions). Exempted cases stay in the array but
 // are skipped by the test block and counted by
 // `<domain>_exempted_count`.
-// Exempted indices for this domain: 32, 33, 53, 55, 56, 1543, 1544, 1545, 1546, 1558, 1564, 1571, 1574, 1575, 1576, 1577, 1578, 1579, 1580, 1585
+// Exempted indices for this domain: (none)
+
+// NOT ASSERTED (kept as generated data): patch_minor --
+// golden patch_minor column unreliable (ua-parser/uap-core#562)
+// comparison policy mirrors vendored uap-python tests/test_core.py:93-97 res.pop("patch_minor").
 
 ///|
 /// One differential test case from `uap-core/tests/test_ua.yaml`.
@@ -1638,26 +1642,6 @@ pub let ua_cases : Array[UaCase] = [
 /// 0-based indices of cases exempted from differential assertions
 /// (registered in scripts/test_exemptions.json).
 let ua_exempted : Array[Int] = [
-  32,
-  33,
-  53,
-  55,
-  56,
-  1543,
-  1544,
-  1545,
-  1546,
-  1558,
-  1564,
-  1571,
-  1574,
-  1575,
-  1576,
-  1577,
-  1578,
-  1579,
-  1580,
-  1585,
 ]
 
 ///|
@@ -1672,7 +1656,7 @@ fn ua_is_exempted(i : Int) -> Bool {
 
 ///|
 /// Number of cases exempted from the assertions below.
-pub let ua_exempted_count : Int = 20
+pub let ua_exempted_count : Int = 0
 
 ///|
 /// Render one optional value for a failure message as a PLAIN string:
@@ -1717,16 +1701,17 @@ pub fn ua_failures() -> Array[String] {
     ua_check(failures, i, c.input, "major", ua_render_opt(c.major), ua_render_opt(got.major))
     ua_check(failures, i, c.input, "minor", ua_render_opt(c.minor), ua_render_opt(got.minor))
     ua_check(failures, i, c.input, "patch", ua_render_opt(c.patch), ua_render_opt(got.patch))
-    ua_check(failures, i, c.input, "patch_minor", ua_render_opt(c.patch_minor), ua_render_opt(got.patch_minor))
   }
   failures
 }
 
 ///|
-/// Differential test: 1581 of 1601 ua cases asserted field-by-field.
+/// Differential test: 1601 of 1601 ua cases asserted field-by-field
+/// (see header for the comparison policy).
+/// Unasserted fields (data only): patch_minor.
 /// The failure list is printed ONLY when non-empty, so a green run
 /// is silent; a failing run lists every mismatch at once.
-test "differential ua: 1581 asserted / 1601 total (20 exempted)" {
+test "differential ua: 1601 asserted / 1601 total (0 exempted)" {
   let failures = ua_failures()
   if failures.length() > 0 {
     let buf = StringBuilder()

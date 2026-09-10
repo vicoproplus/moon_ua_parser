@@ -585,7 +585,8 @@ pub fn os_failures() -> Array[String] {
 }
 
 ///|
-/// Differential test: 483 of 483 os cases asserted field-by-field.
+/// Differential test: 483 of 483 os cases asserted field-by-field
+/// (see header for the comparison policy).
 /// The failure list is printed ONLY when non-empty, so a green run
 /// is silent; a failing run lists every mismatch at once.
 test "differential os: 483 asserted / 483 total (0 exempted)" {
