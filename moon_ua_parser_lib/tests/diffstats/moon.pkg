@@ -1,7 +1,9 @@
 // Differential pass-rate reporter (T-08 stats).
 //
-// Executable package: run with `moon run tests/diffstats --release` from the
-// moon project root. Imports the generated differential package and computes
+// Executable package: run with
+//   moon run --target native --release tests/diffstats
+// from the moon project root (target must be native/js: wasm cannot launch
+// on this host). Imports the generated differential package and computes
 // the per-domain pass-rate table mandated by docs/regex-migration.md:
 //
 //   rate = passed / total, where exempted cases count in the DENOMINATOR
