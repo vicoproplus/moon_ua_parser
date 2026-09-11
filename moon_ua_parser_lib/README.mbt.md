@@ -82,7 +82,7 @@ fn main {
 Run it:
 
 ```bash
-moon run cmd/main
+moon run --target native cmd/main
 ```
 
 Output:
@@ -93,8 +93,9 @@ os      : iOS 9.3.1
 device  : iPhone / Apple / iPhone
 ```
 
-The same program runs on every backend: add `--target native`, `--target js`,
-or `--target wasm` to `moon run`.
+The same program runs on the native and js backends today
+(`moon run --target native` / `moon run --target js`); the wasm backend
+compiles via `moon build --target wasm`.
 
 ## API
 
