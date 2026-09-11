@@ -50,6 +50,12 @@ jobs:
         working-directory: moon_ua_parser_lib
         run: moon check
 
+      - name: Interface drift check (moon info)
+        working-directory: moon_ua_parser_lib
+        run: |
+          moon info
+          git diff --exit-code -- '*.mbti' '**/*.mbti'
+
       - name: Generation consistency (regenerated output must be byte-identical)
         working-directory: moon_ua_parser_lib
         run: |

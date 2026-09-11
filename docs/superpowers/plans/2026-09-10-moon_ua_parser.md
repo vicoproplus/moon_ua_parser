@@ -4,7 +4,7 @@
 将已确认的 PRD/design/spec 链落地为 MoonBit UA 解析库：uap-core@73e7340 规则快照构建期转换为 MoonBit 数据源码，匹配引擎语义对齐 uap-python@6dd8c39，18213 条上游差分用例达标（browser ≥99% / os·device ≥97%），发布 mooncakes v0.1.0 并附框架中间件示例。
 
 ## Architecture
-纯库（无 daemon/端点/页面）。构建期：Python 脚本（PyYAML）读 `uap-core/regexes.yaml` 与 `uap-core/tests/*.yaml`，生成 `src/ua_parser/rules/*.mbt`（规则数据）与 `tests/differential/*.mbt`（差分用例）。运行时：`rules` 包顶层预编译全部 1274 条 Regexp（fail-loud）；engine 按域顺序首条命中；template 求值 $1-$4（strip、空串→None）；api 暴露 parse/parse_browser/parse_os/parse_device（可选规则编号）。布局照抄 spec §2 架构图（types/template/matcher/engine/api 五文件 + rules 生成目录 + examples）。
+纯库（无 daemon/端点/页面）。构建期：Python 脚本（PyYAML）读 `uap-core/regexes.yaml` 与 `uap-core/tests/*.yaml`，生成 `src/ua_parser/rules/*.mbt`（规则数据）与 `tests/differential/*.mbt`（差分用例）。运行时：`rules` 包顶层预编译全部 1270 条 Regexp（fail-loud）；engine 按域顺序首条命中；template 求值 $1-$4（strip、空串→None）；api 暴露 parse/parse_browser/parse_os/parse_device（可选规则编号）。布局照抄 spec §2 架构图（types/template/matcher/engine/api 五文件 + rules 生成目录 + examples）。
 
 ## Tech Stack
 - MoonBit 工具链 moon 0.1.20260904（94521db）— `moon version` 实测（E2 证据）
@@ -37,7 +37,7 @@
 - **W1 worker 允许修改文件清单**: 本计划为单一执行者顺序执行（无并行 worker）→ N/A — no parallel workers.（如执行期改为并行派发，必须先为每个 worker 声明互斥 `[允许修改文件清单]` 并在并行批后插 V1 集成验证。）
 - **W2 重派前残留核对**: 计划为全新执行（无前次失败实例）→ N/A — no re-dispatch in this plan.（如某任务失败后重派，先 `git status`/`git log` 核对残留并清理列为重派第一步。）
 - **V1 并行批后整变更集成验证**: 无并行批 → N/A — no parallel batches.（每批末的集成验证由唯一执行者本人在 V3 检查点执行，满足单一执行者语义。）
-- **V2 配置/路由改动后 dry-run 验证**: T-03（gen_rules 生成配置）与 T-05（gen_tests 生成配置）均为生成产物配置改动 → 各任务内紧跟 dry-run：运行生成命令 + 读生成产物（规则条数 = 1274 分节核对、用例条数 = 1601/483/16129 核对、`moon check` 编译通过）。→ ✅ 已挂。
+- **V2 配置/路由改动后 dry-run 验证**: T-03（gen_rules 生成配置）与 T-05（gen_tests 生成配置）均为生成产物配置改动 → 各任务内紧跟 dry-run：运行生成命令 + 读生成产物（规则条数 = 1270 分节核对、用例条数 = 1601/483/16129 核对、`moon check` 编译通过）。→ ✅ 已挂。
 - **L1 机械类任务执行上限**: gen_rules/gen_tests 为单命令确定性脚本（非收集/轮询类）→ N/A — no mechanical tasks（上限不适用；脚本单次执行，失败即失败，无轮询循环）。
 - **D1 构建/校验失败诊断路径**: 每个验证门（T-01/03/05/06/08/10/12）预设诊断路径：先归因（`moon check`/`moon test` 错误输出定位到文件与行）→ 定位责任任务（生成物错→T-03/05；引擎错→T-06；用例错→T-08 归因三分类）→ 再处置（修复生成源/修复引擎/登记豁免）。禁止先猜原因。→ ✅ 已挂。
 - **V3 增量审查检查点**: 计划改动量大（多模块多文件），按 4 批交付（B1 生成器、B2 引擎与 API、B3 差分修复、B4 发布与示例），每批末一个增量审查检查点（R-1～R-4，单一审查者=主执行者自查+按批验收命令），通过后进下一批。→ ✅ 已挂。
@@ -59,7 +59,7 @@
 M2 结构化归属断言：本库表面清单的机读枚举处 = `.mbti` 接口文件（`moon info` 生成）→ tests/semantics 断言每个公开函数可调用；CI 跑 `moon info` 检测接口面变更。骨架遗产：`moon_ua_parser_lib/` 为脚手架（17 分钟前 moon new 生成），**默认未完成**——其 stub 文件（moon_ua_parser.mbt 141B、test/wbtest stub）将在 T-02 重写，不信任任何预置内容。→ ✅ 矩阵 8 行 = 8 表面，每行有归属与验收。
 
 ## Fixture Provenance Declaration (MANDATORY)
-- **F1 金样本捕获**: 本计划的外部行为真值源 = uap-core/uap-python 仓库快照（已入库 `./uap-core`、`./uap-python`），非运行时服务端。金样本 = `uap-core/tests/*.yaml`（18213 条，期望值内嵌于用例）与 `uap-core/regexes.yaml`（1274 条规则）。捕获已完成（git 快照固定），无需网络抓取。→ ✅
+- **F1 金样本捕获**: 本计划的外部行为真值源 = uap-core/uap-python 仓库快照（已入库 `./uap-core`、`./uap-python`），非运行时服务端。金样本 = `uap-core/tests/*.yaml`（18213 条，期望值内嵌于用例）与 `uap-core/regexes.yaml`（1270 条规则）。捕获已完成（git 快照固定），无需网络抓取。→ ✅
 - **F2 fixture 溯源标注**: 差分用例全部 `golden:uap-core/tests/<file>.yaml`（生成脚本逐条搬运期望值，无手工编造）；robust 用例（空串/超长/控制字符）标注 `synthetic:畸形输入构造`（上游无现成畸形用例清单；其期望语义=确定结果不崩溃，取自 spec V12 uap-python 行为而非臆造输出）。→ ✅
 - **F3 合成豁免登记**: robust 用例输入为合成（三类别各 ≥3 例），登记原因：上游 tests YAML 不含专门畸形输入样本；期望值语义来自权威源行为定义（不崩溃、Other fallback），非按本实现反推。→ ✅ 已登记。
 
@@ -149,11 +149,13 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 **Files**: `moon_ua_parser_lib/src/ua_parser/moon.pkg`、`types.mbt`、删除脚手架 stub（`moon_ua_parser.mbt`、`moon_ua_parser_test.mbt`、`moon_ua_parser_wbtest.mbt`、`cmd/`）
 
 **Interfaces**（spec §3 命名约定 + PRD 10.3 数据字典）
-- `Browser { family : String; major : String?; minor : String?; patch : String? }`
+- `Browser { family : String; major : String?; minor : String?; patch : String?; patch_minor : String? }`
 - `OS { family : String; major : String?; minor : String?; patch : String?; patch_minor : String? }`
 - `Device { family : String; brand : String?; model : String? }`
 - `UaInfo { browser : Browser; os : OS; device : Device }`
 - `UaError`（含 RegexpCompileError(String) 等变体；Show/Eq derive）
+
+（注：T-09 落地时为三域类型末位补 `rule_index : Int?` 字段，交付形态与 PRD 10.3 数据字典一致；T-02 先不写该字段。）
 
 **Steps**
 1. read_file spec §3 + PRD 10.3 数据字典，逐字段核对类型与默认值语义（family 未命中="Other"、版本字段 None）。
@@ -175,7 +177,7 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 **Steps**
 1. read_file `uap-python/src/ua_parser/utils.py:8-33`（replacer 语义）+ `uap-python/src/ua_parser/matchers.py:32-56`（UA 模板仅 $1）核对模板形态。
 2. 写 gen_rules.py：PyYAML 解析 → 模板预解析 → 生成 MoonBit 数据源码；路径守卫（`../uap-core/regexes.yaml` 不存在即 sys.exit(1) 带信息）；失败日志落盘 `scripts/gen_rules.error.log`。
-3. 运行生成；**V2 dry-run**：统计生成规则数（ua 433 / os 207 / device 634，合计 1274，spec V3 核对）；`moon check` 编译生成物。
+3. 运行生成；**V2 dry-run**：统计生成规则数（ua 433 / os 204 / device 633，合计 1270，spec V3 核对）；`moon check` 编译生成物。
 4. 生成 `rules/moon.pkg`（顶层 let 预编译：lazy init 或 init 块逐条 `@regexp.compile`，flag 规则传 `flags="i"`；失败抛含规则序号的 UaError）。
 5. 验收：`python scripts/gen_rules.py && cd moon_ua_parser_lib && moon check` exit 0；生成文件头含「GENERATED — DO NOT EDIT」标记与快照版本。日志：脚本 stdout 规则计数。
 
@@ -189,7 +191,7 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 1. 写预编译：三域各 `Array[Regexp]` 顶层构建（spec §2 D8：进程一次、fail-loud）；错误消息含「域 + 规则序号 + 原文片段」。
 2. 临时破坏一条规则（本地实验，验证后还原）验证 fail-loud 消息可定位。
 3. `moon test --target native`（初始化在测试装载时执行，隐式验证）。
-4. 验收：moon test exit 0（1274 条全编译，spec V8 预证 0 失败）；人为损坏实验的错误输出含规则定位（附入任务记录）。日志：终端输出。
+4. 验收：moon test exit 0（1270 条全编译，spec V8 预证 0 失败）；人为损坏实验的错误输出含规则定位（附入任务记录）。日志：终端输出。
 
 **时长上限**: 45 分钟。
 
@@ -227,7 +229,7 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 1. **回读门（Authority Re-Read）**：逐条 read_file 权威源（见 Authority Alignment Table 五行）核对语义后再实现——basic.py 顺序首条命中、utils.py replacer、user_agent_parser.py 三 Parser、matchers.py flag-i。
 2. template.mbt：预解析模板求值（组号取值 + strip 两端空白 + 空串→None）；组未参与匹配 → None（对齐 lastindex 语义）。
 3. engine.mbt：三域循环 rules、首条命中生效、全不命中 → Other fallback（family="Other"、版本/brand/model=None）。
-4. api.mbt：parse 聚合三域；单域三函数；`with_rule_index?~` 选项（T-09 前先不含选项，T-09 加）。
+4. api.mbt：parse 聚合三域；单域三函数；`with_rule_index?~` 选项（T-09 前先不含选项，T-09 加；该任务同时在三域类型末位补 `rule_index : Int?` 字段）。
 5. 增量门：`moon check && moon fmt && moon test --target native`（此时差分用例大部分红——正常，B3 修复；本任务验收只看编译绿 + semantics 用例绿）。
 6. 验收：`moon check` exit 0；tests/semantics 手写用例（Chrome 桌面三域、Other fallback、模板替换 ArcGIS 例）绿。日志：终端输出。
 
@@ -275,7 +277,7 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 **Files**: `moon_ua_parser_lib/src/ua_parser/api.mbt`、tests/semantics
 
 **Steps**
-1. `parse(ua, with_rule_index?~ : Bool)`：启用时结果携带三域命中规则序号（域内 0 起）；默认关闭结构不变（.mbti 兼容检查：默认调用签名不变）。
+1. `parse(ua, with_rule_index?~ : Bool)`：启用时结果携带三域命中规则序号（域内 0 起，落为 `Browser`/`OS`/`Device` 末位的 `rule_index : Int?` 字段，未启用为 `None`）；默认关闭调用签名不变（.mbti 兼容检查：默认调用签名不变）。
 2. semantics 断言：Chrome UA 启用选项返回编号；不启用时 UaInfo 结构与之前一致。
 3. 验收：`moon check && moon test --target native` 绿；`moon info` diff 确认无破坏性接口变更（新增可选参数为向后兼容）。日志：终端输出。
 
@@ -342,7 +344,7 @@ moon run --target native examples/middleware && echo EXAMPLE-OK
 |--------|---------------------------|-----------|----------|
 | 三域顺序首条命中 | `uap-python/src/ua_parser/basic.py:55-83` `Resolver.__call__` | engine 按域循环 rules，首条命中生效，全不命中 Other | ✅ 一致 |
 | OS/Device 模板求值（$N/strip/空→None） | `uap-python/src/ua_parser/utils.py:12-33` `replacer`；`uap-python/src/ua_parser/user_agent_parser.py:126-135` `MultiReplace` | template.mbt 同语义（预解析组号，运行时求值+strip+空串 None） | ✅ 一致 |
-| UA 家族仅 $1 + 版本取组 2/3/4（lastindex 防越界） | `uap-python/src/ua_parser/user_agent_parser.py:32-56` `UserAgentParser.Parse` | UA 族模板仅 $1 替换或字面量；v1-v3 无模板取组 2/3/4，未参与即 None | ✅ 一致 |
+| UA 家族仅 $1 + 版本取组 2/3/4/5（lastindex 防越界） | `uap-python/src/ua_parser/matchers.py:41-52` `UserAgentMatcher.__call__`（major/minor/patch/patch_minor 无模板取组 2/3/4/5） | UA 族模板仅 $1 替换或字面量；v1-v4 无模板取组 2/3/4/5（patch_minor ← 组 5），未参与即 None | ✅ 一致 |
 | OS 四段版本（含 v4） | `uap-python/src/ua_parser/user_agent_parser.py:95-123` `OSParser.Parse` | OS 版本四段同构（major/minor/patch/patch_minor） | ✅ 一致 |
 | device flag-i（65 条） | `uap-python/src/ua_parser/matchers.py:150-152` `DeviceMatcher.__init__`（IGNORECASE） | 生成时标记 flag，编译传 `flags="i"` | ✅ 一致 |
 | device brand 无模板时为空串→None | `uap-python/src/ua_parser/matchers.py:153-165` `DeviceMatcher.__call__`（`brand or ""` + replacer） | brand 无模板 → None；有模板求值后空串 → None | ✅ 一致 |

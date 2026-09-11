@@ -174,5 +174,10 @@ fn main {
     println("GATES: ALL MET")
   } else {
     println("GATES: NOT ALL MET (see rows above)")
+    // The CI "Differential gate report" step can only fail the build if this
+    // process exits non-zero, so an unmet gate must abort (fail-loud, same
+    // mechanism as src/ua_parser/rules/rules_init.mbt). The report above is
+    // printed first so stdout carries the full table before the fatal exit.
+    abort("GATES: NOT ALL MET (see rows above)")
   }
 }

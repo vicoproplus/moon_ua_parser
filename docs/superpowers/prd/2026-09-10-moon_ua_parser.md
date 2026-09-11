@@ -25,7 +25,7 @@
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|----------|
 | v0.1 | 2026-09-10 | vicoplus | 初始版本（基于申报书与探索阶段成果） |
-| v0.2 | 2026-09-10 | vicoplus | 探索校订：正则引擎 spike 已完成（1274 条规则 100% 编译通过，moonbitlang/regexp@0.3.5 选定）；差分门槛沿用 browser ≥99% / os·device ≥97% |
+| v0.2 | 2026-09-10 | vicoplus | 探索校订：正则引擎 spike 已完成（1270 条规则 100% 编译通过，moonbitlang/regexp@0.3.5 选定）；差分门槛沿用 browser ≥99% / os·device ≥97% |
 
 ---
 
@@ -36,8 +36,8 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 数据支撑：
 
 - 项目自查（2026-09）：mooncakes.io 全量 2363 个包、GitHub 371 个 MoonBit 仓库关键词查重，UA 解析方向**零命中**（来源为项目自查，赛前建议复跑使数字可复现）；
-- 跨语言事实标准 uap-core 含 1274 条规则、上游测试资源共 31327 条用例（本仓库实测：`uap-core/regexes.yaml` 1274 条规则；`tests/` 三文件 18213 条 + `test_resources/` 五文件 13114 条），Java/PHP/Python/Rust/Go 均有实现，MoonBit 缺位；
-- 技术可行性已实测验证（2026-09-10，本机 spike）：moonbitlang/regexp@0.3.5 对 uap-core 全量 1274 条规则 **0 条编译失败**（探针：native/js 双后端跑通，逐条编译），大小写不敏感折叠双向对称——此前移植不可行的主因（缺正则引擎）已消除。
+- 跨语言事实标准 uap-core 含 1270 条规则、上游测试资源共 31327 条用例（本仓库实测：`uap-core/regexes.yaml` 1270 条规则；`tests/` 三文件 18213 条 + `test_resources/` 五文件 13114 条），Java/PHP/Python/Rust/Go 均有实现，MoonBit 缺位；
+- 技术可行性已实测验证（2026-09-10，本机 spike）：moonbitlang/regexp@0.3.5 对 uap-core 全量 1270 条规则 **0 条编译失败**（探针：native/js 双后端跑通，逐条编译），大小写不敏感折叠双向对称——此前移植不可行的主因（缺正则引擎）已消除。
 
 ---
 
@@ -122,7 +122,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 | FR-03 | 命中规则的替换模板语义对齐 uap-python：family_replacement/os_replacement/device_replacement 及 v1-v4_replacement 的 $1-$4 组替换、strip 后空串归 None | US-01, US-02, US-03, US-05 | P0 | 带替换模板的规则（如 ArcGIS 系列规则）输出与 uap-python 一致 |
 | FR-04 | device 规则的 regex_flag: 'i'（65 条）按大小写不敏感语义执行 | US-03 | P0 | 对应规则用例大小写变体输入输出一致 |
 | FR-05 | 规则库以构建期转换的 MoonBit 源码数据结构内置，标注快照版本（uap-core commit 73e7340，2026-08-24） | US-08 | P0 | 运行时零 YAML 依赖；README/代码内可查快照版本号 |
-| FR-06 | 1274 条规则在库初始化时逐条成功编译（spike 已证 100% 可编译），任一编译失败时给出可定位错误 | US-05, US-08 | P0 | 初始化无 RegexpError；人为损坏一条规则时错误信息含规则定位 |
+| FR-06 | 1270 条规则在库初始化时逐条成功编译（spike 已证 100% 可编译），任一编译失败时给出可定位错误 | US-05, US-08 | P0 | 初始化无 RegexpError；人为损坏一条规则时错误信息含规则定位 |
 | FR-07 | 对空串、>4096 字符、含控制字符的输入返回确定结果，不崩溃不超时 | US-04 | P1 | 上述三类输入全量回归通过 |
 | FR-08 | 可选返回命中规则编号（编号 = 域内规则序号），默认关闭 | US-07 | P2 | 启用后 Chrome UA 结果含命中规则编号；默认模式结构不变 |
 | FR-09 | 提供浏览器/OS/设备单域解析函数（parse_browser/parse_os/parse_device） | US-01, US-02, US-03 | P1 | 单域函数与 parse 对应子域输出一致 |
@@ -167,7 +167,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 
 | 里程碑 | 计划日期 | 实际日期 | 交付物 | 状态 |
 |--------|----------|----------|--------|------|
-| 兼容性 spike 完成并锁定引擎 | 2026-09-10 | 2026-09-10 | 引擎选型记录（1274 条 0 失败） | ✅ |
+| 兼容性 spike 完成并锁定引擎 | 2026-09-10 | 2026-09-10 | 引擎选型记录（1270 条 0 失败） | ✅ |
 | 规则转换脚本 + 数据结构源码生成 | 2026-09-14 | | regexes.yaml → .mbt 数据源码 + 快照版本标注 | ⏳ |
 | 匹配引擎 + 主 API | 2026-09-21 | | parse/parse_browser/parse_os/parse_device 可用 | ⏳ |
 | 差分测试转换与修复达标 | 2026-09-30 | | moon test 差分通过率 ≥ 门槛 | ⏳ |
@@ -181,7 +181,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 
 | 依赖方 | 依赖内容 | 预计交付 | 当前状态 | 风险等级 |
 |--------|----------|----------|----------|----------|
-| moonbitlang/regexp@0.3.5 | 正则编译与匹配（VM 执行引擎） | 已发布（alpha，30K 下载） | ✅ 已验证（本机 spike：1274 条 0 失败） | 低（alpha API 可能变） |
+| moonbitlang/regexp@0.3.5 | 正则编译与匹配（VM 执行引擎） | 已发布（alpha，30K 下载） | ✅ 已验证（本机 spike：1270 条 0 失败） | 低（alpha API 可能变） |
 | uap-core（commit 73e7340） | regexes.yaml 规则快照 + tests 用例 | 已固定 | ✅ 已固定本地 | 无 |
 | moon 工具链 0.1.20260904 | 构建/测试/发布 | 已安装 | ✅ | 无 |
 | uap-python（commit 6dd8c39） | 差分对照实现（本地运行取期望值） | 已固定 | ✅ 已固定本地 | 无 |
@@ -193,7 +193,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 | regexp@0.3.5 为 alpha，未来 API 破坏性变更 | 升级成本 | 中 | 中 | 锁定 0.3.5；moon.mod 固定版本；发布前重跑差分 |
 | 匹配语义差异：moonbitlang/regexp 回溯优先级与 uap-core 的 PCRE 语义在 alternation 上存在差异 | 个别规则差分失败 | 中 | 中 | W2 引擎实现时对 alternation 语义抽样验证；差异用例记录并逐条对齐 |
 | device 差分通过率不足 97%（16k 用例含大量爬虫/型号） | G-02 不达标 | 中 | 中 | W3 全量差分后逐域修复；上游已知难点用例单列 |
-| 规则快照 1274 条全量编译导致库初始化耗时过长 | 首次 parse 延迟 | 低 | 低 | 构建期预编译为数据源码；基准脚本量化初始化耗时 |
+| 规则快照 1270 条全量编译导致库初始化耗时过长 | 首次 parse 延迟 | 低 | 低 | 构建期预编译为数据源码；基准脚本量化初始化耗时 |
 | 大小写折叠语义差异（MoonBit 引擎仅 ASCII 折叠 vs uap-core Python full-Unicode 折叠） | 个别 Unicode 大小写用例差分失败 | 低 | 低 | flag-i 规则 65 条已实测双向折叠；W2 抽验非 ASCII 字母 |
 
 ---
@@ -226,7 +226,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 
 | 字段名 | 类型 | 必填 | 校验规则 | 默认值 | 说明 |
 |--------|------|------|----------|--------|------|
-| browser | Browser | 是 | 三字段非 None | - | family/major/minor/patch |
+| browser | Browser | 是 | 三字段非 None | - | family/major/minor/patch/patch_minor |
 | os | OS | 是 | 四字段非 None | - | family/major/minor/patch/patch_minor |
 | device | Device | 是 | 三字段非 None | - | family/brand/model |
 
@@ -238,6 +238,8 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 | major | String? | 否 | 命中组或替换模板 | None | 主版本 |
 | minor | String? | 否 | 同上 | None | 次版本 |
 | patch | String? | 否 | 同上 | None | 补丁版本 |
+| patch_minor | String? | 否 | 同上 | None | 第四段版本（组 5 回退） |
+| rule_index | Int? | 否 | 启用 with_rule_index 且命中规则时为 Some | None | 命中规则序号（T-09 诊断元数据） |
 
 #### 实体 3: OS
 
@@ -245,6 +247,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 |--------|------|------|----------|--------|------|
 | family | String | 是 | 未命中 = "Other" | "Other" | 操作系统族名 |
 | major/minor/patch/patch_minor | String? | 否 | 命中组或替换模板 | None | 版本四段 |
+| rule_index | Int? | 否 | 启用 with_rule_index 且命中规则时为 Some | None | 命中规则序号（T-09 诊断元数据） |
 
 #### 实体 4: Device
 
@@ -253,6 +256,7 @@ MoonBit 生态已有 Crescent、mars、pony、mbit、Halo、moonapi 等 10 余�
 | family | String | 是 | 未命中 = "Other" | "Other" | 设备族名（Spider 表爬虫） |
 | brand | String? | 否 | 命中组或 device_replacement | None | 品牌 |
 | model | String? | 否 | 命中组 | None | 型号 |
+| rule_index | Int? | 否 | 启用 with_rule_index 且命中规则时为 Some | None | 命中规则序号（T-09 诊断元数据） |
 
 ### 10.4 需求质量评估
 

@@ -86,7 +86,7 @@ examples/                          └─ middleware/    （中间件示例，FR
 - 引擎语义契约（对齐 uap-python，位点见 V12）：
   1. 三域各自**按数组顺序**尝试，**首条命中生效**，全不命中 → family="Other"（brand/model=None、版本字段=None）；
   2. 替换模板：UA 族 family 仅 `$1` 替换或字面量；OS/Device 族 family/brand/model 与版本字段用 `$1-$4` 模板，求值后 **strip 两端空白、空串归 None**（uap-python `utils.py:33`）；
-  3. UA 版本字段 v1-v3：模板字面量直接用；无模板时取捕获组 2/3/4，**可选组未参与匹配即 None**（`lastindex` 语义：组号 ≤ 实际最后参与组才取值，`user_agent_parser.py:45-54`）；可选组 `(?:\.(\d+)|)` 参与与否两态已探针实测（`Firefox/120.0` → Some("0")，`Firefox/120` → None）。
+  3. UA 版本字段 v1-v4：模板字面量直接用；无模板时取捕获组 2/3/4/5（patch_minor ← 组 5），**可选组未参与匹配即 None**（`lastindex` 语义：组号 ≤ 实际最后参与组才取值，`user_agent_parser.py:45-54`）；可选组 `(?:\.(\d+)|)` 参与与否两态已探针实测（`Firefox/120.0` → Some("0")，`Firefox/120` → None）。
   4. device flag-i（65 条）：`compile(..., flags="i")`；UA/OS 无 flag；
   5. 匹配位置：`search` 语义（非锚定），regexp `execute` 天然满足——本机探针实测：无锚定模式 `(Chrome)/(\d+)\.` 于长 UA 中段命中并取组（probe native 后端全绿）。
 - 命名约定：`UaInfo/Browser/OS/Device`、`parse/parse_browser/parse_os/parse_device`、规则编号 = 域内 0 起序号。
@@ -126,7 +126,7 @@ PRD P0/P1 全覆盖；P2 项（FR-08/FR-10）全部承接；无 spec 新增 PRD 
 | S-05 | `scripts/gen_rules.py` + `rules_data.mbt` + `rules_version.mbt`（commit 73e7340 标注） | [EXT]（构建期转换决策，设计 D4） | — |
 | S-06 | rules 包顶层预编译 + 定位错误消息 | [EXT]（预编译决策，设计 D8） | — |
 | S-07 | `tests/robust.mbt` 畸形输入回归（空串/>4096/控制字符各 ≥3 例） | [ALIGN]（上游语义：畸形输入得 None 族字段不崩溃） | uap-python 解析语义 |
-| S-08 | `parse(ua, with_rule_index?~)` 可选规则编号 | [EXT]（产品决策 FR-08） | — |
+| S-08 | `parse(ua, with_rule_index?~)` 可选规则编号；启用时 `Browser`/`OS`/`Device` 三域类型的末字段 `rule_index : Int?` 携带命中规则序号（域内 0 起），默认关闭并置 `None` | [EXT]（产品决策 FR-08） | — |
 | S-09 | `parse_browser/parse_os/parse_device` | [ALIGN] | uap-python `__init__.py:175/184/193` |
 | S-10 | `examples/middleware/` 示例 | [EXT]（产品决策 FR-10） | — |
 | S-11 | `scripts/gen_tests.py` + `tests/differential/diff_{ua,os,device}.mbt` | [EXT]（转换范式，设计 D5）；期望值逐条对齐上游 YAML | `uap-core/tests/*.yaml` |
