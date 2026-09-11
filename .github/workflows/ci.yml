@@ -1,0 +1,86 @@
+# CI for the moon_ua_parser library.
+#
+# Moon project root is the `moon_ua_parser_lib/` subdirectory; the generator
+# scripts live in repo-root `scripts/`; the `uap-core/` and `uap-python/`
+# snapshots are vendored and read-only.
+#
+# Toolchain pinning: the official installer is
+#   curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+# (https://www.moonbitlang.com/download/), and the official moonbitlang/core
+# CI setup action pins a version by passing it to the same script:
+#   curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "<version>"
+# (https://github.com/moonbitlang/core/blob/main/.github/actions/setup/action.yml)
+# NFR: CI must pin the exact toolchain version, so we pass 0.1.20260904.
+
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: check / gen-consistency / native / js / wasm / diffstats
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.10"
+
+      - name: Install PyYAML (pinned, used by the generator scripts)
+        run: python -m pip install PyYAML==6.0.2
+
+      - name: Install MoonBit CLI (pinned 0.1.20260904)
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Verify toolchain
+        run: moon version --all
+
+      - name: Static check
+        working-directory: moon_ua_parser_lib
+        run: moon check
+
+      - name: Generation consistency (regenerated output must be byte-identical)
+        working-directory: moon_ua_parser_lib
+        run: |
+          python ../scripts/gen_rules.py
+          python ../scripts/gen_tests.py
+          git diff --exit-code -- src/ua_parser/rules tests/differential
+
+      - name: Tests (native)
+        timeout-minutes: 30
+        working-directory: moon_ua_parser_lib
+        run: moon test --target native
+
+      - name: Tests (js)
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon test --target js
+
+      # preferred_target is wasm in moon.mod, so this is the wasm runtime gate.
+      - name: Tests (wasm, default target)
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon test
+
+      - name: Build (wasm)
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon build --target wasm
+
+      # Final evidence line: the differential gate table
+      # (browser >= 99% / os >= 97% / device >= 97%).
+      - name: Differential gate report
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon run --target native --release tests/diffstats
