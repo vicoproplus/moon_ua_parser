@@ -15,15 +15,15 @@ version = "0.1.0"
 
 readme = "README.mbt.md"
 
-repository = ""
+repository = "https://github.com/vicoproplus/moon_ua_parser"
 
 license = "Apache-2.0"
 
-keywords = []
+keywords = ["user-agent", "ua-parser", "http", "parser"]
 
 preferred_target = "wasm"
 
-description = ""
+description = "User-agent parser library ported from uap-core rules with uap-python-compatible semantics"
 
 import {
   "moonbitlang/regexp@0.3.5",
