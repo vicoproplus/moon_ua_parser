@@ -8,11 +8,13 @@
 //   `None`, and a populated record is always truthy).
 // - OS / Device domains (matchers.py OSMatcher/DeviceMatcher, L100-112 /
 //   L157-167): first regex match wins as well. Upstream raises ValueError
-//   when the family template evaluates to `None`, which no uap-core rule
-//   can trigger; we mirror the legacy reference loops instead
-//   (user_agent_parser.py `_ParseOS`/`_ParseDevice`, L290-302/L321-330:
-//   `if os/device: break`) by skipping such a rule and continuing the scan
-//   — same observable behavior on all real data, without the crash.
+//   when the family template evaluates to `None` (e.g. device rule 451
+//   `(?:(WeTab)-Browser|; (wetab) Build)` branch B matches `; wetab Build`
+//   with group 1 absent — registered in docs/regex-migration.md §4.3); we
+//   mirror the legacy reference loops instead (user_agent_parser.py
+//   `_ParseOS`/`_ParseDevice`, L290-302/L321-330: `if os/device: break`)
+//   by skipping such a rule and continuing the scan — same observable
+//   behavior on all 18213 golden cases, without the crash.
 
 ///|
 /// Match the browser (user-agent) domain: first matching rule wins; derive

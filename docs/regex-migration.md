@@ -103,6 +103,20 @@ uap-python 对照取证；第 2 轮为裁决落地（协议采纳）；无需进
 （引擎 group-5 回退语义正确）；20 条 golden 缺省但权威产出非空 → 数据矛盾，
 类别 (b) 成立。上游快照按 R8 冻结，不修改 uap-core/uap-python。
 
+### 4.3 引擎设计偏差登记：device 空 family 跳过语义（R13）
+
+类别 (a) 引擎语义差，但**不影响任何 golden 用例**；属有意设计取舍，登记备查：
+
+- **现象**：uap-core device 规则 451 `(?:(WeTab)-Browser|; (wetab) Build)` 的
+  分支 B（`; wetab Build` 命中、捕获组 1 为 `None`）会令家庭模板求值为空。
+- **权威行为**：vendored uap-python `matchers.py` `DeviceMatcher.__call__` 对其
+  `raise ValueError("Unable to find device family …")`（现代 resolver）。
+- **本引擎行为**：跳过该条继续扫描（对齐 user_agent_parser.py `_ParseDevice` 旧式
+  `if device: break` 循环），不崩溃、并让命中的真实设备规则生效。
+- **取舍理由**：跳过比崩溃更稳健；`uap-core/tests/test_device.yaml` 无任何用例覆盖
+  分支 B，故 18213 条差分不受影响（§5 审计 device 0 冲突即此）。已同时在
+  `src/ua_parser/matcher.mbt` 头部注释修正原「无规则可触发」的错误断言。
+
 ## 5. 三栏审计（golden × uap-python × 本引擎）
 
 方法：对 uap-core 全部 18213 用例，用权威实现逐域复算并与 golden 逐字段比对
@@ -135,7 +149,7 @@ semantics 套件直接覆盖）。历史轨迹：生成器修复前 0%（格式�
 ## 7. 验证输出
 
 - 差分全量（debug 默认）：`moon test --target native`、`moon test --target js`
-  → 均 `Total tests: 27, passed: 27, failed: 0.`（附录 B）。
+  → 均 `Total tests: 31, passed: 31, failed: 0.`（附录 B）。
 - 分域率表：`moon run --target native tests/diffstats`（debug 默认）与
   `--release` 双跑，结果一致（附录 A）。
 - 运行时说明：差分成本由 moonbitlang/regexp 虚拟机主导（18213 用例 × 首中即停的
@@ -166,8 +180,8 @@ GATES: ALL MET
 
 | 命令（moon_ua_parser_lib/ 下） | exit | 耗时 | 结果 |
 |--------------------------------|------|------|------|
-| `moon test --target native`（debug，默认模式） | 0 | 1002s | `Total tests: 27, passed: 27, failed: 0.` |
-| `moon test --target js`（debug，默认模式） | 0 | 101s | `Total tests: 27, passed: 27, failed: 0.` |
+| `moon test --target native`（debug，默认模式） | 0 | 1002s | `Total tests: 31, passed: 31, failed: 0.` |
+| `moon test --target js`（debug，默认模式） | 0 | 101s | `Total tests: 31, passed: 31, failed: 0.` |
 | `moon run --target native --release tests/diffstats` | 0 | ~6min | 附录 A，GATES: ALL MET |
 | `moon run --target native tests/diffstats`（debug） | 0 | （未单独计时） | 附录 A，GATES: ALL MET（与 release 完全一致） |
 | `moon build --target wasm` | 0 | 2s | 构建通过（wasm 运行 = 环境阻断 0xc0000139，CI 承担） |
