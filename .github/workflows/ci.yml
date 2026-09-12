@@ -74,10 +74,21 @@ jobs:
         run: moon test --target js
 
       # preferred_target is wasm in moon.mod, so this is the wasm runtime gate.
+      # Bare `moon test` is structurally red on every platform: the generated
+      # debug-codegen wasm module of tests/differential declares 125,840 locals
+      # in its package-init function, over the V8 engine's 50,000 hard cap, so
+      # moonrun (V8-based everywhere) rejects the module statically before any
+      # test runs. CI never surfaced this because this workflow had 0 runs.
+      # Evidence: docs/evidence/wasm-differential-blocker-2026-09-13.md.
+      # Followup-1 (split tests/differential into several packages in
+      # scripts/gen_tests.py, then regenerate) is the registered fix that
+      # restores the wasm differential test gate. Until then, the gate is the
+      # 7 non-differential packages, listed explicitly (28 tests, proven green
+      # on wasm).
       - name: Tests (wasm, default target)
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
-        run: moon test
+        run: moon test -p . -p examples/middleware -p src/ua_parser -p src/ua_parser/rules -p tests/diffstats -p tests/robust -p tests/semantics
 
       - name: Build (wasm)
         timeout-minutes: 15
@@ -90,3 +101,14 @@ jobs:
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
         run: moon run --target native --release tests/diffstats
+
+      # Same three-domain report on the default wasm target. Unlike the
+      # debug/test module of tests/differential (structurally blocked, see the
+      # wasm test gate above), --release codegen folds the corpus literals:
+      # the largest function declares 26,857 locals, inside the V8 50,000 cap,
+      # and the report is byte-identical to native/js
+      # (docs/evidence/diffstats-wasm-2026-09-13.txt).
+      - name: Wasm differential gate report
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon run --target wasm --release tests/diffstats
