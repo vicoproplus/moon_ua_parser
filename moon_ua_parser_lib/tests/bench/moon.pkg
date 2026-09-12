@@ -1,0 +1,28 @@
+// Clock probe (T-01) — minimal executable timing package.
+//
+// Run (from the moon project root moon_ua_parser_lib/):
+//   moon run --target native --release tests/bench
+//   moon run --target js --release tests/bench
+//   moon run --target wasm --release tests/bench  (expected: wasm cannot
+//   launch on this host — see docs/evidence/clock-probe-2026-09-13.log)
+//
+// The per-backend label files below are selected via options(targets: ...),
+// the same mechanism moonbitlang/core/bench uses for its monotonic clock
+// implementations. The timing seam itself needs no backend branching: the
+// backend-specific clock lives behind moonbitlang/core/bench.
+//
+// T-03 evolves this package into the full benchmark runner (not deleted).
+
+pkgtype(kind: "executable")
+
+import {
+  "moonbitlang/core/bench" @core_bench,
+}
+
+options(
+  targets: {
+    "clock_js.mbt": [ "js" ],
+    "clock_native.mbt": [ "native", "llvm" ],
+    "clock_wasm.mbt": [ "wasm", "wasm-gc" ],
+  },
+)

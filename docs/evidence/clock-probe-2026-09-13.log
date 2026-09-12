@@ -1,0 +1,97 @@
+# Clock probe evidence — T-01 三后端时钟探针 (E5 Task 0)
+# date: 2026-09-13 (pinned)
+# host: Windows 10.0.19045 x64, Git Bash
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04), node v26.7.0
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+# probe package: moon_ua_parser_lib/tests/bench/ (pkgtype(kind: "executable"))
+# run commands (cwd = moon_ua_parser_lib/):
+#   moon run --target native --release tests/bench
+#   moon run --target js      --release tests/bench
+#   moon run --target wasm    --release tests/bench
+
+## Timing seam (single point)
+
+All clock access in the probe goes through ONE seam function,
+`clock_pair_diff_us` in tests/bench/main.mbt:
+
+    fn clock_pair_diff_us() -> Double {
+      let t0 = @core_bench.monotonic_clock_start()
+      @core_bench.monotonic_clock_end(t0)
+    }
+
+Seam API: @core_bench.monotonic_clock_start() -> Timestamp /
+          @core_bench.monotonic_clock_end(Timestamp) -> Double
+          (package moonbitlang/core/bench, elapsed returned in microseconds).
+No backend branching exists anywhere else in the probe; the only per-backend
+file content is the self-identification label (clock_native.mbt / clock_js.mbt
+/ clock_wasm.mbt, mapped per target via moon.pkg options(targets: ...), the
+same mechanism core/bench itself uses).
+
+Underlying per-backend clock implementations (verified in this machine's
+~/.moon/lib/core/bench/monotonic_clock_{native,js,wasm}.mbt):
+  native: extern "C" moonbit_monotonic_clock_start / moonbit_monotonic_clock_stop
+  js:     extern "js" performance.now()  (elapsed = (now - ts) * 1000.0 us)
+  wasm:   "__moonbit_time_unstable" instant_now / instant_elapsed_as_secs_f64
+
+## Per-backend results (verbatim probe output, single capture run 2026-09-13)
+
+--- native ---
+clock-probe backend=native
+api=@core_bench.monotonic_clock_start/monotonic_clock_end (moonbitlang/core/bench, elapsed in microseconds)
+diff1_us=0
+diff2_us=0
+min_nonzero_us=0.09999999999999999 (1000 samples)
+
+--- js ---
+clock-probe backend=js
+api=@core_bench.monotonic_clock_start/monotonic_clock_end (moonbitlang/core/bench, elapsed in microseconds)
+diff1_us=8.1999999999951
+diff2_us=0.30000000000285354
+min_nonzero_us=0.09999999999621423 (1000 samples)
+
+--- wasm ---
+clock-probe backend=wasm
+api=@core_bench.monotonic_clock_start/monotonic_clock_end (moonbitlang/core/bench, elapsed in microseconds)
+diff1_us=40.599999999999994
+diff2_us=1.7
+min_nonzero_us=0.3 (1000 samples)
+
+## Availability / precision conclusions
+
+| backend | available | clock API (underlying)                  | two diff readings (us) | observed resolution (min non-zero, 1000 samples) |
+|---------|-----------|------------------------------------------|------------------------|--------------------------------------------------|
+| native  | YES       | extern "C" moonbit_monotonic_clock_start/stop | 0, 0              | ~0.1 us (100 ns)                                  |
+| js      | YES       | performance.now() via extern "js"        | 8.2, 0.3               | ~0.1 us (100 ns); node v26.7.0 confirmed working (E3) |
+| wasm    | YES*      | WASI instant_now/instant_elapsed_as_secs_f64 | 40.6, 1.7          | ~0.3 us                                           |
+
+Notes:
+- diff1/diff2 = elapsed us of two consecutive monotonic clock reads
+  (pair-read overhead + resolution). Zero readings on native mean two
+  consecutive reads landed inside one clock tick — expected for a 100 ns
+  resolution clock; min_nonzero over 1000 samples gives the true resolution.
+- *wasm: moon 0.1.20260904 on this host LAUNCHED the compiled wasm probe
+  successfully (exit 0) and produced real readings. This CONTRADICTS the
+  earlier host note "wasm cannot launch on this host" recorded in
+  tests/diffstats/main.mbt (that observation was made for the diffstats
+  reporter under an earlier toolchain state). Recorded explicitly per the
+  no-silent-skip rule; if a future run fails to launch wasm, the failure
+  message must be recorded here instead of readings.
+- js: monotonicity source is performance.now() (Node hrtime-backed), not
+  Date.now(); node itself confirmed available (v26.7.0).
+
+## Fallback design (registered, NOT implemented in T-01)
+
+All three backends compile and run against moonbitlang/core/bench's
+monotonic clock pair, so no fallback was activated. Directions registered
+for future use, to be converged INSIDE the seam function (per-backend
+clock_*.mbt files) if a backend ever lacks the monotonic pair:
+  js:   extern "js" Date.now() — millisecond wall-clock fallback (coarse,
+        non-monotonic; last resort only)
+  wasm: host-injected clock / WASI clock probing
+
+## Verification status at capture time
+
+- moon check --target native / js / wasm: all "0 errors" (44 pre-existing
+  baseline warnings, none from tests/bench)
+- moon test --target native: 31/31 passed (baseline unchanged)
+- probe package = 5 files, all under moon_ua_parser_lib/tests/bench/
