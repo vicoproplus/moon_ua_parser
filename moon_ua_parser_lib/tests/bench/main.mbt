@@ -30,8 +30,8 @@
 //     the parsed subsample) so dead-code elimination cannot drop parses
 //     and round data is validated;
 //   - `-- --smoke`: the SMOKE_STRIDE subsample, same warmup/timed
-//     structure, compared against the placeholder coarse threshold
-//     SMOKE_NS_PER_PARSE_LIMIT (T-06 calibrates); if the median
+//     structure, compared against the calibrated coarse threshold
+//     SMOKE_NS_PER_PARSE_LIMIT (pinned in T-06); if the median
 //     ns_per_parse exceeds the limit the FULL report is printed FIRST and
 //     only then abort() ends the process non-zero — the report is always
 //     already on stdout when the exit code turns non-zero; the normal path
@@ -80,10 +80,17 @@ const BENCH_STRIDE : Int = 20
 const SMOKE_STRIDE : Int = 50
 
 ///|
-/// Placeholder coarse smoke threshold in ns per parse: 100 ms — above the
-/// measured native reality (~37.5 ms/parse) so the normal path exits 0.
-/// A NAMED PLACEHOLDER — T-06 calibrates it (B2 baseline median x 3).
-const SMOKE_NS_PER_PARSE_LIMIT : Double = 100_000_000.0
+/// Calibrated coarse smoke threshold: 150 ms per parse (T-06, pinned
+/// 2026-09-13 from the B2 baseline). Derivation: T-04 native
+/// median-of-medians 23.64 ops/s = 42,299,995.40 ns/parse; x3 ≈ 126.9 ms;
+/// rounded up to 150 ms so the buffer additionally covers the hardware
+/// difference between this host (Windows 10 19045) and the CI runner
+/// (ubuntu-latest) plus the native noise band (T-04 measured up to 11.85%
+/// cross-run deviation). Sanity: T-05 measured smoke-mode ≈44.33 ms/parse
+/// → ≈3.4x headroom, so the normal path exits 0. If a CI run ever misfires
+/// here, return to THIS constant and recalibrate from a fresh baseline —
+/// do not tune the engine for the threshold.
+const SMOKE_NS_PER_PARSE_LIMIT : Double = 150_000_000.0
 
 ///|
 /// Profile-mode stride (T-05): indices 0, 50, 100, ... → 10000/50 = 200
@@ -273,7 +280,7 @@ fn print_report(
 ) -> Unit {
   let ns_per_parse = 1_000_000_000.0 / median_ops
   println(
-    "bench-config mode=\{mode} backend=\{backend_label()} corpus_size=\{corpus_size} sample_count=\{sample_count} stride=\{stride} warmup_rounds=\{WARMUP_ROUNDS} timed_rounds=\{TIMED_ROUNDS} strata=\{strata_seen} smoke_threshold_ns_per_parse=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (placeholder, T-06)",
+    "bench-config mode=\{mode} backend=\{backend_label()} corpus_size=\{corpus_size} sample_count=\{sample_count} stride=\{stride} warmup_rounds=\{WARMUP_ROUNDS} timed_rounds=\{TIMED_ROUNDS} strata=\{strata_seen} smoke_threshold_ns_per_parse=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (calibrated, T-06)",
   )
   let mut i = 0
   for ops in rounds {
@@ -482,12 +489,12 @@ fn main {
     let ns = 1_000_000_000.0 / med
     if ns > SMOKE_NS_PER_PARSE_LIMIT {
       println(
-        "smoke-verdict result=fail ns_per_parse=\{fmt_fixed2(ns)} limit=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (placeholder threshold, calibrated in T-06); aborting non-zero after the full report above",
+        "smoke-verdict result=fail ns_per_parse=\{fmt_fixed2(ns)} limit=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (calibrated threshold, T-06); aborting non-zero after the full report above",
       )
       abort("smoke threshold exceeded: ns_per_parse above SMOKE_NS_PER_PARSE_LIMIT")
     }
     println(
-      "smoke-verdict result=pass ns_per_parse=\{fmt_fixed2(ns)} limit=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (placeholder threshold, calibrated in T-06)",
+      "smoke-verdict result=pass ns_per_parse=\{fmt_fixed2(ns)} limit=\{fmt_fixed2(SMOKE_NS_PER_PARSE_LIMIT)} (calibrated threshold, T-06)",
     )
   }
 }

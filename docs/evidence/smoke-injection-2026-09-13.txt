@@ -1,0 +1,86 @@
+# smoke injection (fault-injection / 行 3 失败取证) evidence — T-06, 2026-09-13
+# host: Windows 10 专业版 10.0.19045 x64, Git Bash — same measurement host as
+#   docs/evidence/smoke-calibration-2026-09-13.txt
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04)
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+#
+# command (cwd = moon_ua_parser_lib/):
+#   moon run --target native --release tests/bench -- --smoke
+#
+# injection (runner-side, TEMPORARY — controller ruling): each smoke TIMED
+#   iteration parsed the stride-50 subsample 4x instead of 1x inside the
+#   clock seam, simulating a ~4x slowdown (expected ns_per_parse ≈
+#   4 x 44.33 ms ≈ 177 ms > 150 ms limit → must abort non-zero). The
+#   temporary edit was confined to tests/bench/main.mbt (main loop, timed
+#   rounds); src/ua_parser was NEVER touched. The exact temporary edit:
+#
+#     for _ in 0..<TIMED_ROUNDS {
+#       let mut result = 0
+#       // T-06 TEMPORARY injection (reverted after evidence capture): 4x parse
+#       // per timed iteration to simulate a ~4x slowdown; the returned checksum
+#       // is still the single-pass value, so any verdict change is attributable
+#       // to ns_per_parse alone.
+#       let us = clock_pair_diff_us(fn() {
+#         let _ = parse_pass(inputs)
+#         let _ = parse_pass(inputs)
+#         let _ = parse_pass(inputs)
+#         result = parse_pass(inputs)
+#       })
+#
+#   (the 4th call's return value feeds `result`, so rounds_consistent stays
+#   true and the verdict change is attributable to ns_per_parse alone.)
+#
+# observed: EXIT CODE 127 (non-zero; moon native abort propagation on this
+#   host), wall 267s. The FULL report including the four-field bench-result
+#   line (backend / ops_per_sec / ns_per_parse / sample_set_hash) was on
+#   stdout BEFORE the process ended, followed by the fail verdict —
+#   median ns_per_parse 174,603,790.00 ns ≈ 4 x the un-injected runs
+#   (calibration file) > 150,000,000.00 ns limit. stderr begins with
+#   "PanicError" (native abort stack trace), shown below.
+#
+# revert proof: after this run the temporary edit was reverted;
+#   sha256(main.mbt) after revert = a132ed1a1b9a40c7319d2bd35a4761aadbdfece130d69cfbf52f21b803695df4,
+#   byte-identical (diff-empty) to the pre-injection pinned snapshot, and
+#   `git diff -- moon_ua_parser_lib/tests/bench/main.mbt` contains ONLY the
+#   threshold change (constant + derivation comment + the printed
+#   "(placeholder → calibrated)" annotations) — no injection residue.
+#
+# honesty note: stdout/stderr below are captured verbatim; the non-zero exit
+#   was deliberately captured (exit code recorded, not swallowed); nothing
+#   was orchestrated.
+
+============================================================================
+## injected run — exit 127, wall 267s (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=5.53 ns_per_parse=180661876.50
+bench-round round=1 ops_per_sec=5.52 ns_per_parse=180911811.50
+bench-round round=2 ops_per_sec=5.46 ns_per_parse=182845639.00
+bench-round round=3 ops_per_sec=5.72 ns_per_parse=174603790.00
+bench-round round=4 ops_per_sec=6.04 ns_per_parse=165382036.00
+bench-round round=5 ops_per_sec=6.08 ns_per_parse=164360608.00
+bench-round round=6 ops_per_sec=6.08 ns_per_parse=164236201.50
+bench-result backend=native ops_per_sec=5.72 ns_per_parse=174603790.00 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=fail ns_per_parse=174603790.00 limit=150000000.00 (calibrated threshold, T-06); aborting non-zero after the full report above
+smoke threshold exceeded: ns_per_parse above SMOKE_NS_PER_PARSE_LIMIT
+
+============================================================================
+## injected run — stderr (verbatim, head; native abort stack trace)
+============================================================================
+PanicError
+    at moonbit_panic
+    at ??? (140698557865950)
+    at ??? (140698557915559)
+    at moonbit_utf8_len_from_utf16
+    at BaseThreadInitThunk
+    at RtlUserThreadStart
+
+============================================================================
+## footer
+============================================================================
+[LOCAL_DEAD_LINK — 验证地点/方式: 推送后 GitHub run 历史]
+CI run evidence is registered here by pointer only: on GitHub Actions the
+injected-failure behaviour of this gate is proven by THIS local injection
+file; the CI step itself must stay on the passing side (exit 0) — see
+docs/evidence/smoke-ci-mirror-2026-09-13.txt for the local mirror of the
+exact CI step command.

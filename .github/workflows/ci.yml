@@ -90,3 +90,12 @@ jobs:
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
         run: moon run --target native --release tests/diffstats
+
+      # Perf smoke gate (T-06): pass/fail is decided by the calibrated
+      # coarse threshold SMOKE_NS_PER_PARSE_LIMIT in tests/bench/main.mbt
+      # (recalibrate there if this step ever misfires). The full four-field
+      # report always prints before a non-zero abort.
+      - name: Perf smoke (native)
+        timeout-minutes: 15
+        working-directory: moon_ua_parser_lib
+        run: moon run --target native --release tests/bench -- --smoke

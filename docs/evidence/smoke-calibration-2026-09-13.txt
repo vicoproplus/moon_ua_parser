@@ -1,0 +1,85 @@
+# smoke calibration evidence — T-06 threshold pinning (SMOKE_NS_PER_PARSE_LIMIT), 2026-09-13
+# host: Windows 10 专业版 10.0.19045 x64, Git Bash;
+#   CPU: 12th Gen Intel(R) Core(TM) i5-12400 (6 cores / 12 threads) — same
+#   measurement host as the T-04 baseline / T-05 profiling
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04) — the same version the
+#   CI workflow pins
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+#
+# command (cwd = moon_ua_parser_lib/, run 3 consecutive times, native --release):
+#   moon run --target native --release tests/bench -- --smoke
+#
+# calibration (T-06, controller ruling — values used verbatim):
+#   SMOKE_NS_PER_PARSE_LIMIT = 150_000_000.0  (150 ms per parse)
+#   derivation: B2/T-04 native median-of-medians 23.64 ops/s
+#     = 42,299,995.40 ns/parse; x3 ≈ 126.9 ms; rounded UP to 150 ms so the
+#     buffer additionally covers the hardware difference between this host
+#     (Windows 10 19045) and the CI runner (ubuntu-latest) plus the native
+#     noise band (T-04 measured up to 11.85% cross-run deviation).
+#   sanity: T-05 measured smoke-mode ≈44.33 ms/parse → ≈3.4x headroom.
+#   rule: if a CI run ever misfires on this gate, return to the constant in
+#     tests/bench/main.mbt and recalibrate from a fresh baseline — do NOT
+#     tune the engine for the threshold.
+#
+# run inventory (all exits observed, none discarded):
+#   run 1 (fresh native --release build included) .... exit 0, wall 89s
+#   run 2 ............................................ exit 0, wall 74s
+#   run 3 ............................................ exit 0, wall 75s
+#
+# result: 3/3 consecutive normal passes with exit code 0 (R8, N=3 satisfied).
+#   medians observed: 45691150.50 / 41029488.50 / 38928981.00 ns per parse —
+#   all ≈3.3x–3.9x below the 150 ms limit.
+# honesty note: stdout below is captured verbatim (byte-for-byte from the
+#   run); stderr was EMPTY (0 lines) in all three runs; no output was
+#   orchestrated or edited.
+
+============================================================================
+## run 1 — exit 0, wall 89s (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=21.95 ns_per_parse=45545043.00
+bench-round round=1 ops_per_sec=21.87 ns_per_parse=45714326.50
+bench-round round=2 ops_per_sec=21.53 ns_per_parse=46429583.50
+bench-round round=3 ops_per_sec=20.95 ns_per_parse=47732116.00
+bench-round round=4 ops_per_sec=21.88 ns_per_parse=45691150.50
+bench-round round=5 ops_per_sec=22.95 ns_per_parse=43557731.00
+bench-round round=6 ops_per_sec=24.40 ns_per_parse=40967839.00
+bench-result backend=native ops_per_sec=21.88 ns_per_parse=45691150.50 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=45691150.50 limit=150000000.00 (calibrated threshold, T-06)
+
+============================================================================
+## run 2 — exit 0, wall 74s (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=24.44 ns_per_parse=40902516.99
+bench-round round=1 ops_per_sec=24.12 ns_per_parse=41453710.00
+bench-round round=2 ops_per_sec=24.37 ns_per_parse=41029488.50
+bench-round round=3 ops_per_sec=24.30 ns_per_parse=41149514.00
+bench-round round=4 ops_per_sec=24.02 ns_per_parse=41615792.99
+bench-round round=5 ops_per_sec=26.21 ns_per_parse=38143941.00
+bench-round round=6 ops_per_sec=26.44 ns_per_parse=37814124.00
+bench-result backend=native ops_per_sec=24.37 ns_per_parse=41029488.50 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=41029488.50 limit=150000000.00 (calibrated threshold, T-06)
+
+============================================================================
+## run 3 — exit 0, wall 75s (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=26.28 ns_per_parse=38047891.00
+bench-round round=1 ops_per_sec=25.81 ns_per_parse=38733359.50
+bench-round round=2 ops_per_sec=26.43 ns_per_parse=37834248.50
+bench-round round=3 ops_per_sec=25.68 ns_per_parse=38928981.00
+bench-round round=4 ops_per_sec=17.69 ns_per_parse=56498922.00
+bench-round round=5 ops_per_sec=22.59 ns_per_parse=44266064.00
+bench-round round=6 ops_per_sec=22.67 ns_per_parse=44103069.00
+bench-result backend=native ops_per_sec=25.68 ns_per_parse=38928981.00 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=38928981.00 limit=150000000.00 (calibrated threshold, T-06)
+
+============================================================================
+## footer
+============================================================================
+[LOCAL_DEAD_LINK — 验证地点/方式: 推送后 GitHub run 历史]
+CI run evidence is registered here by pointer only: the appended ci.yml step
+"Perf smoke (native)" must show exit 0 on the next GitHub Actions run of
+branch feat/v02-perf-bench (job "test", last step). Local mirror of that
+exact step command: see docs/evidence/smoke-ci-mirror-2026-09-13.txt.

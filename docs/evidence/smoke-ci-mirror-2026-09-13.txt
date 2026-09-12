@@ -1,0 +1,52 @@
+# CI step 本地镜像 (local mirror of the ci.yml smoke step) — T-06, 2026-09-13
+# host: Windows 10 专业版 10.0.19045 x64, Git Bash
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04) — same version the CI pins
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench)
+#
+# V2 dry-run protocol: the EXACT command of the newly appended ci.yml step
+# "Perf smoke (native)" executed ONCE locally from the step's exact
+# working-directory (moon_ua_parser_lib/). The ci.yml step (appended this
+# task, house form, job "test" last step):
+#
+#       - name: Perf smoke (native)
+#         timeout-minutes: 15
+#         working-directory: moon_ua_parser_lib
+#         run: moon run --target native --release tests/bench -- --smoke
+#
+# local mirror invocation (cwd = moon_ua_parser_lib/):
+#   moon run --target native --release tests/bench -- --smoke
+#
+# run inventory:
+#   mirror run (post-revert state; also proves the restored runner builds
+#   and passes) ...................................... exit 0, wall 81s
+#
+# result: exit 0; median ns_per_parse 41,365,679.00 ns ≈ 3.6x below the
+#   150 ms threshold — the CI step's passing side is proven locally. The
+#   failing side is proven separately by fault injection:
+#   docs/evidence/smoke-injection-2026-09-13.txt (exit 127, four-field
+#   report printed before exit).
+# honesty note: stdout below is captured verbatim; stderr was empty (0
+#   lines); nothing orchestrated.
+
+============================================================================
+## mirror run — exit 0, wall 81s (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=24.17 ns_per_parse=41365679.00
+bench-round round=1 ops_per_sec=24.48 ns_per_parse=40838593.00
+bench-round round=2 ops_per_sec=24.79 ns_per_parse=40337413.00
+bench-round round=3 ops_per_sec=24.16 ns_per_parse=41385036.00
+bench-round round=4 ops_per_sec=23.44 ns_per_parse=42652664.00
+bench-round round=5 ops_per_sec=24.25 ns_per_parse=41231070.49
+bench-round round=6 ops_per_sec=24.09 ns_per_parse=41501582.00
+bench-result backend=native ops_per_sec=24.17 ns_per_parse=41365679.00 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=41365679.00 limit=150000000.00 (calibrated threshold, T-06)
+
+============================================================================
+## footer
+============================================================================
+[LOCAL_DEAD_LINK — 验证地点/方式: 推送后 GitHub run 历史]
+CI run evidence is registered here by pointer only: after push, the GitHub
+Actions run history of branch feat/v02-perf-bench (workflow CI, job "test",
+final step "Perf smoke (native)") is where the remote exit-0 confirmation
+lives; this file is the LOCAL mirror proof of the same command.
