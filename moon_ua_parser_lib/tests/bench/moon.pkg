@@ -1,22 +1,28 @@
-// Clock probe (T-01) — minimal executable timing package.
+// Benchmark runner (T-03) — executable package.
 //
 // Run (from the moon project root moon_ua_parser_lib/):
 //   moon run --target native --release tests/bench
 //   moon run --target js --release tests/bench
-//   moon run --target wasm --release tests/bench  (expected: wasm cannot
-//   launch on this host — see docs/evidence/clock-probe-2026-09-13.log)
+//   moon run --target wasm --release tests/bench  (works on this host)
+//   moon run --target native --release tests/bench -- --smoke
 //
 // The per-backend label files below are selected via options(targets: ...),
 // the same mechanism moonbitlang/core/bench uses for its monotonic clock
 // implementations. The timing seam itself needs no backend branching: the
-// backend-specific clock lives behind moonbitlang/core/bench.
+// backend-specific clock lives behind moonbitlang/core/bench, and all
+// statistics are backend-free (see main.mbt).
 //
-// T-03 evolves this package into the full benchmark runner (not deleted).
+// Imports:
+//   moonbitlang/core/bench                     @core_bench — monotonic clock seam
+//   moonbitlang/core/env                       @env        — args() for --smoke
+//   vicoproplus/moon_ua_parser/src/ua_parser   @ua_parser  — engine under test
 
 pkgtype(kind: "executable")
 
 import {
   "moonbitlang/core/bench" @core_bench,
+  "moonbitlang/core/env",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
 }
 
 options(

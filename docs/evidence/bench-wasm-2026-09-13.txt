@@ -1,0 +1,28 @@
+# bench evidence — T-03 benchmark runner, backend: wasm (BONUS, non-gating; single run per brief)
+# date: 2026-09-13 (pinned)
+# host: Windows 10.0.19045 x64, Git Bash
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04)
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+# command (cwd = moon_ua_parser_lib/): moon run --target wasm --release tests/bench
+# protocol: single run of the default (no-arg) mode (bonus item is non-gating, no
+#   two-run deviation required); corpus fully loaded (10000), each round parses the
+#   declared stratified stride subsample BENCH_STRIDE=20 -> sample_count=500;
+#   2 warmup + 7 timed rounds; reported value = median of per-round ops_per_sec;
+#   ns_per_parse = 1e9 / median (same-source dual metric).
+# feasibility gate (< 6 min per default run): PASS — wall 3m16.910s
+# exit code: 0
+
+## run 1 (verbatim stdout)
+bench-config mode=full backend=wasm corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=23.41 ns_per_parse=42713152.40
+bench-round round=1 ops_per_sec=23.37 ns_per_parse=42773209.00
+bench-round round=2 ops_per_sec=22.93 ns_per_parse=43593974.20
+bench-round round=3 ops_per_sec=22.49 ns_per_parse=44457493.40
+bench-round round=4 ops_per_sec=23.29 ns_per_parse=42921535.19
+bench-round round=5 ops_per_sec=22.95 ns_per_parse=43560210.80
+bench-round round=6 ops_per_sec=23.52 ns_per_parse=42500540.20
+bench-result backend=wasm ops_per_sec=23.29 ns_per_parse=42921535.19 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## note
+# samples_checksum=15142 is identical to both native runs and both js runs —
+# three backends, byte-identical fold over the same 500-sample stride subsample.

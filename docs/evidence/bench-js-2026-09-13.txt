@@ -1,0 +1,40 @@
+# bench evidence — T-03 benchmark runner, backend: js
+# date: 2026-09-13 (pinned)
+# host: Windows 10.0.19045 x64, Git Bash
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04), node v26.7.0 (moon run --target js launches node)
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+# command (cwd = moon_ua_parser_lib/): moon run --target js --release tests/bench
+# protocol: two runs of the default (no-arg) mode; corpus fully loaded (10000),
+#   each round parses the declared stratified stride subsample
+#   BENCH_STRIDE=20 -> sample_count=500; 2 warmup + 7 timed rounds; reported
+#   value = median of per-round ops_per_sec; ns_per_parse = 1e9 / median
+#   (same-source dual metric); samples_checksum guards against dead-code
+#   elimination and is compared across rounds (rounds_consistent).
+# feasibility gate (< 6 min per default run): PASS — wall run1 1m08.667s, run2 1m09.417s
+# exit codes: run1 = 0, run2 = 0
+
+## run 1 (verbatim stdout)
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=65.92 ns_per_parse=15168109.60
+bench-round round=1 ops_per_sec=67.93 ns_per_parse=14720605.80
+bench-round round=2 ops_per_sec=64.52 ns_per_parse=15497404.60
+bench-round round=3 ops_per_sec=66.34 ns_per_parse=15072506.99
+bench-round round=4 ops_per_sec=62.49 ns_per_parse=16002511.40
+bench-round round=5 ops_per_sec=64.02 ns_per_parse=15618246.00
+bench-round round=6 ops_per_sec=66.28 ns_per_parse=15086188.39
+bench-result backend=js ops_per_sec=65.92 ns_per_parse=15168109.60 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## run 2 (verbatim stdout)
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=67.50 ns_per_parse=14814412.20
+bench-round round=1 ops_per_sec=66.75 ns_per_parse=14979907.80
+bench-round round=2 ops_per_sec=66.68 ns_per_parse=14996301.00
+bench-round round=3 ops_per_sec=65.83 ns_per_parse=15189634.60
+bench-round round=4 ops_per_sec=58.42 ns_per_parse=17114664.60
+bench-round round=5 ops_per_sec=65.31 ns_per_parse=15310085.19
+bench-round round=6 ops_per_sec=64.77 ns_per_parse=15438547.19
+bench-result backend=js ops_per_sec=65.83 ns_per_parse=15189634.60 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## median deviation between the two runs
+# median_ops_per_sec run1=65.92 run2=65.83; deviation = |a-b| / ((a+b)/2) * 100
+median_deviation_pct=0.14
