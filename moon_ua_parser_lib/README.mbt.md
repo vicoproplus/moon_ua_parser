@@ -24,7 +24,10 @@ domains.
   catch-all "Spider" rules, "Other" fallbacks).
 - **Three backends**: MoonBit native, JavaScript, and WebAssembly
   (`preferred_target = "wasm"`). The differential suite runs green on native
-  and js; the wasm backend builds with `moon build --target wasm`.
+  and js; on wasm the test gate is the 7 non-differential packages (28 tests)
+  and `moon build --target wasm` succeeds, while the differential suite's wasm
+  test module is structurally unexecutable (see
+  [Differential quality](#differential-quality)).
 - **Diagnostic rule indices**: `parse(ua, with_rule_index=true)` reports the
   0-based index of the winning rule per domain (file order in
   `regexes.yaml`), for debugging and rule attribution.
@@ -93,9 +96,10 @@ os      : iOS 9.3.1
 device  : iPhone / Apple / iPhone
 ```
 
-The same program runs on the native and js backends today
-(`moon run --target native` / `moon run --target js`); the wasm backend
-compiles via `moon build --target wasm`.
+The same program runs on all three backends today (`moon run --target native`
+/ `moon run --target js` / `moon run --target wasm`); on Windows 10 the
+`moonrun` runtime of the pinned toolchain needs an upstream fix before wasm
+programs will load.
 
 ## API
 
@@ -136,7 +140,28 @@ pass rates, as printed by
 | os      | 483   | 483    | 100.00%  | ≥97%  | MET    |
 | device  | 16129 | 16129  | 100.00%  | ≥97%  | MET    |
 
+This is not a native-only result: the identical report (LF-normalized
+report-section md5 `bff7fc84866a9ad4b6ac8a79299788f9`) prints on all three
+targets — native, js, and wasm `--release`
+(`moon run --target js --release tests/diffstats` /
+`moon run --target wasm --release tests/diffstats`). Full transcripts:
+[`../docs/evidence/diffstats-native-2026-09-13.txt`](../docs/evidence/diffstats-native-2026-09-13.txt)
+/
+[`../docs/evidence/diffstats-js-2026-09-13.txt`](../docs/evidence/diffstats-js-2026-09-13.txt)
+/
+[`../docs/evidence/diffstats-wasm-2026-09-13.txt`](../docs/evidence/diffstats-wasm-2026-09-13.txt).
+
 Methodology notes:
+
+- The differential suite runs as tests on the native and js backends. Its
+  wasm test module is structurally unexecutable: under debug codegen the
+  generated corpus package's initialization function declares 125,840 wasm
+  locals — 2.52x V8's hard 50,000 per-function cap — so V8 rejects the module
+  statically (the `--release` codegen folds the corpus literals to 26,857
+  locals, which is why the wasm `--release` report above runs). The wasm test
+  gate therefore covers the 7 non-differential packages, and a generator
+  split is registered as follow-up work to restore it. Details:
+  [`../docs/evidence/wasm-differential-blocker-2026-09-13.md`](../docs/evidence/wasm-differential-blocker-2026-09-13.md).
 
 - Browser-domain assertions compare `family` / `major` / `minor` / `patch`.
   The `patch_minor` expectation column is excluded, following the uap-python
