@@ -192,7 +192,7 @@ GATES: ALL MET
 
 维持模式复验：uap-core 快照维持裁定（T-01，73e7340 不变）后重跑差分门禁。
 本轮引擎、规则、生成器、快照**零改动**。证据：`docs/evidence/diffstats-2026-09-13.txt`
-= `moon run --target native --release tests/diffstats` 完整 stdout（exit 0）。
+= `moon run --target native --release tests/diffstats` 完整输出（stdout+stderr 合并捕获，exit 0）。
 
 | 域 | total | exempted | failed | passed | rate | 门槛 | 判定 |
 |----|-------|----------|--------|--------|------|------|------|

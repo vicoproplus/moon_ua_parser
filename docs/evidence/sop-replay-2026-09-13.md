@@ -7,7 +7,7 @@
 ## 0. 环境基线
 
 - Windows 10 / Git Bash；仓库 `core.autocrlf=true`，无根级 `.gitignore`/`.gitattributes`（排除项在 `.git/info/exclude`，含 `.superpowers/`）。
-- 起点 porcelain：8 个 EOL-only M 旗标（`src/ua_parser/pkg.generated.mbti` + rules/ 4 文件 + tests/differential/ 4 文件）；`git diff --exit-code` 退出 0。与已知裁定一致。
+- 起点 porcelain：8 个 EOL-only M 旗标（`src/ua_parser/pkg.generated.mbti` + rules/ 3 文件 + tests/differential/ 4 文件）；`git diff --exit-code` 退出 0。与已知裁定一致。
 
 ## 1. 前置条件 — PASS
 
