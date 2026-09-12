@@ -1,0 +1,214 @@
+# deprecated-warning baseline — [pre-existing] (plan R2 registration)
+date: 2026-09-13
+base commit: 36421ca (branch feat/v02-platform-complete, worktree moon_ua_parser_wt_platform)
+task: T-03 deprecation migration (Show -> Debug)
+status: BEFORE migration
+
+## Raw counts (step 1, before migration)
+
+Command:  cd moon_ua_parser_lib && moon check 2>&1 | grep -c "deprecated"
+Output:
+43
+
+Command:  cd moon_ua_parser_lib && moon check 2>&1 | tail -1
+Output:
+Finished. moon: ran 21 tasks, now up to date (44 warnings, 0 errors)
+
+Reconciliation note: the plan's baseline figure "44" is the TOTAL warning
+count from the moon check summary line. `grep -c "deprecated"` counts 43
+detail lines because the 44th warning is not a deprecation:
+  44 total = 43 deprecated-tagged
+             (35 x Warning (deprecated) [0020]
+              + 8 x Warning (deprecated_syntax) [0027])
+           + 1 x Warning (unused_constructor) [0006]
+             at src/ua_parser/types.mbt:99:3 ("Variant 'RegexpCompileError'
+             is never constructed") — pre-existing, not a deprecation,
+             outside T-03 scope, left untouched.
+The acceptance gate `grep -c "deprecated"` therefore tracks the 43; the
+final gate condition is that no deprecated-tagged warning remains outside
+the sanctioned residuals (see below).
+
+## Warning positions (verbatim from `moon check`, grouped and classified)
+
+Legend: [0020] = Warning (deprecated), [0027] = Warning (deprecated_syntax),
+[0006] = Warning (unused_constructor).
+
+### HANDWRITTEN paths — T-03 scope
+
+src/ua_parser/types.mbt — 12 warnings (matches T-02 observation "types.mbt 12"):
+  [0027] derive(Show) declaration sites: 26:14, 53:14, 74:14, 89:14, 100:14
+  [0020] field sites (attributed to the derive(Show) expansion over
+         Option-typed fields): 19:17, 25:16, 46:17, 52:16, 67:11, 73:16
+  [0006] 99:3 (unused_constructor — not a deprecation, out of scope)
+  CLASSIFICATION: interface-contract derive(Show) — pkg.generated.mbti
+  records `derive(Eq, Show)` on all five public types (UaError:16,
+  Browser:26, Device:33, OS:42, UaInfo:48). Removing or converting these
+  derives changes the generated .mbti, violating the API-freeze /
+  moon-info-zero-drift gate. Per the ruling addendum ("derive(Show) 若为
+  接口契约所需则保留") these 11 deprecated-tagged warnings are deliberately
+  KEPT and documented per warning here. No call site in types.mbt is
+  editable without breaking the contract; there is no Show call site in
+  the file at all (only the derives).
+
+tests/semantics/semantics.mbt — 17 warnings, all [0020] (debug
+interpolation of Option-typed fields through the deprecated core
+`Show for X?` impl):
+  42:33, 76:29, 93:22, 107:22, 128:28, 150:22, 171:22, 204:28, 237:29,
+  329:38, 332:33, 349:38, 360:141, 397:33, 404:46, 443:174, 446:59
+  (compiler deduplicates [0020] per line: every `\{x.major}`-style Option
+  interpolation on the file's other lines shares the same deprecated impl
+  and is migrated too, not only the deduplicated representatives.)
+
+tests/robust/robust.mbt — 9 warnings [0020] + the StringBuilder deprecation:
+  24:13  [0020] "Use `StringBuilder()` instead" (StringBuilder::new)
+  50:36, 73:29, 120:33, 141:36, 160:30, 187:29, 201:36, 219:36
+         (same Option interpolation pattern as semantics.mbt)
+
+### GENERATED paths — FORBIDDEN to hand-edit (S4 + ownership boundary)
+
+tests/differential/ — 6 warnings (matches T-02 observation "differential 6"):
+  [0027] diff_device.mbt:27:14, diff_os.mbt:29:14, diff_ua.mbt:33:14
+  [0020] diff_device.mbt:26:11, diff_os.mbt:28:17, diff_ua.mbt:32:17
+  Files are headed "GENERATED — DO NOT EDIT" (generators:
+  scripts/gen_tests.py from uap-core tests/test_{ua,os,device}.yaml).
+src/ua_parser/rules/ — 0 warnings in this baseline.
+
+## Followup-3 registration (generator-level migration, rule-update domain)
+
+The 6 warnings above in tests/differential/*.mbt are registered for
+Followup-3: migrate the generators (scripts/gen_tests.py, and the same
+pattern in scripts/gen_rules.py output domains) to emit derive(Debug) /
+Debug-semantics interpolation, then regenerate. The generated files must
+never be hand-edited; the warnings persist until the next sanctioned
+regeneration.
+
+## Post-migration result
+
+Appended below after the migration completes (see "AFTER migration"
+section appended at the end of this file).
+
+---
+
+# AFTER migration (T-03, same day 2026-09-13, same worktree)
+
+## Raw counts (after migration)
+
+Command:  cd moon_ua_parser_lib && moon check 2>&1 | grep -c "deprecated"
+Output:
+17
+
+Command:  cd moon_ua_parser_lib && moon check 2>&1 | tail -1
+Output:
+Finished. moon: ran 4 tasks, now up to date (18 warnings, 0 errors)
+
+Reconciliation: 18 total = 17 deprecated-tagged + 1 pre-existing
+[0006] unused_constructor (types.mbt:99:3, unchanged, not a deprecation).
+
+## Handwritten / generated split after migration
+
+HANDWRITTEN call-site deprecated warnings: 0
+  - tests/semantics/semantics.mbt: 17 -> 0
+  - tests/robust/robust.mbt: 9 -> 0 (incl. StringBuilder::new -> StringBuilder)
+  - src/ua_parser/types.mbt call sites: there were none; the 11
+    deprecated-tagged warnings below are the derive(Show) interface
+    contract, deliberately KEPT per the ruling addendum
+    ("derive(Show) 若为接口契约所需则保留"):
+
+RESIDUAL 1 — interface-contract derive(Show), src/ua_parser/types.mbt (11):
+  [0027] 26:14 (Browser), 53:14 (OS), 74:14 (Device), 89:14 (UaInfo),
+         100:14 (UaError)
+  [0020] 19:17, 25:16 (Browser patch_minor/rule_index), 46:17, 52:16
+         (OS patch_minor/rule_index), 67:11, 73:16 (Device
+         model/rule_index) — attributed to the derive(Show) expansion.
+  JUSTIFICATION: src/ua_parser/pkg.generated.mbti (the frozen public API
+  surface, checked by CI's `moon info` + `git diff --exit-code` step)
+  records `derive(Eq, Show)` on all five types (mbti lines 16, 26, 33,
+  42, 48). Converting to derive(Debug) would change the generated .mbti
+  and fail the API-freeze / zero-drift gate. Verified post-migration:
+  `moon info && git diff --exit-code -- '*.mbti' '**/*.mbti'` exits 0.
+
+RESIDUAL 2 — GENERATED paths, tests/differential/ (6) — unchanged,
+forbidden to hand-edit (S4); registered as Followup-3 (generator-level
+migration; see the BEFORE section):
+  [0027] diff_device.mbt:27:14, diff_os.mbt:29:14, diff_ua.mbt:33:14
+  [0020] diff_device.mbt:26:11, diff_os.mbt:28:17, diff_ua.mbt:32:17
+
+## Migration method (for the record)
+
+Debug/interpolation call sites in tests/semantics/semantics.mbt and
+tests/robust/robust.mbt interpolated `String?` / `Int?` values directly,
+routing through the deprecated core `Show for X?` impl (warning [0020])
+and `StringBuilder::new` (deprecated constructor). Migration:
+  - robust.mbt: `StringBuilder::new()` -> `StringBuilder()`; new local
+    helper `opt_str(String?) -> String` renders `None` / `Some(v)`.
+  - semantics.mbt: same `opt_str` plus `opt_int(Int?) -> String` for the
+    T-09 `rule_index` fields.
+  Every `\{x.field}` Option interpolation became `\{opt_str(x.field)}`
+  / `\{opt_int(x.field)}`. The rendered strings are byte-identical to
+  the previous Show output, so all uap-core golden assertions are
+  unchanged (verified: suite green on native and js — see counts in this
+  file's sibling evidence and the task report). Struct-level
+  interpolations (`\{info.browser}` etc.) keep using the retained
+  derive(Show) and never produced [0020] warnings.
+  The core-debug-README alternative (`\{Repr(value)} via a
+  moonbitlang/core/debug import) was rejected because (a) it changes the
+  rendered goldens (Debug quotes strings inside Some) and (b) it would
+  require editing moon.pkg files, which are outside this task's
+  ownership boundary.
+
+## Final gate summary
+
+  - Handwritten call-site deprecated-tagged warnings: 26 -> 0
+    (tests/semantics 17 + tests/robust 9, incl. the StringBuilder::new fix)
+  - Interface-contract deprecated-tagged warnings: 11 -> 11 (KEPT,
+    documented — src/ua_parser/types.mbt derive(Eq, Show) sites)
+  - Generated deprecated-tagged warnings: 6 -> 6 (Followup-3)
+  - grep -c "deprecated": 43 -> 17 (all 17 accounted above)
+
+---
+
+# Independent verification re-run (T-03 continuation session, 2026-09-13)
+
+The attempt that produced the AFTER section above timed out before it
+could report; every claim in it was therefore re-executed and confirmed
+by the continuation session. Observed outputs (verbatim), all commands
+from `moon_ua_parser_lib`, same worktree @ 36421ca, no new commits:
+
+1)  moon check 2>&1 | tail -1
+    Finished. moon: ran 2 tasks, now up to date (18 warnings, 0 errors)
+
+2)  moon check 2>&1 | grep -c "deprecated"
+    17
+
+3)  Taxonomy of the 18 total warnings:
+    9 x [0020] Warning (deprecated) + 8 x [0027] Warning (deprecated_syntax)
+    + 1 x [0006] Warning (unused_constructor) at types.mbt:99:3
+    (pre-existing, not a deprecation, untouched).
+
+4)  Deprecated-tagged residual positions (re-confirmed; ZERO warnings in
+    tests/semantics, tests/robust, tests/diffstats, src/ua_parser/rules):
+    - src/ua_parser/types.mbt — interface-contract derive(Show), KEPT:
+      [0027] 26:14, 53:14, 74:14, 89:14, 100:14
+      [0020] 19:17, 25:16, 46:17, 52:16, 67:11, 73:16
+    - tests/differential — GENERATED, Followup-3, untouched:
+      [0027] diff_device.mbt:27:14, diff_os.mbt:29:14, diff_ua.mbt:33:14
+      [0020] diff_device.mbt:26:11, diff_os.mbt:28:17, diff_ua.mbt:32:17
+
+5)  moon info && git diff --exit-code -- '*.mbti' '**/*.mbti'  ->  exit 0
+    (0-byte content diff vs HEAD; the only tracked .mbti is
+    src/ua_parser/pkg.generated.mbti — 4 pub fn signatures unchanged at
+    lines 5/7/9/11, derive(Eq, Show) retained at lines 16/26/33/42/48.
+    moon info/build also emit untracked pkg.generated.mbti byproducts for
+    the other packages; regenerable tool outputs, removed again so the
+    tree carries only T-03 changes.)
+
+6)  moon test --target native  ->  exit 0
+    Total tests: 31, passed: 31, failed: 0.
+
+7)  moon test --target js  ->  exit 0
+    Total tests: 31, passed: 31, failed: 0.
+
+R10 comparison: no new failures on native or js. The only known failing
+config remains the ruled default-target wasm run of tests/differential
+(structural, Followup-1 domain); not exercised by T-03 and unchanged by it.
+

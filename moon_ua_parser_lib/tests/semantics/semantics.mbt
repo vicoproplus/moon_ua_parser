@@ -7,6 +7,30 @@
 // over interpolated strings, so a failure prints both sides.
 
 ///|
+/// Render an optional field in the uap-python `None` / `Some(v)` spelling
+/// for debug interpolation inside assertions. Interpolating the `String?`
+/// value directly routes through the deprecated core `Show for X?` impl
+/// (moon check warning [0020], "Use Debug instead of Show for debugging
+/// purposes"); interpolating the plain `String` produced here does not.
+/// The output is byte-identical to the previous direct interpolation, so
+/// every golden below is unchanged.
+fn opt_str(o : String?) -> String {
+  match o {
+    None => "None"
+    Some(v) => "Some(\{v})"
+  }
+}
+
+///|
+/// `Int?` counterpart of `opt_str` (e.g. the T-09 `rule_index` fields).
+fn opt_int(o : Int?) -> String {
+  match o {
+    None => "None"
+    Some(v) => "Some(\{v})"
+  }
+}
+
+///|
 /// Test 1 — Chrome desktop UA: browser template/group fallback, OS literal
 /// templates, device all-miss fallback.
 ///
@@ -26,20 +50,20 @@ test "chrome desktop ua parses all three domains" {
     Ok(info) => {
       let b = info.browser
       assert_eq("family=\{b.family}", "family=Chrome")
-      assert_eq("major=\{b.major}", "major=Some(120)")
-      assert_eq("minor=\{b.minor}", "minor=Some(0)")
-      assert_eq("patch=\{b.patch}", "patch=Some(0)")
-      assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(0)")
+      assert_eq("major=\{opt_str(b.major)}", "major=Some(120)")
+      assert_eq("minor=\{opt_str(b.minor)}", "minor=Some(0)")
+      assert_eq("patch=\{opt_str(b.patch)}", "patch=Some(0)")
+      assert_eq("patch_minor=\{opt_str(b.patch_minor)}", "patch_minor=Some(0)")
       let o = info.os
       assert_eq("os family=\{o.family}", "os family=Windows")
-      assert_eq("os major=\{o.major}", "os major=Some(10)")
-      assert_eq("os minor=\{o.minor}", "os minor=None")
-      assert_eq("os patch=\{o.patch}", "os patch=None")
-      assert_eq("os patch_minor=\{o.patch_minor}", "os patch_minor=None")
+      assert_eq("os major=\{opt_str(o.major)}", "os major=Some(10)")
+      assert_eq("os minor=\{opt_str(o.minor)}", "os minor=None")
+      assert_eq("os patch=\{opt_str(o.patch)}", "os patch=None")
+      assert_eq("os patch_minor=\{opt_str(o.patch_minor)}", "os patch_minor=None")
       let d = info.device
       assert_eq("device family=\{d.family}", "device family=Other")
-      assert_eq("device brand=\{d.brand}", "device brand=None")
-      assert_eq("device model=\{d.model}", "device model=None")
+      assert_eq("device brand=\{opt_str(d.brand)}", "device brand=None")
+      assert_eq("device model=\{opt_str(d.model)}", "device model=None")
     }
     Err(_) => fail("parse never fails with the precompiled rule set")
   }
@@ -61,19 +85,19 @@ test "fakeLuminary: browser/OS fall back to Other, device hits catch-all" {
   let ua = "fakeLuminary/1.0"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("family=\{b.family}", "family=Other")
-  assert_eq("major=\{b.major}", "major=None")
-  assert_eq("minor=\{b.minor}", "minor=None")
-  assert_eq("patch=\{b.patch}", "patch=None")
+  assert_eq("major=\{opt_str(b.major)}", "major=None")
+  assert_eq("minor=\{opt_str(b.minor)}", "minor=None")
+  assert_eq("patch=\{opt_str(b.patch)}", "patch=None")
   let o = @ua_parser.parse_os(ua)
   assert_eq("os family=\{o.family}", "os family=Other")
-  assert_eq("os major=\{o.major}", "os major=None")
-  assert_eq("os minor=\{o.minor}", "os minor=None")
-  assert_eq("os patch=\{o.patch}", "os patch=None")
-  assert_eq("os patch_minor=\{o.patch_minor}", "os patch_minor=None")
+  assert_eq("os major=\{opt_str(o.major)}", "os major=None")
+  assert_eq("os minor=\{opt_str(o.minor)}", "os minor=None")
+  assert_eq("os patch=\{opt_str(o.patch)}", "os patch=None")
+  assert_eq("os patch_minor=\{opt_str(o.patch_minor)}", "os patch_minor=None")
   let d = @ua_parser.parse_device(ua)
   assert_eq("device family=\{d.family}", "device family=Generic Feature Phone")
-  assert_eq("device brand=\{d.brand}", "device brand=Some(Generic)")
-  assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+  assert_eq("device brand=\{opt_str(d.brand)}", "device brand=Some(Generic)")
+  assert_eq("device model=\{opt_str(d.model)}", "device model=Some(Feature Phone)")
 }
 
 ///|
@@ -88,9 +112,9 @@ test "arcgis collector exercises mid-template group substitution" {
   let ua = "Collector-Android-10.3.7/ArcGIS.Android-10.2.5/7.0/SAMSUNG-SM-T815"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("family=\{b.family}", "family=Collector for ArcGIS")
-  assert_eq("major=\{b.major}", "major=Some(10)")
-  assert_eq("minor=\{b.minor}", "minor=Some(3)")
-  assert_eq("patch=\{b.patch}", "patch=Some(7)")
+  assert_eq("major=\{opt_str(b.major)}", "major=Some(10)")
+  assert_eq("minor=\{opt_str(b.minor)}", "minor=Some(3)")
+  assert_eq("patch=\{opt_str(b.patch)}", "patch=Some(7)")
 }
 
 ///|
@@ -103,8 +127,8 @@ test "iphone device rule derives family brand model" {
   let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 DuckDuckGo/7 Safari/605.1.15"
   let d = @ua_parser.parse_device(ua)
   assert_eq("family=\{d.family}", "family=iPhone")
-  assert_eq("brand=\{d.brand}", "brand=Some(Apple)")
-  assert_eq("model=\{d.model}", "model=Some(iPhone)")
+  assert_eq("brand=\{opt_str(d.brand)}", "brand=Some(Apple)")
+  assert_eq("model=\{opt_str(d.model)}", "model=Some(iPhone)")
 }
 
 ///|
@@ -122,10 +146,10 @@ test "qq browser golden asserts patch_minor group-5 fallback" {
   let ua = "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.15 Safari/535.11 QQBrowser/6.13.13719.201"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("family=\{b.family}", "family=QQ Browser")
-  assert_eq("major=\{b.major}", "major=Some(6)")
-  assert_eq("minor=\{b.minor}", "minor=Some(13)")
-  assert_eq("patch=\{b.patch}", "patch=Some(13719)")
-  assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
+  assert_eq("major=\{opt_str(b.major)}", "major=Some(6)")
+  assert_eq("minor=\{opt_str(b.minor)}", "minor=Some(13)")
+  assert_eq("patch=\{opt_str(b.patch)}", "patch=Some(13719)")
+  assert_eq("patch_minor=\{opt_str(b.patch_minor)}", "patch_minor=Some(201)")
 }
 
 ///|
@@ -146,8 +170,8 @@ test "smartwatch device rule combines two groups in family template" {
   let ua = "Mozilla/5.0 (Linux; Android 4.4.2; C6833 Build/14.3.A.0.681) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36 SmartWatch(Sony;SW2;660x800)"
   let d = @ua_parser.parse_device(ua)
   assert_eq("family=\{d.family}", "family=Sony SW2")
-  assert_eq("brand=\{d.brand}", "brand=Some(Sony)")
-  assert_eq("model=\{d.model}", "model=Some(SW2)")
+  assert_eq("brand=\{opt_str(d.brand)}", "brand=Some(Sony)")
+  assert_eq("model=\{opt_str(d.model)}", "model=Some(SW2)")
 }
 
 ///|
@@ -167,8 +191,8 @@ test "sony ericsson empty group exercises strip to family value" {
   let ua = "ERO247 Android Application (13, ero247 v2.1) - Sony C1505 Sony - FFFFFFFF-9DDE-1B81-FFFF-FFFFA4625391"
   let d = @ua_parser.parse_device(ua)
   assert_eq("family=\{d.family}", "family=Sony")
-  assert_eq("brand=\{d.brand}", "brand=Some(Sony)")
-  assert_eq("model=\{d.model}", "model=Some(C1505)")
+  assert_eq("brand=\{opt_str(d.brand)}", "brand=Some(Sony)")
+  assert_eq("model=\{opt_str(d.model)}", "model=Some(C1505)")
 }
 
 ///|
@@ -191,17 +215,17 @@ test "optional version group absent yields None in OS and browser" {
   let ios_ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 DuckDuckGo/7 Safari/605.1.15"
   let o = @ua_parser.parse_os(ios_ua)
   assert_eq("os family=\{o.family}", "os family=iOS")
-  assert_eq("os major=\{o.major}", "os major=Some(14)")
-  assert_eq("os minor=\{o.minor}", "os minor=Some(3)")
-  assert_eq("os patch=\{o.patch}", "os patch=None")
-  assert_eq("os patch_minor=\{o.patch_minor}", "os patch_minor=None")
+  assert_eq("os major=\{opt_str(o.major)}", "os major=Some(14)")
+  assert_eq("os minor=\{opt_str(o.minor)}", "os minor=Some(3)")
+  assert_eq("os patch=\{opt_str(o.patch)}", "os patch=None")
+  assert_eq("os patch_minor=\{opt_str(o.patch_minor)}", "os patch_minor=None")
   let bot_ua = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
   let b = @ua_parser.parse_browser(bot_ua)
   assert_eq("family=\{b.family}", "family=Googlebot")
-  assert_eq("major=\{b.major}", "major=Some(2)")
-  assert_eq("minor=\{b.minor}", "minor=Some(1)")
-  assert_eq("patch=\{b.patch}", "patch=None")
-  assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+  assert_eq("major=\{opt_str(b.major)}", "major=Some(2)")
+  assert_eq("minor=\{opt_str(b.minor)}", "minor=Some(1)")
+  assert_eq("patch=\{opt_str(b.patch)}", "patch=None")
+  assert_eq("patch_minor=\{opt_str(b.patch_minor)}", "patch_minor=None")
 }
 
 ///|
@@ -226,15 +250,15 @@ test "flag-i device rules match case variants exactly where uap-python does" {
   let tct_lower = "SV1 Android Application (13, sv1 v2.1) - tct ALCATEL one touch 890D tct - FFFFFFFF-9EAF-9658-730A-F6590033C587"
   let d = @ua_parser.parse_device(tct_lower)
   assert_eq("family=\{d.family}", "family=ALCATEL one touch 890D")
-  assert_eq("brand=\{d.brand}", "brand=Some(ALCATEL)")
-  assert_eq("model=\{d.model}", "model=Some(one touch 890D)")
+  assert_eq("brand=\{opt_str(d.brand)}", "brand=Some(ALCATEL)")
+  assert_eq("model=\{opt_str(d.model)}", "model=Some(one touch 890D)")
   let yeti_upper = "Mozilla/5.0 (compatible; YETI/1.1; +http://naver.me/spd)"
   let b = @ua_parser.parse_browser(yeti_upper)
   assert_eq("family=\{b.family}", "family=Other")
   let d2 = @ua_parser.parse_device(yeti_upper)
   assert_eq("spider family=\{d2.family}", "spider family=Spider")
-  assert_eq("spider brand=\{d2.brand}", "spider brand=Some(Spider)")
-  assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+  assert_eq("spider brand=\{opt_str(d2.brand)}", "spider brand=Some(Spider)")
+  assert_eq("spider model=\{opt_str(d2.model)}", "spider model=Some(Desktop)")
 }
 
 ///|
@@ -315,21 +339,21 @@ test "with_rule_index reports winning rule positions for chrome desktop" {
   match @ua_parser.parse(ua, with_rule_index=true) {
     Ok(info) => {
       let b = info.browser
-      assert_eq("browser rule_index=\{b.rule_index}", "browser rule_index=Some(280)")
+      assert_eq("browser rule_index=\{opt_int(b.rule_index)}", "browser rule_index=Some(280)")
       assert_eq("family=\{b.family}", "family=Chrome")
-      assert_eq("major=\{b.major}", "major=Some(120)")
-      assert_eq("minor=\{b.minor}", "minor=Some(0)")
-      assert_eq("patch=\{b.patch}", "patch=Some(0)")
-      assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(0)")
+      assert_eq("major=\{opt_str(b.major)}", "major=Some(120)")
+      assert_eq("minor=\{opt_str(b.minor)}", "minor=Some(0)")
+      assert_eq("patch=\{opt_str(b.patch)}", "patch=Some(0)")
+      assert_eq("patch_minor=\{opt_str(b.patch_minor)}", "patch_minor=Some(0)")
       let o = info.os
-      assert_eq("os rule_index=\{o.rule_index}", "os rule_index=Some(47)")
+      assert_eq("os rule_index=\{opt_int(o.rule_index)}", "os rule_index=Some(47)")
       assert_eq("os family=\{o.family}", "os family=Windows")
-      assert_eq("os major=\{o.major}", "os major=Some(10)")
+      assert_eq("os major=\{opt_str(o.major)}", "os major=Some(10)")
       let d = info.device
-      assert_eq("device rule_index=\{d.rule_index}", "device rule_index=None")
+      assert_eq("device rule_index=\{opt_int(d.rule_index)}", "device rule_index=None")
       assert_eq("device family=\{d.family}", "device family=Other")
-      assert_eq("device brand=\{d.brand}", "device brand=None")
-      assert_eq("device model=\{d.model}", "device model=None")
+      assert_eq("device brand=\{opt_str(d.brand)}", "device brand=None")
+      assert_eq("device model=\{opt_str(d.model)}", "device model=None")
     }
     Err(_) => fail("parse never fails with the precompiled rule set")
   }
@@ -344,20 +368,20 @@ test "default parse leaves rule_index None with identical domain values" {
   let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   match @ua_parser.parse(ua) {
     Ok(def) => {
-      assert_eq("browser rule_index=\{def.browser.rule_index}", "browser rule_index=None")
-      assert_eq("os rule_index=\{def.os.rule_index}", "os rule_index=None")
-      assert_eq("device rule_index=\{def.device.rule_index}", "device rule_index=None")
+      assert_eq("browser rule_index=\{opt_int(def.browser.rule_index)}", "browser rule_index=None")
+      assert_eq("os rule_index=\{opt_int(def.os.rule_index)}", "os rule_index=None")
+      assert_eq("device rule_index=\{opt_int(def.device.rule_index)}", "device rule_index=None")
       match @ua_parser.parse(ua, with_rule_index=true) {
         Ok(idx) => {
           let b1 = def.browser
           let b2 = idx.browser
-          assert_eq("browser family \{b1.family} major \{b1.major} minor \{b1.minor} patch \{b1.patch} patch_minor \{b1.patch_minor}", "browser family \{b2.family} major \{b2.major} minor \{b2.minor} patch \{b2.patch} patch_minor \{b2.patch_minor}")
+          assert_eq("browser family \{b1.family} major \{opt_str(b1.major)} minor \{opt_str(b1.minor)} patch \{opt_str(b1.patch)} patch_minor \{opt_str(b1.patch_minor)}", "browser family \{b2.family} major \{opt_str(b2.major)} minor \{opt_str(b2.minor)} patch \{opt_str(b2.patch)} patch_minor \{opt_str(b2.patch_minor)}")
           let o1 = def.os
           let o2 = idx.os
-          assert_eq("os family \{o1.family} major \{o1.major} minor \{o1.minor} patch \{o1.patch} patch_minor \{o1.patch_minor}", "os family \{o2.family} major \{o2.major} minor \{o2.minor} patch \{o2.patch} patch_minor \{o2.patch_minor}")
+          assert_eq("os family \{o1.family} major \{opt_str(o1.major)} minor \{opt_str(o1.minor)} patch \{opt_str(o1.patch)} patch_minor \{opt_str(o1.patch_minor)}", "os family \{o2.family} major \{opt_str(o2.major)} minor \{opt_str(o2.minor)} patch \{opt_str(o2.patch)} patch_minor \{opt_str(o2.patch_minor)}")
           let d1 = def.device
           let d2 = idx.device
-          assert_eq("device family \{d1.family} brand \{d1.brand} model \{d1.model}", "device family \{d2.family} brand \{d2.brand} model \{d2.model}")
+          assert_eq("device family \{d1.family} brand \{opt_str(d1.brand)} model \{opt_str(d1.model)}", "device family \{d2.family} brand \{opt_str(d2.brand)} model \{opt_str(d2.model)}")
         }
         Err(_) => fail("parse never fails with the precompiled rule set")
       }
@@ -385,23 +409,23 @@ test "fakeLuminary: catch-all device index Some, fallbacks stay None" {
   match @ua_parser.parse(ua, with_rule_index=true) {
     Ok(info) => {
       let b = info.browser
-      assert_eq("browser rule_index=\{b.rule_index}", "browser rule_index=None")
+      assert_eq("browser rule_index=\{opt_int(b.rule_index)}", "browser rule_index=None")
       assert_eq("family=\{b.family}", "family=Other")
       let o = info.os
-      assert_eq("os rule_index=\{o.rule_index}", "os rule_index=None")
+      assert_eq("os rule_index=\{opt_int(o.rule_index)}", "os rule_index=None")
       assert_eq("os family=\{o.family}", "os family=Other")
       let d = info.device
-      assert_eq("device rule_index=\{d.rule_index}", "device rule_index=Some(626)")
+      assert_eq("device rule_index=\{opt_int(d.rule_index)}", "device rule_index=Some(626)")
       assert_eq("device family=\{d.family}", "device family=Generic Feature Phone")
-      assert_eq("device brand=\{d.brand}", "device brand=Some(Generic)")
-      assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+      assert_eq("device brand=\{opt_str(d.brand)}", "device brand=Some(Generic)")
+      assert_eq("device model=\{opt_str(d.model)}", "device model=Some(Feature Phone)")
     }
     Err(_) => fail("parse never fails with the precompiled rule set")
   }
   // Default call keeps the index unset even for the matched device rule.
   match @ua_parser.parse(ua) {
     Ok(info) =>
-      assert_eq("default device rule_index=\{info.device.rule_index}", "default device rule_index=None")
+      assert_eq("default device rule_index=\{opt_int(info.device.rule_index)}", "default device rule_index=None")
     Err(_) => fail("parse never fails with the precompiled rule set")
   }
 }
@@ -432,18 +456,18 @@ test "with_rule_index parse stays consistent with single-domain functions" {
     let (ua, (bi, oi, di)) = pair
     match @ua_parser.parse(ua, with_rule_index=true) {
       Ok(info) => {
-        assert_eq("\{i} browser rule_index \{info.browser.rule_index}", "\{i} browser rule_index \{bi}")
-        assert_eq("\{i} os rule_index \{info.os.rule_index}", "\{i} os rule_index \{oi}")
-        assert_eq("\{i} device rule_index \{info.device.rule_index}", "\{i} device rule_index \{di}")
+        assert_eq("\{i} browser rule_index \{opt_int(info.browser.rule_index)}", "\{i} browser rule_index \{opt_int(bi)}")
+        assert_eq("\{i} os rule_index \{opt_int(info.os.rule_index)}", "\{i} os rule_index \{opt_int(oi)}")
+        assert_eq("\{i} device rule_index \{opt_int(info.device.rule_index)}", "\{i} device rule_index \{opt_int(di)}")
         let b = @ua_parser.parse_browser(ua)
-        assert_eq("\{i} browser family \{info.browser.family} major \{info.browser.major} minor \{info.browser.minor} patch \{info.browser.patch} patch_minor \{info.browser.patch_minor}", "\{i} browser family \{b.family} major \{b.major} minor \{b.minor} patch \{b.patch} patch_minor \{b.patch_minor}")
+        assert_eq("\{i} browser family \{info.browser.family} major \{opt_str(info.browser.major)} minor \{opt_str(info.browser.minor)} patch \{opt_str(info.browser.patch)} patch_minor \{opt_str(info.browser.patch_minor)}", "\{i} browser family \{b.family} major \{opt_str(b.major)} minor \{opt_str(b.minor)} patch \{opt_str(b.patch)} patch_minor \{opt_str(b.patch_minor)}")
         let o = @ua_parser.parse_os(ua)
-        assert_eq("\{i} os family \{info.os.family} major \{info.os.major} minor \{info.os.minor} patch \{info.os.patch} patch_minor \{info.os.patch_minor}", "\{i} os family \{o.family} major \{o.major} minor \{o.minor} patch \{o.patch} patch_minor \{o.patch_minor}")
+        assert_eq("\{i} os family \{info.os.family} major \{opt_str(info.os.major)} minor \{opt_str(info.os.minor)} patch \{opt_str(info.os.patch)} patch_minor \{opt_str(info.os.patch_minor)}", "\{i} os family \{o.family} major \{opt_str(o.major)} minor \{opt_str(o.minor)} patch \{opt_str(o.patch)} patch_minor \{opt_str(o.patch_minor)}")
         let d = @ua_parser.parse_device(ua)
-        assert_eq("\{i} device family \{info.device.family} brand \{info.device.brand} model \{info.device.model}", "\{i} device family \{d.family} brand \{d.brand} model \{d.model}")
-        assert_eq("\{i} single-domain browser rule_index \{@ua_parser.parse_browser(ua).rule_index}", "\{i} single-domain browser rule_index None")
-        assert_eq("\{i} single-domain os rule_index \{@ua_parser.parse_os(ua).rule_index}", "\{i} single-domain os rule_index None")
-        assert_eq("\{i} single-domain device rule_index \{@ua_parser.parse_device(ua).rule_index}", "\{i} single-domain device rule_index None")
+        assert_eq("\{i} device family \{info.device.family} brand \{opt_str(info.device.brand)} model \{opt_str(info.device.model)}", "\{i} device family \{d.family} brand \{opt_str(d.brand)} model \{opt_str(d.model)}")
+        assert_eq("\{i} single-domain browser rule_index \{opt_int(@ua_parser.parse_browser(ua).rule_index)}", "\{i} single-domain browser rule_index None")
+        assert_eq("\{i} single-domain os rule_index \{opt_int(@ua_parser.parse_os(ua).rule_index)}", "\{i} single-domain os rule_index None")
+        assert_eq("\{i} single-domain device rule_index \{opt_int(@ua_parser.parse_device(ua).rule_index)}", "\{i} single-domain device rule_index None")
       }
       Err(_) => fail("parse never fails with the precompiled rule set")
     }
