@@ -79,6 +79,7 @@ grep -n "UAP_CORE" moon_ua_parser_lib/src/ua_parser/rules/rules_version.mbt
 
 - 每次执行本 SOP，在 `docs/evidence/` 落一份日期化记录，命名 `<kind>-YYYY-MM-DD.md`（数据表用 `.txt`）。kind 取：`snapshot-bump`（§2）、`regex-compat`（§3.6）、`regen`（§3）、`diffstats`（§4）、`final-gate`（收尾）。
 - 格式参照既有 evidence 文件：结论先行、命令与原始输出摘录、判定对照、scratch 与仓库卫生声明（仓库内仅新增证据文件本身）。
+- **演练模式（replay）**：按 kind 拆分是**真实执行**的要求；复演/演练（replay）运行允许把全部证据**合并为一份日期化文件**（命名 `sop-replay-<date>.md`，各 kind 的内容作为其小节承载），不因未按 kind 拆分而判失败。先例：`docs/evidence/sop-replay-2026-09-13.md`。
 - 回滚（§6）同样落盘，不因"失败回滚"而免记。
 
 ### 1.5 预期输出/判定（本节）
@@ -129,12 +130,13 @@ git -C "$WORK/uap-core-upstream" checkout <目标commit短哈希>
 git -C "$WORK/uap-core-upstream" log -1 --format='%h %cd %s' --date=short
 ```
 
+- **适用性（两条路径都执行）**：本步在「已是最新」与刷新两条路径**都执行**——`$WORK` 内的 upstream clone 是 §2.3 A5 对账/维持证明的对照侧，两条路径都需要。其中 `fetch <目标commit完整40位哈希>` 与 `checkout <目标commit短哈希>` 两子步为**刷新路径专用**（目标 commit ≠ clone HEAD 时才需要）；「已是最新」路径目标即 clone HEAD，这两行逐字执行亦无害（checkout 同一 commit，exit 0）。
 - **预期输出**：clone exit 0；末行打印目标 commit 短哈希、**CommitDate（快照日期的权威来源，格式 YYYY-MM-DD）** 与提交信息。2026-09-13 基线实测：`73e7340 2026-08-24 Clean up errant whitespace in regexes.yaml`（标注的快照日期取 CommitDate，非 AuthorDate）。
 - **破坏性操作规则（总则）**：clone 只落在 `$WORK`。**禁止任何备份/克隆/scratch 留在仓库内**；结束后 `$WORK` 可留待系统 TEMP 自清，仓库内不得有残留。
 
 ### 2.3 步骤 3：A5 对账与增量统计（刷新路径必做；「已是最新」路径可作为维持证明复跑）
 
-> **内嵌 .git 警告（机制知识，务必先读）**：vendored `uap-core/` 目录内嵌一份 `.git`（基线遗留；**未被父仓库跟踪，对父仓库 `git status` 不可见**）。刷新与备份都必须把它当普通文件处理——`cp -r` 会把它一并带走，这是正确行为；但一切递归 diff / 文件清单对比**必须排除它**，否则两侧各自的 `.git` 会制造无意义差异。
+> **内嵌 .git 警告（机制知识，务必先读）**：vendored `uap-core/` 目录可能内嵌一份 `.git`（基线遗留；**未被父仓库跟踪，对父仓库 `git status` 不可见**）。它的存在性分两种形态，**均为预期、不是异常**：**主检出（canonical main tree）→ 在场**，原样保留、当普通文件处理（勿删勿提交）；**worktree 检出（`git worktree add`）→ 缺席**（untracked 文件不随 worktree 传播），无需补建、不得当作缺陷去"修复"。刷新与备份都把它当普通文件处理——`cp -r` 会在场时把它一并带走，这是正确行为；但一切递归 diff / 文件清单对比**必须排除它**（`--exclude=.git` 在其缺席时同样无害），否则两侧各自的 `.git` 会制造无意义差异。worktree 走刷新路径时注意：§2.4 的 `cp -r "$WORK/uap-core-upstream" uap-core` 会把上游 clone 的 `.git` 带入新 vendor 目录，属预期，照常勿删勿提交。
 
 ```
 set -euo pipefail
@@ -191,7 +193,7 @@ git diff --stat uap-core/
 ```
 
 - **预期输出/判定**：备份两步均静默通过（ls 列出文件、diff 退出 0）才允许覆盖。覆盖后 `git status` 列出快照变更文件（与 §2.3 增量清单一致）；`git diff --stat` 即快照增量，抄入证据。
-- 新 vendor 目录携带上游 clone 的内嵌 `.git`——与基线形态一致（未被父仓库跟踪、status 不可见），照常当普通文件处理，勿删勿提交。
+- 新 vendor 目录携带上游 clone 的内嵌 `.git`——未被父仓库跟踪、status 不可见，照常当普通文件处理，勿删勿提交。覆盖前基线形态两处皆可能：主检出本有内嵌 `.git`，worktree 本无（见 §2.3 警告块）；覆盖后统一变为「携带 clone 的 `.git`」，两种起点下均为预期。
 - **「已是最新」路径本步 na**（决策门已裁定不覆盖；备份步骤同样不适用，2026-09-13 实测即如此）。
 
 ### 2.5 预期输出/判定（本节）
@@ -252,22 +254,35 @@ python ../scripts/gen_rules.py
 python ../scripts/gen_tests.py
 ```
 
-- **预期输出/判定**（基线参考值；刷新路径应为 §2.3 的新计数）：
+- **预期输出/判定**（2026-09-13 基线逐字实测；刷新路径应为 §2.3 的新计数。`wrote` 行为**逐文件一行、绝对 Windows 路径 + 字节数**，路径前缀与字节数随机器/快照而变，**不作为判据**）：
+
+`python scripts/gen_rules.py`：
 
 ```
+Reading <仓库根绝对路径>\uap-core\regexes.yaml
 uap-core snapshot: commit 73e7340, date 2026-08-24
 user_agent_parsers  :  433 rules (0 with flag i)
 os_parsers          :  204 rules (0 with flag i)
 device_parsers      :  633 rules (65 with flag i)
-total               :  1270 rules
-... wrote src/ua_parser/rules/{rules_data.mbt, rules_version.mbt, moon.pkg}
+total               : 1270 rules
+wrote <仓库根绝对路径>\moon_ua_parser_lib\src\ua_parser\rules\rules_data.mbt (257923 bytes)
+wrote <仓库根绝对路径>\moon_ua_parser_lib\src\ua_parser\rules\rules_version.mbt (465 bytes)
+wrote <仓库根绝对路径>\moon_ua_parser_lib\src\ua_parser\rules\moon.pkg (378 bytes)
 OK
----
+```
+
+`python scripts/gen_tests.py`：
+
+```
+Reading <仓库根绝对路径>\uap-core\tests
 test_ua.yaml      :   1601 cases (0 exempted)
 test_os.yaml      :    483 cases (0 exempted)
 test_device.yaml  :  16129 cases (0 exempted)
 total             :  18213 cases
-... wrote tests/differential/{diff_ua.mbt, diff_os.mbt, diff_device.mbt, moon.pkg}
+wrote <仓库根绝对路径>\moon_ua_parser_lib\tests\differential\diff_ua.mbt (342278 bytes)
+wrote <仓库根绝对路径>\moon_ua_parser_lib\tests\differential\diff_os.mbt (103272 bytes)
+wrote <仓库根绝对路径>\moon_ua_parser_lib\tests\differential\diff_device.mbt (3542364 bytes)
+wrote <仓库根绝对路径>\moon_ua_parser_lib\tests\differential\moon.pkg (305 bytes)
 OK
 ```
 
@@ -405,15 +420,26 @@ moon test                  # 默认 target=wasm：wasm 运行时验证
 
 ### 4.3 预期输出/判定（本节）
 
-`GATES: ALL MET` + js 全绿 + wasm 构建通过（运行失败已按 LOCAL_DEAD_LINK 登记）= 差分门禁过。全量 stdout 与失败分组抄入 `docs/evidence/diffstats-YYYY-MM-DD.txt`。
+`GATES: ALL MET` + js 全绿 + wasm 构建通过（运行失败已按 LOCAL_DEAD_LINK 登记）= 差分门禁过。
+
+**采集陷阱（机制知识，务必先读）**：diffstats 的数据表经 **stderr** 中继输出（`moon run` 本身 exit 0，交互终端看不出差别），**仅捕获/重定向 stdout 会得到空文件**。证据落盘必须合并 stderr（`2>&1`）：
+
+```
+set -euo pipefail
+# CWD: moon_ua_parser_lib/
+moon run --target native --release tests/diffstats 2>&1 | tee ../docs/evidence/diffstats-YYYY-MM-DD.txt
+# → 文件内容即 §4.1 的数据表全文（含失败分组与 GATES 行）
+```
+
+合并捕获的全量输出（stdout+stderr，含失败分组）即 `docs/evidence/diffstats-YYYY-MM-DD.txt` 的内容。
 
 ## 5. 归因登记
 
 台账载体：`docs/regex-migration.md`（沿用其现行结构）。**追加式登记：新增偏差逐条追加，不改既有行。**
 
-### 5.1 台账行格式（五要素，spec §3 契约字面）
+### 5.1 台账登记五要素（spec §3 契约：必备内容，非字面行格式）
 
-每条新增偏差登记以下五要素：
+每条新增偏差的登记必须承载以下五要素（**内容要求**）：
 
 | 要素 | 说明 |
 |------|------|
@@ -422,6 +448,8 @@ moon test                  # 默认 target=wasm：wasm 运行时验证
 | 实际输出 | 本引擎输出（或权威 uap-python 输出，三栏审计口径注明） |
 | 处置 | **改写 或 豁免**（二选一，写明） |
 | 上游 issue 链接 | 豁免必附；改写建议附 |
+
+五要素是登记内容的完备性要求，**不是字面行格式**：不要求把偏差写成五字段单行。结构上沿台账 `docs/regex-migration.md` §4 的现行表格形态承载（§4.1 政策采纳条目两列表、§4.2 三栏审计逐例表、§4.3 引擎设计偏差记录）——凡五要素信息齐备、且按 §5.3 可检索，即符合本节。
 
 归因三分类（沿台账 §4 口径）：(a) 引擎语义差 / (b) 上游笔误（权威协议豁免）/ (c) 已知难点。登记前建议做三栏审计（golden × uap-python × 本引擎）定位差异归属。
 
