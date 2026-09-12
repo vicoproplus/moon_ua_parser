@@ -138,11 +138,13 @@ N/A — this plan touches no endpoints（中间件消费框架请求 API 与库�
 moon test --target native && cd moon_ua_parser_lib && moon check
 # 行1 选型证据（spec §4 行1 逐字）
 test -f docs/framework-selection.md && grep -c "来源" docs/framework-selection.md   # ≥6
-# 行2 中间件行为（spec §4 行2；每集成包执行，包名 T-02 后回填）
-moon test -p moon_ua_parser_<framework>
+# 行2 中间件行为（spec §4 行2；每集成包执行，包名 T-02 裁决回填：crescent + mars）
+moon test -p moon_ua_parser_crescent
+moon test -p moon_ua_parser_mars
 # 行3 失败取证（spec §4 行3；畸形 UA 集成测试内断言日志通道输出，运行上述测试即覆盖）
 # 行4 集成/交付（spec §4 行4 逐字；包页项 [LOCAL_DEAD_LINK — 验证地点/方式: 网络可用后 mooncakes 包页人工核录]）
-test -f moon_ua_parser_<framework>/README.mbt.md
+test -f moon_ua_parser_crescent/README.mbt.md
+test -f moon_ua_parser_mars/README.mbt.md
 grep -c "moon_ua_parser" moon_ua_parser_lib/README.mbt.md   # 生态节含包名
 grep -n "middleware\|集成" .github/workflows/ci.yml         # CI 步骤命中
 ```

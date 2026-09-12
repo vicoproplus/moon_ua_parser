@@ -47,7 +47,7 @@ PRD P0/P1 全部覆盖；无 spec 外新增需求。
 | 契约项 | 字面值 | 证据等级与指针 |
 |--------|--------|----------------|
 | 库依赖声明 | `vicoproplus/moon_ua_parser`（依赖版本 ≥0.2.0） | A：moon.mod:12 机读；版本下限 = S2 边界 |
-| 包命名模式 | `moon_ua_parser_<framework>`（小写 framework 名，M1 选型后逐字填入并回填本表证据等级为 A） | B：本 spec 锁定命名模式；具体字面量待 M1 证据裁决（PRD 开放问题已登记裁决路径） |
+| 包命名模式 | `moon_ua_parser_crescent`（Crescent）、`moon_ua_parser_mars`（mars）——T-02 加权裁决入选前二（crescent 9.06 / mars 8.36），逐字登记于 `docs/framework-selection.md` §④/§⑤ | A：T-02 裁决报告 2026-09-13（来源指针 ≥6，权重计算可复核） |
 | 包落位 | 本仓库 moon workspace 子模块（根清单 `moon.work`，members=["./moon_ua_parser_lib"]；T-01 探针 2026-09-13 实测：双模块构建+跨模块依赖解析+`moon test --target native` 全绿，证据 `docs/evidence/workspace-probe-2026-09-13.log`；wasm-gc 本地测试运行为既有环境限制，行0 固定 native 目标） | A：T-01 探针实测（D2 反向裁决未触发） |
 | 共享 helper 模块 | `moon_ua_parser_middleware_core`（组装 UaInfo 挂载值 + 降级判定 + 取证记录格式定义；不含框架 API） | B：设计文档 D3 |
 | 降级语义 | Err 或三域 family 均为空兜底值（"Other"/"Spider" 语义沿用 uap-python）时挂载空结果继续链路；取证记录 = `{ua_summary(截断≤64字符), reason}` 写入框架日志通道 | A：pkg.generated.mbti 结构 + README「uap-python-compatible semantics」节 |
