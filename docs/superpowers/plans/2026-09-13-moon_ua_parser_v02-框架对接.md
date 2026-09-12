@@ -231,7 +231,7 @@ grep -n "middleware\|集成" .github/workflows/ci.yml         # CI 步骤命中
 
 ### T-05 第二框架包（仅当 T-02 裁决为 2 个）
 
-**Files**: `moon_ua_parser_<framework-2>/`（同 T-04 结构）
+**Files**: `moon_ua_parser_mars/`（同 T-04 结构；T-02 裁决第 2 包 = mars）
 
 **Steps**
 1. 复制 T-04 模式实现第二适配包；共享语义零复制（调 helper）。
