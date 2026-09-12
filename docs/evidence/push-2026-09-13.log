@@ -1,0 +1,51 @@
+# push-2026-09-13.log — T-07 tag 补标与推送 evidence
+date: 2026-09-12T22:40:01Z (local: 2026-09-13 06:40:01)
+worktree: F:/moonbit比赛/moon_ua_parser_wt_platform (branch feat/v02-platform-complete, HEAD 9b6abab1e4df9de369bf54329de3d422fa6d8a3b)
+local main: a56a85c9a04d2046b9e4d7fff62ce07fd4df5742
+
+## Step 1 (E6 precondition): git ls-remote origin main
+$ timeout 60 env GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" ls-remote origin main
+--- output (verbatim) ---
+2eea2d17ff8d3fb1b589db7000405e522d7eaa31	refs/heads/main
+--- end output ---
+exit code: 0
+
+## Observation: origin/main = 2eea2d1 != local main a56a85c — investigating ancestry before any push
+$ git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" fetch origin
+
+fetch exit code: 0
+## Step 2: local tag creation
+$ git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" tag v0.1.0 a56a85c
+tag created, exit code: 0
+$ git tag -l
+v0.1.0
+$ git rev-parse v0.1.0^{commit}
+v0.1.0 points at: a56a85c9a04d2046b9e4d7fff62ce07fd4df5742
+
+## Step 3: push origin main + tags
+$ timeout 60 env GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" push origin main --tags
+--- output (verbatim) ---
+To https://github.com/vicoproplus/moon_ua_parser.git
+   2eea2d1..a56a85c  main -> main
+ * [new tag]         v0.1.0 -> v0.1.0
+--- end output ---
+push exit code: 0
+
+## Step 4 (A5 reconciliation)
+$ timeout 60 env GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" ls-remote origin main
+a56a85c9a04d2046b9e4d7fff62ce07fd4df5742	refs/heads/main
+exit code: 0
+
+$ timeout 60 env GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git -C "F:/moonbit比赛/moon_ua_parser_wt_platform" ls-remote --tags origin
+a56a85c9a04d2046b9e4d7fff62ce07fd4df5742	refs/tags/v0.1.0
+exit code: 0
+## Reconciliation result
+origin/main = a56a85c9a04d2046b9e4d7fff62ce07fd4df5742 == local main: MATCH
+origin refs/tags/v0.1.0 = a56a85c9a04d2046b9e4d7fff62ce07fd4df5742: PRESENT
+
+## Outcome
+Task T-07: COMPLETE (network available; no [LOCAL_DEAD_LINK]).
+Precondition E6 passed (exit 0); push was fast-forward 2eea2d1..a56a85c on main; tag v0.1.0 pushed.
+Note: origin/main was initially behind local main (2eea2d1, an ancestor of a56a85c); push fast-forwarded it to the v0.1.0 terminal state as planned. No force-push used.
+v0.2.0 tag deferred to T-09 per plan.
+Files created by T-07: docs/evidence/push-2026-09-13.log (untracked evidence only). No tracked file modified; no commits created.
