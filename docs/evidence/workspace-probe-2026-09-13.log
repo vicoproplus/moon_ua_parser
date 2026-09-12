@@ -1,0 +1,103 @@
+# T-01 workspace 双模块探针 evidence — 2026-09-13
+
+- 环境: Windows + Git Bash, moon 0.1.20260904 (94521db 2026-09-04)（与 ci.yml:43 锁定一致）
+- worktree: F:\moonbit比赛\moon_ua_parser_wt_framework, branch feat/v02-framework-middleware
+- 所有命令均设 Bash timeout ≤ 120000ms（环境红线 1）；全部 `--target native`（环境红线 2）
+
+## 0. W2 残留核对（重派第一步）
+
+    $ cat moon.work
+    members = [
+      "./moon_ua_parser_lib",
+    ]
+    $ ls hello
+    no hello/ directory
+
+核对结论: `moon.work` 内容有效（仅列 moon_ua_parser_lib），`hello/` 无残留，与 task-1-brief W2 描述一致。
+
+## 1. 探针模块 hello/（临时，探针后已删除）
+
+三个文件（均以文件写入工具创建，非 shell 重定向）:
+
+- `hello/moon.mod`: name = "vicoproplus/hello", version = "0.1.0", import { "vicoproplus/moon_ua_parser@0.1.0" }
+- `hello/moon.pkg`: import { "vicoproplus/moon_ua_parser/src/ua_parser" }
+- `hello/hello.mbt`: pub fn describe(ua) 调用 @ua_parser.parse 并拼 browser/os/device family；test 块断言
+  Chrome UA -> "Chrome/Windows/Other"，Googlebot UA -> "Googlebot/Other/Spider"
+  （期望值溯源: examples/middleware/main.mbt 头注释引用的 tests/semantics、tests/differential 用例；OS family "Windows" 以库实际输出为准）
+
+`moon.work` 探针期内容:
+
+    members = [
+      "./moon_ua_parser_lib",
+      "./hello",
+    ]
+
+### 探针迭代记录（假设修正，非静默回退）
+
+1. moon.mod 无版本 import 被拒:
+   `Error: moon.mod only supports versioned registry dependencies in 'import', found 'vicoproplus/moon_ua_parser'`
+   → 改为 `"vicoproplus/moon_ua_parser@0.1.0"`（版本号取自 moon_ua_parser_lib/moon.mod 实际 version；workspace 成员本地解析，未联网）。
+2. match 臂语法: `->` 解析错误（本工具链要求 `=>`）→ 已修正。
+3. 期望值修正: 首轮断言 "Chrome/Windows 10/Other" 与库实际输出不符，实测本仓库 uap-core 对
+   Windows NT 10.0 的 OS family = "Windows" → 修正为 "Chrome/Windows/Other" 后通过。
+
+## 2. 探针三件套（hello 在清单内）
+
+    $ moon build --target native
+    Finished. moon: ran 20 tasks, now up to date (18 warnings, 0 errors)
+
+    $ moon test --target native -p vicoproplus/hello
+    hello.blackbox_test.c
+    hello.internal_test.c
+    Total tests: 1, passed: 1, failed: 0.
+
+    $ moon test --target native            # workspace 顶层（lib 31 + hello 1）
+    Total tests: 32, passed: 32, failed: 0.
+
+跨模块依赖解析证实: hello（模块 vicoproplus/hello）通过 moon.pkg import
+`vicoproplus/moon_ua_parser/src/ua_parser` 成功调用 lib pub fn `parse`，测试断言库产出通过。
+
+### 运行耗时备注（环境事实，非失败）
+
+workspace 顶层/含 differential 包的 `moon test --target native` 中，differential.internal_test.exe
+单进程全速运行约 10-13 分钟后正常结束（CPU 持续累积、正常退出、输出全绿）。诊断初期曾两次误判
+"卡死"中止运行，后经进程 CPU 采样确认是长耗时计算；最终完整跑通两次（32/32 与 31/31）。
+每次 Bash 调用均设 timeout ≤ 120000ms，由执行器转入后台继续观测。
+
+## 3. 探针拆除
+
+    $ rm -rf hello          # git 未跟踪，删除即无痕
+    moon.work 恢复为 members = [ "./moon_ua_parser_lib" ]
+
+## 4. 最终验证（hello 删除后）
+
+    $ moon build --target native
+    Finished. moon: ran 14 tasks, now up to date (18 warnings, 0 errors)
+
+    $ cd moon_ua_parser_lib && moon check
+    Finished. moon: ran 4 tasks, now up to date (44 warnings, 0 errors)
+
+    $ cd moon_ua_parser_lib && moon test --target native
+    Total tests: 31, passed: 31, failed: 0.
+
+    $ cd moon_ua_parser_lib && moon info
+    Finished. moon: ran 12 tasks, now up to date (44 warnings, 0 errors)
+    $ git diff --exit-code -- '*.mbti'
+    MBTI DIFF: none (exit 0)
+
+（warning 均为库既有 deprecation 提示: derive(Show) → Debug，属基线内容，非本任务引入。）
+
+## 5. 清单文件名与顶层命令字面量（供回填 plan E1/行0 与 spec §3）
+
+- 实际清单文件名: `moon.work`（非 moon.workspace）
+- 顶层构建命令: `moon build --target native`
+- 顶层测试命令: `moon test --target native`
+- 成员内库测试命令: `cd moon_ua_parser_lib && moon check` / `cd moon_ua_parser_lib && moon test --target native`
+- 接口零 diff 校验: `moon info` + `git diff --exit-code -- '*.mbti'`
+
+## 6. 残留检查
+
+`moon info` 曾为全部包再生 7 个未跟踪 pkg.generated.mbti（校验用临时产物），连同
+驻留 moon.exe 守护进程的异步再生行为一并处理后删除；`git status` 现仅余:
+moon.work（本任务交付）、.mooncakes/ 与 _build/（构建缓存，非交付物）、docs/superpower**
+与 docs/superpowers/plans/**（他人所有，未触碰）。
