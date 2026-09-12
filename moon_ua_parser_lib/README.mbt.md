@@ -164,6 +164,61 @@ Methodology notes:
   `python scripts/gen_tests.py` (differential suite); both regenerate
   byte-identically from the vendored snapshots.
 
+## Performance
+
+Baseline measured 2026-09-13 with the built-in benchmark runner
+(`tests/bench`). Each run fully loads the 10,000-entry sample corpus, then
+executes 2 untimed warmup rounds followed by 7 timed rounds, where one round
+parses a stratified stride-20 subsample of 500 user agents; the run's
+reported value is the median of the 7 per-round `ops_per_sec` readings, and
+`ns_per_parse = 1e9 / median` (same-source dual metric). The published
+baseline per backend is the median of the per-run medians of 3 runs.
+
+| backend | ops_per_sec | ns_per_parse |
+|---------|-------------|--------------|
+| native  | 23.64       | 42299995.40  |
+| js      | 66.56       | 15023080.99  |
+| wasm    | 23.95       | 41739215.19  |
+
+Verbatim `bench-result` line of the run whose median became each baseline
+(full raw round values:
+[`../docs/bench-baseline-2026-09-13.md`](../docs/bench-baseline-2026-09-13.md)):
+
+```text
+bench-result backend=native ops_per_sec=23.64 ns_per_parse=42299995.40 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+bench-result backend=js ops_per_sec=66.56 ns_per_parse=15023080.99 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+bench-result backend=wasm ops_per_sec=23.95 ns_per_parse=41739215.19 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+```
+
+Environment (every field read from the measurement host, not assumed):
+
+- **CPU**: 12th Gen Intel(R) Core(TM) i5-12400 (6 cores / 12 threads)
+- **Memory**: 33637777408 bytes (≈31.3 GiB)
+- **OS**: Windows 10 Pro 10.0.19045 x64
+- **Toolchain**: moon 0.1.20260904 (94521db 2026-09-04), node v26.7.0
+  (node executes the `--target js` build)
+- **Sample set**: 10,000 user agents drawn by the stratified generator from
+  uap-python's `samples/useragents.txt` (10,280,676 bytes, 75,158 lines),
+  compiled into `tests/bench/samples.mbt`; set hash
+  `sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244`,
+  identical across all three backends (as is the per-run result checksum,
+  `samples_checksum=15142`)
+
+Reproduce (from the repository root; each command prints a `bench-config`
+line, 7 `bench-round` lines, and a `bench-result` line; expect roughly
+1 minute for js and 3 minutes for native/wasm per run):
+
+```bash
+cd moon_ua_parser_lib
+moon run --target native --release tests/bench
+moon run --target js --release tests/bench
+moon run --target wasm --release tests/bench
+```
+
+These numbers describe one host on one date; treat them as an
+order-of-magnitude baseline for comparing the three backends on comparable
+hardware, not as portable constants.
+
 ## Acknowledgments and license
 
 This project is licensed under **Apache-2.0** (see `LICENSE`).

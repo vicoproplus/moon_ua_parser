@@ -1,0 +1,67 @@
+# bench evidence — T-04 three-backend baseline, backend: js
+# date: 2026-09-13 (pinned)
+# host: Windows 10 专业版 10.0.19045 x64, Git Bash;
+#   CPU: 12th Gen Intel(R) Core(TM) i5-12400 (6 cores / 12 threads);
+#   RAM: 33637777408 bytes (≈31.3 GiB) — all read via Get-CimInstance
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04), node v26.7.0 (moon run --target js launches node)
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+# command (cwd = moon_ua_parser_lib/): moon run --target js --release tests/bench
+# protocol: THREE runs of the default (no-arg) mode; corpus fully loaded (10000),
+#   each round parses the declared stratified stride subsample
+#   BENCH_STRIDE=20 -> sample_count=500; 2 warmup + 7 timed rounds; per-run
+#   reported value = median of per-round ops_per_sec; ns_per_parse = 1e9 /
+#   median (same-source dual metric); samples_checksum guards against
+#   dead-code elimination and is compared across rounds (rounds_consistent).
+# no interruptions: all three runs completed in a single pass each
+# wall times: run1 68s, run2 68s, run3 67s
+# exit codes: run1 = 0, run2 = 0, run3 = 0
+
+## run 1 (verbatim stdout)
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=68.32 ns_per_parse=14636174.00
+bench-round round=1 ops_per_sec=65.93 ns_per_parse=15166133.99
+bench-round round=2 ops_per_sec=68.01 ns_per_parse=14701807.39
+bench-round round=3 ops_per_sec=64.25 ns_per_parse=15564001.59
+bench-round round=4 ops_per_sec=67.56 ns_per_parse=14800864.00
+bench-round round=5 ops_per_sec=64.46 ns_per_parse=15511846.59
+bench-round round=6 ops_per_sec=64.63 ns_per_parse=15471551.59
+bench-result backend=js ops_per_sec=65.93 ns_per_parse=15166133.99 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## run 2 (verbatim stdout)
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=67.29 ns_per_parse=14859040.40
+bench-round round=1 ops_per_sec=67.26 ns_per_parse=14865532.80
+bench-round round=2 ops_per_sec=67.26 ns_per_parse=14866275.39
+bench-round round=3 ops_per_sec=66.56 ns_per_parse=15023080.99
+bench-round round=4 ops_per_sec=65.39 ns_per_parse=15292629.19
+bench-round round=5 ops_per_sec=61.66 ns_per_parse=16215692.40
+bench-round round=6 ops_per_sec=65.37 ns_per_parse=15296680.39
+bench-result backend=js ops_per_sec=66.56 ns_per_parse=15023080.99 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## run 3 (verbatim stdout)
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=67.63 ns_per_parse=14785649.19
+bench-round round=1 ops_per_sec=67.89 ns_per_parse=14727761.80
+bench-round round=2 ops_per_sec=66.43 ns_per_parse=15053277.79
+bench-round round=3 ops_per_sec=66.95 ns_per_parse=14936388.20
+bench-round round=4 ops_per_sec=62.40 ns_per_parse=16025018.80
+bench-round round=5 ops_per_sec=68.01 ns_per_parse=14701940.00
+bench-round round=6 ops_per_sec=66.68 ns_per_parse=14994871.00
+bench-result backend=js ops_per_sec=66.95 ns_per_parse=14936388.20 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+## summary across the three runs (T-04 aggregation statement)
+# per-run medians (each already the median of its own 7 timed rounds):
+#   run1 ops_per_sec=65.93 ns_per_parse=15166133.99
+#   run2 ops_per_sec=66.56 ns_per_parse=15023080.99
+#   run3 ops_per_sec=66.95 ns_per_parse=14936388.20
+# BASELINE = median of the three per-run medians = 66.56 ops/s
+#   (median of {65.93, 66.56, 66.95} = 66.56, i.e. run2's own median, an
+#   exactly measured round; paired ns_per_parse = 15023080.99 = 1e9/66.56)
+# cross-run deviation (deviation = |a-b| / ((a+b)/2) * 100):
+#   run1 vs run2: |65.93-66.56|/66.245  =  0.95%
+#   run1 vs run3: |65.93-66.95|/66.44   =  1.54%
+#   run2 vs run3: |66.56-66.95|/66.755  =  0.58%
+#   max pairwise deviation = 1.54%
+# samples_checksum=15142 identical in all three runs; rounds_consistent=true
+# sample_set_hash identical in all three runs:
+#   sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
