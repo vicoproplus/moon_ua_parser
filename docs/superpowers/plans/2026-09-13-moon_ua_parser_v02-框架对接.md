@@ -4,7 +4,7 @@
 以证据裁决选定 1-2 个 mooncakes Web 框架，交付生产级 UA 解析中间件包（共享 helper + 薄适配层 + 集成测试 + 示例 + 文档），发布到 mooncakes，并完成主库 README 生态节与 CI 集成测试步骤的增量合入。
 
 ## Architecture
-本仓库改造为 moon workspace（机制经 T-01 探针验证）：`moon_ua_parser_lib`（既有库）+ `moon_ua_parser_middleware_core`（共享 helper：UaInfo 组装、降级判定、取证记录格式）+ `moon_ua_parser_<framework>`（每框架一个薄适配包：注册签名 + 上下文挂载 + 日志通道适配）。业务语义零内联框架分支（设计文档 PS-1/PS-2）。
+本仓库改造为 moon workspace（机制经 T-01 探针验证）：`moon_ua_parser_lib`（既有库）+ `moon_ua_parser_middleware_core`（共享 helper：UaInfo 组装、降级判定、取证记录格式）+ 每框架一个薄适配包（T-02 裁决：`moon_ua_parser_crescent`、`moon_ua_parser_mars`：注册签名 + 上下文挂载 + 日志通道适配）。业务语义零内联框架分支（设计文档 PS-1/PS-2）。
 
 ## Tech Stack
 - MoonBit 工具链 moon（ci.yml:13 锁定 0.1.20260904）
@@ -46,7 +46,7 @@
 
 ## Execution Design Declaration (MANDATORY)
 
-- **W1 worker 写范围**: 单线为主；B2 起如并行：T-03 worker 允许改 `moon_ua_parser_middleware_core/`，T-04 worker 允许改 `moon_ua_parser_<framework>/`（首包），互不重叠；共享文件（根 workspace 清单、ci.yml）由 T-01/T-06 单点完成
+- **W1 worker 写范围**: 单线为主；B2 起如并行：T-03 worker 允许改 `moon_ua_parser_middleware_core/`，T-04 worker 允许改 `moon_ua_parser_crescent/`（首包），互不重叠；共享文件（根 workspace 清单、ci.yml）由 T-01/T-06 单点完成
 - **W2 重派残留核对**: 重派第一步 `git status --porcelain` + 半途包目录核对清理，结果附任务记录
 - **V1 并行批后集成验证**: 与性能基准并行时，合并后单一执行者跑整库集成验证（T-09），worker 自报无效
 - **V2 配置改动 dry-run**: T-01 建 workspace 清单后立即构建全部模块验证；T-06 改 ci.yml 后本地镜像执行新步骤
@@ -211,7 +211,7 @@ grep -n "middleware\|集成" .github/workflows/ci.yml         # CI 步骤命中
 
 ### T-04 首个框架中间件包
 
-**Files**: `moon_ua_parser_<framework>/`（moon.pkg + 适配层源码 + 集成测试 + examples/ + README.mbt.md）
+**Files**: `moon_ua_parser_crescent/`（moon.pkg + 适配层源码 + 集成测试 + examples/ + README.mbt.md；T-04 裁决首包 = crescent）
 
 **Steps**
 1. 薄适配层：框架注册签名 + 请求入口调 helper + 上下文挂载 + 框架日志通道适配（PS-1/PS-2，业务语义零内联）。
