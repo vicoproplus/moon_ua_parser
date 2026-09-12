@@ -36,6 +36,24 @@
 //     only then abort() ends the process non-zero — the report is always
 //     already on stdout when the exit code turns non-zero; the normal path
 //     exits 0;
+//   - `-- --profile` (T-05, controller ruling a: permanent bench-infra
+//     instrumentation): per-domain hot-path split on the PROFILE_STRIDE
+//     subsample. One untimed warmup pass, then PROFILE_TIMED_REPS timed
+//     reps; each rep times parse_browser / parse_os / parse_device and a
+//     full parse() separately through the SAME single clock seam, so the
+//     per-domain shares of a full parse are directly measurable. The
+//     template-replacement cost is reported as
+//     full − (browser + os + device): an UPPER-BOUND estimate (each
+//     single-domain pass pays its own loop overhead once, and cross-pass
+//     noise can push the difference negative — reported as measured).
+//     An untimed rule-index pass (parse with with_rule_index=true) reports
+//     per-domain miss counts and winning-rule index statistics, i.e. how
+//     many regex trials each domain typically needs before its first match
+//     (a miss means the domain scanned ALL its rules). Every pass folds a
+//     checksum consumed into the report (profile-rep / profile-checksum
+//     lines) so dead-code elimination cannot drop work and cross-rep drift
+//     is detected. If both --profile and --smoke are given, --profile
+//     takes precedence (the combination is not a defined mode).
 //   - ALL clock access stays inside the single seam `clock_pair_diff_us`
 //     (moonbitlang/core/bench monotonic clock pair; per-target dispatch
 //     lives inside core/bench, per-backend file selection inside moon.pkg
@@ -66,6 +84,23 @@ const SMOKE_STRIDE : Int = 50
 /// measured native reality (~37.5 ms/parse) so the normal path exits 0.
 /// A NAMED PLACEHOLDER — T-06 calibrates it (B2 baseline median x 3).
 const SMOKE_NS_PER_PARSE_LIMIT : Double = 100_000_000.0
+
+///|
+/// Profile-mode stride (T-05): indices 0, 50, 100, ... → 10000/50 = 200
+/// samples per pass. One parse is ~40 ms on native, so 200 samples give
+/// multi-second passes (well above clock noise) while a whole profile run
+/// stays around one minute.
+const PROFILE_STRIDE : Int = 50
+
+///|
+/// Profile-mode untimed warmup passes (compiles the lazily initialized
+/// rule set and warms caches; the last pass anchors the checksums).
+const PROFILE_WARMUP_PASSES : Int = 1
+
+///|
+/// Profile-mode timed repetitions per domain (odd, so the median is an
+/// exactly measured rep).
+const PROFILE_TIMED_REPS : Int = 3
 
 ///|
 /// Single-point timing seam: run `work` once between two monotonic clock
@@ -100,10 +135,42 @@ fn parse_pass(inputs : Array[String]) -> Int {
 }
 
 ///|
+/// Browser-domain-only pass (T-05 --profile): same fold structure as
+/// parse_pass so every call is consumed and dead-code elimination cannot
+/// skip work.
+fn browser_pass(inputs : Array[String]) -> Int {
+  let mut checksum = 0
+  for ua in inputs {
+    checksum = checksum + @ua_parser.parse_browser(ua).family.length()
+  }
+  checksum
+}
+
+///|
+/// OS-domain-only pass (T-05 --profile); see browser_pass.
+fn os_only_pass(inputs : Array[String]) -> Int {
+  let mut checksum = 0
+  for ua in inputs {
+    checksum = checksum + @ua_parser.parse_os(ua).family.length()
+  }
+  checksum
+}
+
+///|
+/// Device-domain-only pass (T-05 --profile); see browser_pass.
+fn device_only_pass(inputs : Array[String]) -> Int {
+  let mut checksum = 0
+  for ua in inputs {
+    checksum = checksum + @ua_parser.parse_device(ua).family.length()
+  }
+  checksum
+}
+
+///|
 /// Stratified stride subsample of the fully loaded corpus: indices
 /// i*stride (i = 0, 1, 2, ...) cover the whole stratum-grouped array, so
 /// every stratum appears proportionally to the generator's allocation.
-/// Default stride 20 → 500 samples/round; smoke stride 50 → 200.
+/// Default stride 20 → 500 samples/round; smoke/profile stride 50 → 200.
 fn stride_subsample(inputs : Array[String], stride : Int) -> Array[String] {
   let out : Array[String] = []
   for i in 0..<inputs.length() {
@@ -124,6 +191,31 @@ fn median(values : Array[Double]) -> Double {
   }
   sorted.sort()
   sorted[sorted.length() / 2]
+}
+
+///|
+/// Median of a non-empty Int array (rule-index statistics in --profile).
+/// Caller must guarantee non-emptiness (guarded at every call site).
+fn median_int(values : Array[Int]) -> Int {
+  let sorted : Array[Int] = []
+  for v in values {
+    sorted.push(v)
+  }
+  sorted.sort()
+  sorted[sorted.length() / 2]
+}
+
+///|
+/// Maximum of a non-empty Int array. Caller must guarantee non-emptiness
+/// (guarded at every call site).
+fn max_int(values : Array[Int]) -> Int {
+  let mut m = values[0]
+  for v in values {
+    if v > m {
+      m = v
+    }
+  }
+  m
 }
 
 ///|
@@ -196,8 +288,159 @@ fn print_report(
 }
 
 ///|
+/// One profile-rulestats line: per-domain miss count and winning-rule
+/// index statistics over the profile subsample. A miss means the domain
+/// scanned ALL of its rules; a win at index i means i+1 regex trials.
+fn print_index_stats(
+  domain : String,
+  indices : Array[Int],
+  misses : Int,
+  samples : Int,
+) -> Unit {
+  let matched = samples - misses
+  let rate = if samples > 0 {
+    matched.to_double() * 100.0 / samples.to_double()
+  } else {
+    0.0
+  }
+  let avg = if indices.length() > 0 {
+    let mut s = 0
+    for v in indices {
+      s = s + v
+    }
+    fmt_fixed2(s.to_double() / indices.length().to_double())
+  } else {
+    "-"
+  }
+  let med = if indices.length() > 0 {
+    "\{median_int(indices)}"
+  } else {
+    "-"
+  }
+  let max = if indices.length() > 0 { "\{max_int(indices)}" } else { "-" }
+  println(
+    "profile-rulestats domain=\{domain} samples=\{samples} matches=\{matched} misses=\{misses} match_rate_pct=\{fmt_fixed2(rate)} index_avg=\{avg} index_median=\{med} index_max=\{max}",
+  )
+}
+
+///|
+/// T-05 --profile mode: per-domain hot-path split. See the file-header
+/// contract comment. All timing goes through the single clock seam
+/// clock_pair_diff_us; per-rep checksums guard against dead-code
+/// elimination and cross-rep drift; the rule-index pass additionally
+/// cross-checks that with_rule_index=true parsing produces the same
+/// families (index checksum == full checksum).
+fn profile_main() -> Unit {
+  let inputs = stride_subsample(samples, PROFILE_STRIDE)
+  let n = inputs.length()
+  let strata_seen = strata_inventory_check(samples, sample_strata)
+  // Warmup: untimed passes; the last pass anchors the expected checksums.
+  let mut full_sum = parse_pass(inputs)
+  for _ in 1..<PROFILE_WARMUP_PASSES {
+    full_sum = parse_pass(inputs)
+  }
+  let browser_sum = browser_pass(inputs)
+  let os_sum = os_only_pass(inputs)
+  let device_sum = device_only_pass(inputs)
+  println(
+    "profile-config mode=profile backend=\{backend_label()} corpus_size=\{samples.length()} sample_count=\{n} stride=\{PROFILE_STRIDE} warmup_passes=\{PROFILE_WARMUP_PASSES} timed_reps=\{PROFILE_TIMED_REPS} strata=\{strata_seen} sample_set_hash=\{sample_set_hash}",
+  )
+  let bns : Array[Double] = []
+  let ons : Array[Double] = []
+  let dns : Array[Double] = []
+  let fns : Array[Double] = []
+  let mut reps_consistent = true
+  for rep in 0..<PROFILE_TIMED_REPS {
+    let mut bs = 0
+    let mut ocs = 0
+    let mut dcs = 0
+    let mut fs = 0
+    let bus = clock_pair_diff_us(fn() { bs = browser_pass(inputs) })
+    let ous = clock_pair_diff_us(fn() { ocs = os_only_pass(inputs) })
+    let dus = clock_pair_diff_us(fn() { dcs = device_only_pass(inputs) })
+    let fus = clock_pair_diff_us(fn() { fs = parse_pass(inputs) })
+    if bs != browser_sum ||
+      ocs != os_sum ||
+      dcs != device_sum ||
+      fs != full_sum {
+      reps_consistent = false
+    }
+    let b_np = bus * 1000.0 / n.to_double()
+    let o_np = ous * 1000.0 / n.to_double()
+    let d_np = dus * 1000.0 / n.to_double()
+    let f_np = fus * 1000.0 / n.to_double()
+    println(
+      "profile-rep rep=\{rep} browser_ns_per_call=\{fmt_fixed2(b_np)} os_ns_per_call=\{fmt_fixed2(o_np)} device_ns_per_call=\{fmt_fixed2(d_np)} full_ns_per_call=\{fmt_fixed2(f_np)} browser_checksum=\{bs} os_checksum=\{ocs} device_checksum=\{dcs} full_checksum=\{fs}",
+    )
+    bns.push(b_np)
+    ons.push(o_np)
+    dns.push(d_np)
+    fns.push(f_np)
+  }
+  let med_b = median(bns)
+  let med_o = median(ons)
+  let med_d = median(dns)
+  let med_f = median(fns)
+  let template_est = med_f - (med_b + med_o + med_d)
+  let share_denom = if med_f > 0.0 { med_f } else { 1.0 }
+  println(
+    "profile-median browser_ns_per_call=\{fmt_fixed2(med_b)} os_ns_per_call=\{fmt_fixed2(med_o)} device_ns_per_call=\{fmt_fixed2(med_d)} full_ns_per_call=\{fmt_fixed2(med_f)}",
+  )
+  println(
+    "profile-share browser_pct=\{fmt_fixed2(med_b * 100.0 / share_denom)} os_pct=\{fmt_fixed2(med_o * 100.0 / share_denom)} device_pct=\{fmt_fixed2(med_d * 100.0 / share_denom)} template_est_pct=\{fmt_fixed2(template_est * 100.0 / share_denom)} template_est_ns_per_call=\{fmt_fixed2(template_est)} (template = full - (browser+os+device), upper bound; noise can make it negative)",
+  )
+  // Untimed rule-index pass: winning rule index per domain with
+  // with_rule_index=true. Families are unaffected by the flag, so the
+  // folded checksum must equal the default full-parse checksum.
+  let bidx : Array[Int] = []
+  let oidx : Array[Int] = []
+  let didx : Array[Int] = []
+  let mut bmiss = 0
+  let mut omiss = 0
+  let mut dmiss = 0
+  let mut idx_sum = 0
+  for ua in inputs {
+    match @ua_parser.parse(ua, with_rule_index=true) {
+      Ok(info) => {
+        idx_sum = idx_sum + info.browser.family.length()
+        idx_sum = idx_sum + info.os.family.length()
+        idx_sum = idx_sum + info.device.family.length()
+        match info.browser.rule_index {
+          Some(i) => bidx.push(i)
+          None => bmiss = bmiss + 1
+        }
+        match info.os.rule_index {
+          Some(i) => oidx.push(i)
+          None => omiss = omiss + 1
+        }
+        match info.device.rule_index {
+          Some(i) => didx.push(i)
+          None => dmiss = dmiss + 1
+        }
+      }
+      Err(_) => idx_sum = idx_sum + 1
+    }
+  }
+  print_index_stats("browser", bidx, bmiss, n)
+  print_index_stats("os", oidx, omiss, n)
+  print_index_stats("device", didx, dmiss, n)
+  let domain_sums_match = browser_sum + os_sum + device_sum == full_sum
+  println(
+    "profile-checksum samples_checksum=\{full_sum} browser_checksum=\{browser_sum} os_checksum=\{os_sum} device_checksum=\{device_sum} index_checksum=\{idx_sum} domain_sums_match=\{domain_sums_match} index_matches_full=\{idx_sum == full_sum} reps_consistent=\{reps_consistent}",
+  )
+}
+
+///|
 fn main {
-  let smoke = @env.args().contains("--smoke")
+  let args = @env.args()
+  let smoke = args.contains("--smoke")
+  let profile = args.contains("--profile")
+  if profile {
+    // T-05 --profile takes precedence over --smoke (mutually exclusive
+    // measurement modes; the combination is not a defined mode).
+    profile_main()
+    return
+  }
   let stride = if smoke { SMOKE_STRIDE } else { BENCH_STRIDE }
   // The T-02 corpus is fully loaded; each round parses the declared stride
   // subsample of it.

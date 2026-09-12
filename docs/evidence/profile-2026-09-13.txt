@@ -1,0 +1,116 @@
+# profile evidence — T-05 hot-path profiling (--profile mode), 2026-09-13 (pinned)
+# host: Windows 10 专业版 10.0.19045 x64, Git Bash;
+#   CPU: 12th Gen Intel(R) Core(TM) i5-12400 (6 cores / 12 threads);
+#   RAM: 33637777408 bytes (≈31.3 GiB) — same measurement host as the T-04 baseline
+# toolchain: moon 0.1.20260904 (94521db 2026-09-04)
+# project: vicoproplus/moon_ua_parser (worktree feat-v02-perf-bench, moon_ua_parser_lib/)
+#
+# commands (cwd = moon_ua_parser_lib/):
+#   moon run --target native --release tests/bench -- --profile   (run 1, run 2)
+#   moon run --target js      --release tests/bench -- --profile   (run 3)
+#   moon run --target native --release tests/bench -- --smoke     (run 4, sanity)
+#
+# protocol: --profile mode (added to tests/bench/main.mbt, controller ruling a —
+#   permanent bench infrastructure): corpus fully loaded (10000), each pass
+#   parses the stride-50 subsample (sample_count=200); 1 untimed warmup pass,
+#   then 3 timed reps; each rep times parse_browser / parse_os / parse_device
+#   and a full parse() separately through the SAME single clock seam
+#   (clock_pair_diff_us, moonbitlang/core/bench monotonic pair). Reported
+#   per-call values are ns/call = pass_us * 1000 / sample_count; the share
+#   table uses the MEDIAN of the 3 reps. Template replacement cost is reported
+#   as full − (browser+os+device): an UPPER-BOUND estimate (noise can push it
+#   negative). The untimed rule-index pass uses parse(ua, with_rule_index=true)
+#   — a miss means the domain scanned ALL its rules; a win at index i means
+#   i+1 regex trials. All passes are checksum-guarded (profile-rep /
+#   profile-checksum lines; samples_checksum=6122 for the stride-50 subsample).
+#
+# run inventory (all completed in a single pass each; no run discarded):
+#   run 1: native --profile, baseline engine ................ exit 0, wall 1m15.225s
+#   run 2: native --profile, micro-opt experiment
+#          (Regexp::execute -> Regexp::match_ at the 3 trial sites in
+#          src/ua_parser engine.mbt/matcher.mbt; REVERTED after this run —
+#          git diff of moon_ua_parser_lib/src vs HEAD is empty) ... exit 0,
+#          wall not separately timed (ran in one command after `moon check`)
+#   run 3: js --profile, baseline engine ..................... exit 0, wall 0m25.827s
+#   run 4: native --smoke (post-rework sanity of the default
+#          mode dispatch path; unchanged engine) ............. exit 0, wall 1m25.187s
+#
+# stderr note: moon emits pre-existing deprecation warnings (derive(Show) etc.
+#   in src/ua_parser/types.mbt, 44 warnings / 0 errors — unchanged from before
+#   this task); in run 3 the stderr warning block was elided from this capture
+#   (grep -v '^Warning'); all profile-*/bench-*/smoke-verdict lines below are
+#   verbatim stdout in capture order.
+
+============================================================================
+## run 1 — native --profile, baseline engine (verbatim stdout)
+============================================================================
+profile-config mode=profile backend=native corpus_size=10000 sample_count=200 stride=50 warmup_passes=1 timed_reps=3 strata=7 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
+profile-rep rep=0 browser_ns_per_call=15682309.50 os_ns_per_call=1469803.00 device_ns_per_call=20657575.99 full_ns_per_call=38232399.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=1 browser_ns_per_call=16392733.50 os_ns_per_call=1551988.00 device_ns_per_call=21684093.00 full_ns_per_call=37809866.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=2 browser_ns_per_call=15672508.49 os_ns_per_call=1448456.99 device_ns_per_call=20634738.00 full_ns_per_call=37803226.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-median browser_ns_per_call=15682309.50 os_ns_per_call=1469803.00 device_ns_per_call=20657575.99 full_ns_per_call=37809866.50
+profile-share browser_pct=41.47 os_pct=3.88 device_pct=54.63 template_est_pct=0.00 template_est_ns_per_call=178.00 (template = full - (browser+os+device), upper bound; noise can make it negative)
+profile-rulestats domain=browser samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=197.18 index_median=186 index_max=398
+profile-rulestats domain=os samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=31.56 index_median=19 index_max=195
+profile-rulestats domain=device samples=200 matches=191 misses=9 match_rate_pct=95.50 index_avg=448.53 index_median=457 index_max=632
+profile-checksum samples_checksum=6122 browser_checksum=2451 os_checksum=1277 device_checksum=2394 index_checksum=6122 domain_sums_match=true index_matches_full=true reps_consistent=true
+
+============================================================================
+## run 2 — native --profile, micro-opt experiment execute->match_ (verbatim
+##         stdout; change REVERTED afterwards, src/ua_parser byte-identical
+##         to git HEAD)
+============================================================================
+profile-config mode=profile backend=native corpus_size=10000 sample_count=200 stride=50 warmup_passes=1 timed_reps=3 strata=7 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
+profile-rep rep=0 browser_ns_per_call=15484613.00 os_ns_per_call=1438011.99 device_ns_per_call=20451910.99 full_ns_per_call=37557606.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=1 browser_ns_per_call=15519363.00 os_ns_per_call=1448059.00 device_ns_per_call=21202491.00 full_ns_per_call=38344615.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=2 browser_ns_per_call=15585586.50 os_ns_per_call=1448456.50 device_ns_per_call=21021890.00 full_ns_per_call=39012797.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-median browser_ns_per_call=15519363.00 os_ns_per_call=1448059.00 device_ns_per_call=21021890.00 full_ns_per_call=38344615.50
+profile-share browser_pct=40.47 os_pct=3.77 device_pct=54.82 template_est_pct=0.92 template_est_ns_per_call=355303.50 (template = full - (browser+os+device), upper bound; noise can make it negative)
+profile-rulestats domain=browser samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=197.18 index_median=186 index_max=398
+profile-rulestats domain=os samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=31.56 index_median=19 index_max=195
+profile-rulestats domain=device samples=200 matches=191 misses=9 match_rate_pct=95.50 index_avg=448.53 index_median=457 index_max=632
+profile-checksum samples_checksum=6122 browser_checksum=2451 os_checksum=1277 device_checksum=2394 index_checksum=6122 domain_sums_match=true index_matches_full=true reps_consistent=true
+
+============================================================================
+## run 3 — js --profile, baseline engine (verbatim stdout; stderr deprecation
+##         warning block elided, see stderr note above)
+============================================================================
+profile-config mode=profile backend=js corpus_size=10000 sample_count=200 stride=50 warmup_passes=1 timed_reps=3 strata=7 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
+profile-rep rep=0 browser_ns_per_call=5640457.50 os_ns_per_call=503106.00 device_ns_per_call=7393640.00 full_ns_per_call=13598277.00 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=1 browser_ns_per_call=5599677.99 os_ns_per_call=514325.50 device_ns_per_call=7378144.49 full_ns_per_call=13682410.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-rep rep=2 browser_ns_per_call=5809837.50 os_ns_per_call=533150.49 device_ns_per_call=7768696.00 full_ns_per_call=14254717.50 browser_checksum=2451 os_checksum=1277 device_checksum=2394 full_checksum=6122
+profile-median browser_ns_per_call=5640457.50 os_ns_per_call=514325.50 device_ns_per_call=7393640.00 full_ns_per_call=13682410.50
+profile-share browser_pct=41.22 os_pct=3.75 device_pct=54.03 template_est_pct=0.97 template_est_ns_per_call=133987.49 (template = full - (browser+os+device), upper bound; noise can make it negative)
+profile-rulestats domain=browser samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=197.18 index_median=186 index_max=398
+profile-rulestats domain=os samples=200 matches=200 misses=0 match_rate_pct=100.00 index_avg=31.56 index_median=19 index_max=195
+profile-rulestats domain=device samples=200 matches=191 misses=9 match_rate_pct=95.50 index_avg=448.53 index_median=457 index_max=632
+profile-checksum samples_checksum=6122 browser_checksum=2451 os_checksum=1277 device_checksum=2394 index_checksum=6122 domain_sums_match=true index_matches_full=true reps_consistent=true
+
+============================================================================
+## run 4 — native --smoke, post-rework sanity of the default dispatch path
+##         (verbatim stdout)
+============================================================================
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=100000000.00 (placeholder, T-06)
+bench-round round=0 ops_per_sec=23.98 ns_per_parse=41684172.00
+bench-round round=1 ops_per_sec=22.43 ns_per_parse=44566561.00
+bench-round round=2 ops_per_sec=23.54 ns_per_parse=42480201.00
+bench-round round=3 ops_per_sec=23.66 ns_per_parse=42256300.00
+bench-round round=4 ops_per_sec=21.40 ns_per_parse=46713383.99
+bench-round round=5 ops_per_sec=22.55 ns_per_parse=44329150.00
+bench-round round=6 ops_per_sec=22.34 ns_per_parse=44751652.00
+bench-result backend=native ops_per_sec=22.55 ns_per_parse=44329150.00 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=44329150.00 limit=100000000.00 (placeholder threshold, calibrated in T-06)
+
+============================================================================
+## traceability notes
+============================================================================
+# samples_checksum=6122 is identical across run 1 / run 2 / run 3 / run 4
+#   (same stride-50 subsample of the same corpus, deterministic engine) and
+#   across the per-domain / rule-index checksums inside each profile run
+#   (domain_sums_match=true, index_matches_full=true, reps_consistent=true
+#   everywhere) — no dead-code elimination, no cross-rep or cross-backend
+#   drift.
+# sample_set_hash is identical to the T-04 baseline corpus hash:
+#   sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
+# rule counts per domain (src/ua_parser/rules/rules_data.mbt, generated from
+#   uap-core@73e7340): ua 433 / os 204 / device 633 (total 1270).
