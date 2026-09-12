@@ -1,0 +1,60 @@
+================================================================================
+diffstats js report — full transcript evidence (T-02, ruling B addendum)
+================================================================================
+date (local):   2026-09-13
+command:        moon run --target js --release tests/diffstats
+cwd:            moon_ua_parser_lib (worktree feat/v02-platform-complete, HEAD a56a85c)
+toolchain:      moon 0.1.20260904 (94521db 2026-09-04) == ci.yml pin
+                moonc 0.10.12+1634b282e (2026-09-07)
+                node v26.7.0 (js target executor)
+exit code:      0
+run window:     2026-09-13T03:28:39+08:00 → 2026-09-13T03:30:29+08:00
+first js-form run of tests/diffstats on record (the moon.pkg contract named
+js as an allowed target; this is its first empirical verification).
+
+--------------------------------------------------------------------------------
+REPORT (program stdout, verbatim, full)
+--------------------------------------------------------------------------------
+domain	total	exempted	passed	failed	rate	gate	status
+browser	total=1601	exempted=0	passed=1601	failed=0	rate=100.00%	gate>=99.00%	MET
+os	total=483	exempted=0	passed=483	failed=0	rate=100.00%	gate>=97.00%	MET
+device	total=16129	exempted=0	passed=16129	failed=0	rate=100.00%	gate>=97.00%	MET
+browser failure groups: (none)
+os failure groups: (none)
+device failure groups: (none)
+GATES: ALL MET
+
+--------------------------------------------------------------------------------
+GATE VERDICT (ci.yml:87-88: browser >= 99% / os >= 97% / device >= 97%)
+--------------------------------------------------------------------------------
+browser 1601/1601 = 100.00%  >= 99.00%  MET
+os       483/483  = 100.00%  >= 97.00%  MET
+device 16129/16129= 100.00%  >= 97.00%  MET
+exempted = 0 in all three domains (denominator = total cases).
+GATES: ALL MET — process exit 0 (no abort path taken).
+
+--------------------------------------------------------------------------------
+BUILD DIAGNOSTICS (stderr during compile — pre-existing, NOT introduced here)
+--------------------------------------------------------------------------------
+18 compiler warnings, byte-identical to the native run's diagnostics (same
+files, same lines, same classes): the derive(Show)/[0020]+[0027] deprecations
+in src/ua_parser/types.mbt and tests/differential/diff_{device,os,ua}.mbt plus
+[0006] unused constructor RegexpCompileError (types.mbt:99). All pre-existing
+at HEAD a56a85c; task-3 scope; none originate from tests/diffstats.
+
+--------------------------------------------------------------------------------
+TRANSCRIPT INTEGRITY / CROSS-TARGET COMPARISON
+--------------------------------------------------------------------------------
+- Report-section md5 (LF-normalized): bff7fc84866a9ad4b6ac8a79299788f9 —
+  byte-identical to the native form
+  (docs/evidence/diffstats-native-2026-09-13.txt) and to the wasm form report
+  (docs/evidence/diffstats-wasm-2026-09-13.txt; three-way agreement, this md5
+  in all three files). The initial permitted wasm capture run is described in
+  docs/evidence/wasm-differential-blocker-2026-09-13.md §4.
+- Line endings: this js transcript is pure LF; the native transcript carries
+  CRLF on the 8 report lines (Windows C runtime text-mode artifact). Numbers,
+  ordering and formatting are identical — integer basis-point math
+  (pct_bp()) shows no cross-target numeric drift.
+================================================================================
+end of evidence file
+================================================================================
