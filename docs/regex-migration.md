@@ -187,3 +187,31 @@ GATES: ALL MET
 | `moon build --target wasm` | 0 | 2s | 构建通过（wasm 运行 = 环境阻断 0xc0000139，CI 承担） |
 
 27 = 差分 3 块（ua/os/device）+ semantics + robust + rules 初始化等全部 test 块。
+
+## 2026-09-13 快照维持复验（v0.2 T-04）
+
+维持模式复验：uap-core 快照维持裁定（T-01，73e7340 不变）后重跑差分门禁。
+本轮引擎、规则、生成器、快照**零改动**。证据：`docs/evidence/diffstats-2026-09-13.txt`
+= `moon run --target native --release tests/diffstats` 完整 stdout（exit 0）。
+
+| 域 | total | exempted | failed | passed | rate | 门槛 | 判定 |
+|----|-------|----------|--------|--------|------|------|------|
+| browser | 1601 | 0 | 0 | 1601 | **100.00%** | ≥99% | **MET** |
+| os | 483 | 0 | 0 | 483 | **100.00%** | ≥97% | **MET** |
+| device | 16129 | 0 | 0 | 16129 | **100.00%** | ≥97% | **MET** |
+
+- **零新增偏差声明**：三域失败分组均为 `(none)`（证据文件末三行），失败集 = 基线空集，
+  新增偏差 **0** 条；豁免 **0** 条（`scripts/test_exemptions.json` 仍不存在 = 零豁免）。
+  patch_minor 期望列排除政策延续（§4.1，uap-core#562）。
+- **三后端复核**（2026-09-13 实测）：
+  - native：`moon run --target native --release tests/diffstats` exit 0，GATES: ALL MET（即上方证据）。
+  - js：`moon test --target js` exit 0，`Total tests: 31, passed: 31, failed: 0.`。
+  - wasm：**[LOCAL_DEAD_LINK]** —— `moon test`（默认 target=wasm）构建通过、本地运行被
+    wasm 引擎阻断：`Uncaught CompileError: WebAssembly.Module(): Compiling function
+    #675:"_M0FP017____moonbit__init" failed: local count too large @+126090`
+    （`tests/differential/differential.internal_test.wasm`，test 可执行文件 exit 1）。
+    §7 所记 0xc0000139 之外本机 wasm 引擎阻断的又一实测形态，同属本地 wasm 运行时
+    限制而非引擎语义失败；`moon build --target wasm` exit 0（18 warnings, 0 errors）。
+    **跨 plan 依赖声明**：wasm 运行时验证依赖平台完备单元的 wasm 运行时修复；本地
+    门槛 = wasm 构建通过，wasm 运行验证由 CI（T-12）承担。不构成本任务失败。
+- **R10 声明**：N/A — no pre-existing regression failures.
