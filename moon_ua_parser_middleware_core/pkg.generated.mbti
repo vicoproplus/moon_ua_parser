@@ -1,0 +1,50 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser_middleware_core"
+
+import {
+  "moonbitlang/core/debug",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}
+
+// Values
+pub const FALLBACK_FAMILY : String = "Other"
+
+pub const REASON_EMPTY_FALLBACK : String = "empty_fallback"
+
+pub const REASON_PARSE_ERROR : String = "parse_error"
+
+pub const UA_SUMMARY_MAX_LENGTH : Int = 64
+
+pub fn assemble(String, Result[@ua_parser.UaInfo, @ua_parser.UaError]) -> MiddlewareOutcome
+
+pub fn assemble_error(String) -> MiddlewareOutcome
+
+pub fn degradation_reason(Result[@ua_parser.UaInfo, @ua_parser.UaError]) -> String?
+
+pub fn empty_ua_info() -> @ua_parser.UaInfo
+
+pub fn is_degraded(Result[@ua_parser.UaInfo, @ua_parser.UaError]) -> Bool
+
+pub fn is_empty_fallback(@ua_parser.UaInfo) -> Bool
+
+pub fn make_forensics(String, String) -> ForensicsRecord
+
+pub fn truncate_ua_summary(String) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct ForensicsRecord {
+  ua_summary : String
+  reason : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MiddlewareOutcome {
+  ua_info : @ua_parser.UaInfo
+  degraded : Bool
+  forensics : ForensicsRecord?
+}
+
+// Type aliases
+
+// Traits

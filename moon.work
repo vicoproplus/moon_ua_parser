@@ -1,3 +1,4 @@
 members = [
   "./moon_ua_parser_lib",
+  "./moon_ua_parser_middleware_core",
 ]
