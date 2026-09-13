@@ -242,3 +242,12 @@ EXIT_GREP_CI=0
 `git push origin main` → 远程 main = 0e953e1。GitHub Actions run **34755753070**（main @ 0e953e1）→ **conclusion: success**（status completed，完整矩阵全绿；含跨单元终验逻辑的 CI 镜像）。URL: https://github.com/vicoproplus/moon_ua_parser/actions/runs/34755753070
 
 **遗留 #1 关闭。** 至此 pending 清单仅剩：#2 mars 包页（待 mars 重发）、#3 statistics 通道人工核录（浏览器路线）、#7 上游追踪（crescent 仍 0.11.1 补丁必需 + mizchi/x fd bug 待上游修复）。
+
+
+## 八、mars 发布补全（2026-09-13，用户指令走 GH Actions Linux）
+
+用户批准后新建手动发布 workflow（`.github/workflows/publish-manual.yml`，ubuntu-latest + MOONCAKES_CREDENTIALS secret），经 5 轮调试（CDN pinned 403 → latest 回退 → PATH 持久化 → base64 凭证 → 隔离副本发布）后 **mars 0.1.0 成功上线**（run 34762686652 success；调试链全文见 `publish-final-2026-09-13.log` §4 补完）。
+
+**四包终态（全部在册 + 包页 200）：** moon_ua_parser 0.2.0 / moon_ua_parser_middleware_core 0.1.0 / moon_ua_parser_crescent 0.1.0 / moon_ua_parser_mars 0.1.0。
+
+**遗留清单终态：** #2 包页核录 ✅ 全部完成；#4 登录态 ✅；#5 跨单元终验 ✅；#6 版本收口+依赖升级 ✅；#1 CI run ✅；#3 statistics 人工核录 = 唯一剩余（浏览器人工路线，不阻塞交付）；#7 上游追踪 = crescent 补丁仍必需（0.11.1 未更新）+ mizchi/x fd bug 已随 mars 发布绕过（发布走 Linux；workspace 内继续由缓存补丁覆盖 Windows 开发场景）。

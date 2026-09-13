@@ -32,3 +32,21 @@ https://mooncakes.io/docs/vicoproplus/moon_ua_parser → 200
 https://mooncakes.io/docs/vicoproplus/moon_ua_parser_middleware_core → 200
 https://mooncakes.io/docs/vicoproplus/moon_ua_parser_crescent → 200
 (mars 包页待其发布后核录)
+
+===== 4 补完: mars 0.1.0 (GH Actions Linux 发布, 2026-09-13 用户指令) =====
+路径: 新增手动发布 workflow .github/workflows/publish-manual.yml (ubuntu-latest) + MOONCAKES_CREDENTIALS secret (base64)
+调试链 (5 次 run, 全部有日志):
+  1) 34758852364: pinned 0.1.20260904 安装 403 — linux 二进制 CDN 全局故障 (非本地网络问题; /binaries/* 全 403 而 install script 200)
+  2) 34758958624: 同上 (重试确认)
+  3) 34759949632: latest 回退生效但 PATH 未跨步持久化 → moon: command not found
+  4) 34760375124: PATH 修复后 credentials 多行 JSON 经文本插值损坏 → parse error
+  5) 34760818081: base64 secret 修复后到达沙箱, 但 latest moon 的发布校验在 workspace 上下文运行 (拉取 crescent 未补丁类型) → 2 errors
+  6) 34762686652: 发布改用隔离模块副本 (外部维护者语义: 依赖全走 registry, 无 workspace 成员) → **success**
+最终状态: moon search vicoproplus → mars 0.1.0 在册; https://mooncakes.io/docs/vicoproplus/moon_ua_parser_mars → HTTP 200
+工具链注记: 本次发布经 latest moon (CDN pinned artifact 403 期间); 发布物为源码 zip, 语义由各消费者工具链决定
+
+===== 终态 (2026-09-13) =====
+vicoproplus/moon_ua_parser                  0.2.0   ✓ 页 200
+vicoproplus/moon_ua_parser_middleware_core  0.1.0   ✓ 页 200
+vicoproplus/moon_ua_parser_crescent         0.1.0   ✓ 页 200
+vicoproplus/moon_ua_parser_mars             0.1.0   ✓ 页 200 (GH Actions Linux 发布)
