@@ -39,19 +39,27 @@ jobs:
       - name: Install MoonBit CLI (pinned 0.1.20260904)
         run: |
           # The binaries CDN has had transient 403 outages (2026-09-13: the
-          # install script downloads fine while /binaries/* returns 403 for
-          # ~30 min). Retry the install over a window before giving up.
+          # install script downloads fine while versioned /binaries/* and
+          # /cores/* paths return 403 for ~30 min — /binaries/latest and
+          # /cores/core-latest stayed 200 throughout). Retry the pinned
+          # install over a window; if the pinned artifact is still denied,
+          # fall back to the latest release (toolchain drift — recorded in
+          # the run log via `moon version`) so the publish is not hostage
+          # to the CDN.
           OK=0
           for i in 1 2 3 4 5 6; do
             if curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"; then
-              echo "installed on attempt $i"
+              echo "pinned install succeeded on attempt $i"
               OK=1
               break
             fi
-            echo "attempt $i failed (CDN 403?); retrying in 90s"
-            sleep 90
+            echo "attempt $i failed (CDN 403?); retrying in 60s"
+            sleep 60
           done
-          [ "$OK" -eq 1 ] || { echo "install failed after 6 attempts"; exit 1; }
+          if [ "$OK" -ne 1 ]; then
+            echo "pinned artifact unavailable after 6 attempts — falling back to latest"
+            curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s latest
+          fi
           export PATH="$HOME/.moon/bin:$PATH"
           moon version
 
