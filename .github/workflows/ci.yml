@@ -55,6 +55,14 @@ jobs:
           moon version --all
           moon version | grep -F "0.1.20260904"
 
+      - name: Refresh mooncakes registry index
+        # Fresh runners have no cached index — 2026-09-13 finding: `moon check`
+        # failed with "Failed to resolve registry dependency moonbitlang/regexp"
+        # (exit 255) until `moon update` cloned the index; evidence
+        # docs/evidence/final-gate-2026-09-13.log
+        timeout-minutes: 5
+        run: moon update
+
       - name: Static check
         working-directory: moon_ua_parser_lib
         run: moon check
