@@ -17,6 +17,8 @@ moon add vicoproplus/moon_ua_parser_middleware_core
 moon add vicoproplus/moon_ua_parser_mars
 ```
 
+> Pre-release note: `vicoproplus/moon_ua_parser_mars` is not yet published to the mooncakes registry — `moon add` applies after the first release; until then, users inside this repository's `moon.work` workspace already consume the package as a local path dependency.
+
 ## Register
 
 ```moonbit nocheck

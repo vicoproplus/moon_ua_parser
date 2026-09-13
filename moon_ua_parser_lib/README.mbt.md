@@ -123,6 +123,54 @@ device family, and rule-index debugging) lives in
 moon run --target native examples/middleware
 ```
 
+## Ecosystem
+
+Companion packages integrate the parser into MoonBit HTTP frameworks. All
+middleware semantics (result assembly, degradation, forensics) live in the
+pure helper package `vicoproplus/moon_ua_parser_middleware_core`; each
+framework package is a thin adapter around it, and both are covered by
+integration tests in CI.
+
+- **`moon_ua_parser_crescent`** — middleware for the
+  [bobzhang/crescent](https://mooncakes.io/docs/bobzhang/crescent) HTTP
+  framework: one `App::use_middleware` call parses each request's
+  `User-Agent` and mounts the result on request and response.
+
+  ```bash
+  moon add vicoproplus/moon_ua_parser_crescent
+  ```
+
+  Framework adaptation (header mounting): crescent's `Event` has no
+  custom key-value store, so the adapter uses the framework-sanctioned
+  `res.headers` bypass — the full `UaInfo` JSON round-trips in an
+  `X-Ua-Info` response header, written before `next()` so downstream
+  handlers and the client both observe it; degraded parses emit one
+  forensics record through an injectable sink (crescent ships no logger
+  middleware).
+
+- **`moon_ua_parser_mars`** — middleware for the
+  [mizchi/mars](https://mooncakes.io/docs/mizchi/mars) HTTP framework: one
+  `Server::middleware` call parses each request's `User-Agent` and mounts
+  the result on the typed request context.
+
+  ```bash
+  moon add vicoproplus/moon_ua_parser_mars
+  ```
+
+  Framework adaptation (Variables mounting): mars's `Context` carries a
+  typed key-value store (`ctx.vars : Variables`), so the adapter mounts the
+  browser / os / device families as native string variables, read back
+  handler-side via `mounted_ua_info(ctx)`; forensics reuse mars's own
+  console log channel by default.
+
+Both adapters never interrupt the request chain on a degraded parse: they
+mount an empty `UaInfo` (or the all-miss fallback) and report one
+`{ua_summary (≤64 chars), reason}` record per degraded request. Registration
+snippets, configuration, and tested version ranges:
+[`moon_ua_parser_crescent/README.mbt.md`](../moon_ua_parser_crescent/README.mbt.md)
+and
+[`moon_ua_parser_mars/README.mbt.md`](../moon_ua_parser_mars/README.mbt.md).
+
 ## Differential quality
 
 The engine is differentially tested against the complete uap-core test

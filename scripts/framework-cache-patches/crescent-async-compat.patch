@@ -1,0 +1,212 @@
+diff --git a/.mooncakes/bobzhang/crescent/serve_async.mbt b/.mooncakes/bobzhang/crescent/serve_async.mbt
+index fdfcd5c..b521fb9 100644
+--- a/.mooncakes/bobzhang/crescent/serve_async.mbt
++++ b/.mooncakes/bobzhang/crescent/serve_async.mbt
+@@ -80,6 +80,27 @@ fn copy_async_headers(headers : Map[String, String]) -> Map[String, String] {
+   Map::from_iter(headers.iter())
+ }
+
++///|
++// LOCAL CACHE PATCH (uncommitted; .mooncakes is a gitignored cache):
++// moonbitlang/async 0.21.x changed http.Request.headers from
++// Map[String, String] to Map[CaseInsensitiveString, String]. Adapt at the
++// request-header boundary, behavior-preserving: the CI-keyed map itself
++// performs case-insensitive lookups, and the copied String-keyed map feeds
++// the unchanged String-based helpers below (which lowercase explicitly).
++// Required because the workspace also contains mizchi/mars@0.3.12, which
++// pins async@0.21.3, and moon resolves one shared version per registry
++// package across all workspace members. See the T-05 task report.
++fn request_headers_to_string_map(
++  request : @http.Request,
++) -> Map[String, String] {
++  let converted : Map[String, String] = Map([])
++  for pair in request.headers {
++    let (key, value) = pair
++    converted.set(key.to_string(), value)
++  }
++  converted
++}
++
+ ///|
+ let ws_serve_runtime_counter : Ref[Int] = Ref(0)
+
+@@ -148,12 +169,15 @@ test "header_contains_token_case_insensitive returns false for missing header" {
+ ///|
+ fn @http.Request::is_websocket_upgrade_request(request : Self) -> Bool {
+   let has_connection_upgrade = header_contains_token_case_insensitive(
+-    request.headers,
++    request_headers_to_string_map(request),
+     "connection",
+     "upgrade",
+   )
+   let has_websocket_upgrade = match
+-    @httputil.get_header_case_insensitive(request.headers, "upgrade") {
++    @httputil.get_header_case_insensitive(
++      request_headers_to_string_map(request),
++      "upgrade",
++    ) {
+     Some(value) => value.trim().to_lower() == "websocket"
+     None => false
+   }
+@@ -165,7 +189,10 @@ test "is_websocket_upgrade_request returns true with both headers" {
+   let request : @http.Request = {
+     meth: Get,
+     path: "/",
+-    headers: { "Connection": "upgrade", "Upgrade": "websocket" },
++    headers: Map::from_iter([
++      (@http.CaseInsensitiveString("Connection"), "upgrade"),
++      (CaseInsensitiveString("Upgrade"), "websocket"),
++    ].iter()),
+   }
+   debug_inspect(request.is_websocket_upgrade_request(), content="true")
+ }
+@@ -175,7 +202,9 @@ test "is_websocket_upgrade_request returns false without Connection header" {
+   let request : @http.Request = {
+     meth: Get,
+     path: "/",
+-    headers: { "Upgrade": "websocket" },
++    headers: Map::from_iter([
++      (@http.CaseInsensitiveString("Upgrade"), "websocket"),
++    ].iter()),
+   }
+   debug_inspect(request.is_websocket_upgrade_request(), content="false")
+ }
+@@ -185,7 +214,9 @@ test "is_websocket_upgrade_request returns false without Upgrade header" {
+   let request : @http.Request = {
+     meth: Get,
+     path: "/",
+-    headers: { "Connection": "upgrade" },
++    headers: Map::from_iter([
++      (@http.CaseInsensitiveString("Connection"), "upgrade"),
++    ].iter()),
+   }
+   debug_inspect(request.is_websocket_upgrade_request(), content="false")
+ }
+@@ -199,13 +230,16 @@ test "is_websocket_upgrade_request returns false with empty headers" {
+ ///|
+ fn looks_like_websocket_handshake_request(request : @http.Request) -> Bool {
+   let websocket_upgrade_header = match
+-    @httputil.get_header_case_insensitive(request.headers, "upgrade") {
++    @httputil.get_header_case_insensitive(
++      request_headers_to_string_map(request),
++      "upgrade",
++    ) {
+     Some(value) => value.trim().to_lower() == "websocket"
+     None => false
+   }
+   for pair in request.headers {
+     let (key, _) = pair
+-    if key.to_lower().has_prefix("sec-websocket-") {
++    if key.to_string().to_lower().has_prefix("sec-websocket-") {
+       return true
+     }
+   }
+@@ -408,7 +442,7 @@ async fn App::handle_request(
+   let has_content_length = request_content_length(request) is Some(len) &&
+     len > 0
+   let is_chunked = header_contains_token_case_insensitive(
+-    request.headers,
++    request_headers_to_string_map(request),
+     "transfer-encoding",
+     "chunked",
+   )
+@@ -455,7 +489,7 @@ async fn App::handle_request(
+     req: HttpRequest::from_method_string(
+       http_method_text,
+       request.path,
+-      copy_async_headers(request.headers),
++      copy_async_headers(request_headers_to_string_map(request)),
+       request_body,
+     ),
+     res: HttpResponse(status_code=OK),
+diff --git a/.mooncakes/bobzhang/crescent/serve_request_body.mbt b/.mooncakes/bobzhang/crescent/serve_request_body.mbt
+index d9b0405..b784678 100644
+--- a/.mooncakes/bobzhang/crescent/serve_request_body.mbt
++++ b/.mooncakes/bobzhang/crescent/serve_request_body.mbt
+@@ -1,7 +1,10 @@
+ ///|
+ fn request_content_length(request : @http.Request) -> Int? {
+   match
+-    @httputil.get_header_case_insensitive(request.headers, "content-length") {
++    @httputil.get_header_case_insensitive(
++      request_headers_to_string_map(request),
++      "content-length",
++    ) {
+     Some(value) => Some(@string.parse_int(value) catch { _ => return None })
+     None => None
+   }
+diff --git a/.mooncakes/bobzhang/crescent/serve_response.mbt b/.mooncakes/bobzhang/crescent/serve_response.mbt
+index 7f39f81..eb04170 100644
+--- a/.mooncakes/bobzhang/crescent/serve_response.mbt
++++ b/.mooncakes/bobzhang/crescent/serve_response.mbt
+@@ -4,6 +4,24 @@ let cached_date_second : Ref[Int64] = Ref(0L)
+ ///|
+ let cached_date_string : Ref[String] = Ref("")
+
++///|
++// LOCAL CACHE PATCH (uncommitted; .mooncakes is a gitignored cache):
++// moonbitlang/async 0.21.x expects Map[CaseInsensitiveString, String] for
++// conn.send_response extra_headers; convert crescent's String-keyed
++// HttpResponse.headers at the boundary, behavior-preserving (the CI-keyed
++// map keeps lookups case-insensitive on the async side). See the T-05
++// task report.
++fn to_async_header_map(
++  headers : Map[String, String],
++) -> Map[@http.CaseInsensitiveString, String] {
++  let converted : Map[@http.CaseInsensitiveString, String] = Map([])
++  for pair in headers {
++    let (key, value) = pair
++    converted.set(CaseInsensitiveString(key), value)
++  }
++  converted
++}
++
+ ///|
+ fn current_http_date() -> String {
+   let now = @async.now() / 1000L
+@@ -227,7 +245,7 @@ async fn send_response_async(
+   conn.send_response(
+     response.status_code.to_int(),
+     response.status_code.to_string(),
+-    extra_headers=headers,
++    extra_headers=to_async_header_map(headers),
+     cookies=response.cookies.values().map(to_async_http_cookie).to_array(),
+   )
+   if !response.raw_body.is_empty() {
+@@ -257,7 +275,7 @@ async fn send_response_and_close_async(
+   conn.send_response(
+     response.status_code.to_int(),
+     response.status_code.to_string(),
+-    extra_headers=headers,
++    extra_headers=to_async_header_map(headers),
+     cookies=response.cookies.values().map(to_async_http_cookie).to_array(),
+   )
+   if !response.raw_body.is_empty() {
+diff --git a/.mooncakes/bobzhang/crescent/websocket/lifecycle.mbt b/.mooncakes/bobzhang/crescent/websocket/lifecycle.mbt
+index 6c23f97..92d26db 100644
+--- a/.mooncakes/bobzhang/crescent/websocket/lifecycle.mbt
++++ b/.mooncakes/bobzhang/crescent/websocket/lifecycle.mbt
+@@ -137,12 +137,19 @@ async fn send_native_ws_shutdown_close(ws : @async_websocket.Conn) -> Unit {
+ }
+
+ ///|
++// LOCAL CACHE PATCH (uncommitted; .mooncakes is a gitignored cache):
++// moonbitlang/async 0.21.x changed http.Request.headers from
++// Map[String, String] to Map[CaseInsensitiveString, String]; adapt the
++// 0.11.1 normalization to the 0.21.3 header type, behavior-preserving.
++// Required because the workspace also contains mizchi/mars@0.3.12, which
++// pins async@0.21.3, and moon resolves one shared version per package.
++// See the T-05 task report.
+ fn normalize_native_websocket_request_headers(
+-  headers : Map[String, String],
+-) -> Map[String, String] {
+-  let normalized : Map[String, String] = Map([])
++  headers : Map[@http.CaseInsensitiveString, String],
++) -> Map[@http.CaseInsensitiveString, String] {
++  let normalized : Map[@http.CaseInsensitiveString, String] = Map([])
+   headers.each((key, value) => {
+-    let normalized_value = match key.to_lower() {
++    let normalized_value = match key.to_string().to_lower() {
+       "connection" =>
+         value.split(",").map(token => token.trim()).to_array().join(", ")
+       "upgrade" | "sec-websocket-version" | "sec-websocket-key" =>

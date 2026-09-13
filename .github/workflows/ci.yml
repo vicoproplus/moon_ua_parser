@@ -46,6 +46,32 @@ jobs:
       - name: Verify toolchain
         run: moon version --all
 
+      # ---------------------------------------------------------------------
+      # v0.2 framework middleware (T-06) — INSERTED before the first moon
+      # command; the existing steps below are untouched (PRD 10.6 S3).
+      #
+      # The moon workspace (moon.work) resolves ONE shared dependency graph
+      # for all members into the root .mooncakes/ (gitignored, so a fresh
+      # checkout starts without it; the first workspace-level moon command
+      # fetches it). That graph MVS-unifies moonbitlang/async to 0.21.3 (the
+      # pin of mizchi/mars@0.3.12), which breaks bobzhang/crescent@0.11.1's
+      # Map[String, String] request-header code, and no published version
+      # pair coexists (T-02/T-05 registry matrix). The fetched cache is
+      # therefore adapted from the committed patch files below, before any
+      # member package is compiled. Empirically the member-directory steps
+      # below (moon check / moon test in moon_ua_parser_lib) already resolve
+      # and check the whole workspace graph, so this step must precede them.
+      # `moon install` (deprecated no-arg form, still the explicit
+      # dependency-fetch trigger) forces the fetch here so the patch lands
+      # between fetch and first compilation.
+      - name: Apply framework cache patches (post-fetch, pre-build)
+        timeout-minutes: 15
+        working-directory: .
+        run: |
+          moon install
+          git -c core.autocrlf=false apply --check scripts/framework-cache-patches/*.patch
+          git -c core.autocrlf=false apply scripts/framework-cache-patches/*.patch
+
       - name: Static check
         working-directory: moon_ua_parser_lib
         run: moon check
@@ -90,3 +116,23 @@ jobs:
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
         run: moon run --target native --release tests/diffstats
+
+      # The new workspace-level middleware steps are standardized on
+      # --target native for determinism (the plan's backfilled literals use
+      # native; local wasm-gc test runs are broken on Windows, a documented
+      # environment fact). The lib steps above keep their historical target
+      # matrix unchanged.
+      - name: Workspace build (middleware)
+        timeout-minutes: 30
+        working-directory: .
+        run: moon build --target native
+
+      # Middleware integration tests: one moon test -p selector per
+      # framework adapter (crescent = header mounting, mars = Variables
+      # mounting); run from the repo root against the shared workspace graph.
+      - name: Middleware integration tests (crescent + mars)
+        timeout-minutes: 15
+        working-directory: .
+        run: |
+          moon test --target native -p moon_ua_parser_crescent
+          moon test --target native -p moon_ua_parser_mars
