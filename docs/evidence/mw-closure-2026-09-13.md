@@ -182,3 +182,26 @@ EXIT_GREP_CI=0
 ---
 
 *执行: T-09 单元收口核对，2026-09-13。只验不修；本文件 + final-gate log + publish-dryrun log 为 T-09 提交的三个 evidence 文件。*
+
+---
+
+## 四、回补前状态核查（2026-09-13 第二次，遗留问题处理轮）
+
+对第三节阻塞项清单的逐项世界状态复查（命令与输出就地记录，诚实登记）：
+
+| 项 | 核查结果 | 状态变化 |
+|----|----------|----------|
+| #6 版本收口（发版链阻塞头） | **已解除**：`git show feat/v02-platform-complete:moon_ua_parser_lib/moon.mod` → `version = "0.2.0"`（分支 9997fcc，已推送 origin/feat/v02-platform-complete）。剩余动作 = 各单元分支合并决策（用户）→ 中间件依赖 @0.1.0 升级 → dry-run → 发布 | 🟢 阻塞源已就绪，待合并 |
+| #5 跨单元终验 | `feat/v02-perf-bench` 918d864 **仍未合并**（main 与 origin/main 均无） | ⏳ 不变 |
+| #7 上游跟踪 | registry index 已刷新（`moon update` + `moon search`）：crescent 最新**仍 0.11.1**、mars **仍 0.3.12**——无共存修复版，**补丁仍必需**。GitHub 仓库已迁移：`bobzhang/crescent` → **`moonbit-community/crescent`**（pushed 2026-09-10，未归档；registry 包名不变）。已登记入补丁目录 README 上游节 | 🟡 有新事实，补丁保留 |
+| #3 通道核录 | mooncakes `statistics?raw=true` 本次经纯 HTTP 返回 JS 渲染壳（T-02 期为可用通道）——**通道回归观察**已登记；下载量复核需浏览器人工路线 | ⏳ 不变（新观察） |
+| #1 CI run / #2 包页 / #4 登录态 | 依赖推送与发布动作，未变 | ⏳ 不变 |
+
+**本轮已完成的终审建议项（原 Minor/建议 → 已处置）:**
+
+1. ✅ 警告基线门禁：ci.yml 追加「Warning baseline gate」步骤（workspace `moon check --target native`；total ≤ 44 可缩不可涨 + lib 之外 deprecated 必须 = 0；awk 按 `╭─[path]` 块关联路径）。本地 dry-run：正例 total=44/dep_out=0 PASS，反例注入 crescent 路径 deprecated 警告检出=1。
+2. ✅ crescent `supported_targets` 收敛：`-all+native+wasm` → `-all+native`（wasm 无任何本包证据——本地 wasm 运行时损坏、CI wasm 门禁仅覆盖 lib；`moonbitlang` 社区 crescent_wasm_demo 存在仅证明框架族 wasm 可行性）。README 版本区间节同步改写；收敛后 crescent check 0 errors / 测试 7/7 / workspace build 绿。
+3. ✅ 根 `.gitattributes`：`*.patch -text`（Windows autocrlf 检出破坏补丁字节的防护）。
+4. ✅ `moon install` 无参弃用形式：**保留**（`moon fetch` = unstable、`moon update` = 仅索引，无稳定显式 fetch 等价物；工具链锁定 0.1.20260904 下该形式可用）——理由已在本步骤既有注释与本轮记录。
+
+*执行: 遗留问题处理轮（用户指令），2026-09-13。合并/推送决策仍待用户。*

@@ -78,3 +78,13 @@ GNU patch) treat such lines as plain context — verified end-to-end above.
   workspace drops `mizchi/mars`, regenerate with
   `diff -ru <pristine extraction> .mooncakes/bobzhang/crescent` and delete
   the patch if the conflict disappeared.
+- **2026-09-13 recheck (registry index refreshed + GitHub API):** registry
+  latest is STILL `bobzhang/crescent@0.11.1` / `mizchi/mars@0.3.12` — no
+  coexistence fix released, **patch still required**. The GitHub repo has
+  MOVED: `bobzhang/crescent` now redirects to
+  `moonbit-community/crescent` (pushed 2026-09-10, not archived) — file any
+  upstream issue against the new location; the mooncakes registry package
+  name `bobzhang/crescent` is unchanged. Note: the mooncakes
+  `statistics?raw=true` CSV channel returned a JS-rendered HTML shell on
+  this date via plain HTTP (worked at T-02 time) — re-verification of
+  download stats needs the browser route (manual verification).

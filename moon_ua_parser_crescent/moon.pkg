@@ -30,4 +30,9 @@ import {
   "moonbitlang/async",
 } for "test"
 
-supported_targets = "-all+native+wasm"
+// Native-only until a wasm build/test gate exists: the adapter
+// itself is wasm-plausible (pure MoonBit over crescent, which ships
+// native+wasm), but no wasm evidence has been produced for THIS package
+// (local wasm-gc runtime broken; CI wasm step covers the lib only).
+// Re-declare +wasm together with the CI wasm gate that verifies it.
+supported_targets = "-all+native"

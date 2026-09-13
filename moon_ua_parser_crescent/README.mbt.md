@@ -101,7 +101,10 @@ in `X-Ua-Info`).
   `vicoproplus/moon_ua_parser_middleware_core@0.1.0` (workspace-resolved),
   `moonbitlang/async@0.20.3` (crescent's own requirement).
 - Toolchain: moon 0.1.20260904, `--target native`
-  (`supported_targets = "-all+native+wasm"`, matching crescent).
+  (`supported_targets = "-all+native"` — wasm deliberately NOT declared:
+  the adapter has no wasm build/test evidence yet (local wasm-gc runtime
+  broken; CI wasm gate covers the lib only). Re-declare `+wasm` together
+  with a CI wasm build/test step for this package).
 
 ## Example (one command)
 

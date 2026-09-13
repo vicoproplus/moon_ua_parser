@@ -136,3 +136,24 @@ jobs:
         run: |
           moon test --target native -p moon_ua_parser_crescent
           moon test --target native -p moon_ua_parser_mars
+
+      # Warning-baseline gate (final-review recommendation): the
+      # workspace-wide `moon check --target native` warning set must never
+      # grow. Baseline at 2026-09-13 = 44 (43 deprecated-family + 1
+      # unused_constructor, all inside moon_ua_parser_lib — owned by the
+      # 平台完备 unit, so the number may shrink, never grow) and zero
+      # deprecated-family warnings may appear outside moon_ua_parser_lib
+      # (the middleware packages stay clean; they use derive(Debug)).
+      # Warning blocks are multi-line — the ╭─[path] header line precedes
+      # the Warning text line — so awk associates each warning with its
+      # block path. A failing check (real errors) fails this step directly.
+      - name: Warning baseline gate (no growth; deprecated outside lib = 0)
+        timeout-minutes: 15
+        working-directory: .
+        run: |
+          OUT=$(moon check --target native 2>&1)
+          TOTAL=$(printf '%s\n' "$OUT" | grep -c "Warning (" || true)
+          DEP_OUT=$(printf '%s\n' "$OUT" | awk '/╭─\[/{path=$0} /Warning \(deprecated/{if (path !~ /moon_ua_parser_lib/) n++} END{print n+0}')
+          echo "total warnings: $TOTAL (baseline 44, may shrink, never grow)"
+          echo "deprecated warnings outside moon_ua_parser_lib: $DEP_OUT (must be 0)"
+          [ "$TOTAL" -le 44 ] && [ "$DEP_OUT" -eq 0 ]
