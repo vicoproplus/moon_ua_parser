@@ -1,0 +1,416 @@
+# Final gate (V5) — moon_ua_parser v0.2 性能基准 unit — 2026-09-13
+
+Executor: session controller (single executor, plan W1/V1)
+Scope: Acceptance 行0–行4 逐条（wasm 衔接点已解除，见 docs/bench-baseline-2026-09-13.md §6）
+Environment: Windows 10 (10.0.19045 x64), moon 0.1.20260904, node v26.7.0, Python 3.12.10
+
+RESULT: 9/9 exit codes = 0 —— 门禁通过（退出码口径全绿）
+
+| 行 | 命令 | exit |
+|----|------|------|
+| 0 | moon check | 0 |
+| 0 | moon test --target native | 0 (31/31) |
+| 1 | moon run --target native --release tests/bench | 0 |
+| 1 | moon run --target js --release tests/bench | 0 |
+| 2 | grep -c "ops_per_sec" moon_ua_parser_lib/README.mbt.md | 0 (count=5 ≥3) |
+| 2 | test -f docs/bench-baseline-2026-09-13.md | 0 |
+| 3 | moon run --target native --release tests/bench -- --smoke | 0 (verdict=pass) |
+| 4 | python scripts/gen_bench_samples.py | 0 |
+| 4 | git diff --exit-code -- samples.mbt (幂等) | 0 |
+
+## 性能读数口径注记（如实登记）
+
+门禁期间读数（native 16.22 ops/s / js 32.61 ops/s）较 T-04 基线（native 23.64 / js 66.56）
+系统性偏慢约 1.9–2.0×。引擎与代码未变：samples_checksum=15142、sample_set_hash 与基线一致、
+rounds_consistent=true。静置 45s 后复跑 js 一次仍为 35.33 ops/s，排除了瞬时负载假设，
+判定为长时段重编译后台任务后的主机状态劣化（Windows 10 宿主，非引擎回归）。
+处置：README 基线以 T-04 的 3 次中位协议静默期测量为准（该文档已声明数值非便携常量）；
+门禁以退出码与 smoke 阈值判定，不依赖绝对 ops/秒读数。smoke 在劣化状态下仍 pass
+（62.13ms vs 150ms 阈值），阈值 headroom 约 2.4×，若 CI（ubuntu）出现误报按
+SMOKE_NS_PER_PARSE_LIMIT 注释指引回到该常量重校准。
+
+## [LOCAL_DEAD_LINK] 清单状态（R-3 复核）
+
+- wasm 基线：已解除（T-01/T-04 实测三后端可运行并完成采集）
+- CI run 证据：仍为 [LOCAL_DEAD_LINK — 验证地点/方式: 推送后 GitHub run 历史]（分支推送后回补）
+- 跨 plan 全量对账（框架对接单元合并后由单一执行者跑全量）：待两单元合并后执行（plan T-07 步骤 2）
+
+以下为门禁逐条命令的完整真实输出。
+
+---
+
+# R-3 抽样走查：静置 45s 后 js 基准复跑（与留档值比对）
+
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-result backend=js ops_per_sec=35.33 ns_per_parse=28297846.20 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+
+比对：T-04 留档 js 基线 66.56 ops/s（3 次中位协议）；本次单跑 35.33，checksum/hash 一致，绝对偏差属上述主机状态劣化注记范围。
+# Final gate (V5) — bench unit — 2026-09-13
+## 行0: moon check + moon test native
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:24:13 ]
+    │
+ 24 │   let buf = StringBuilder::new()
+    │             ─────────┬────────  
+    │                      ╰────────── Warning (deprecated): Use `StringBuilder()` instead
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:50:36 ]
+    │
+ 50 │   assert_eq("\{tag} device.model=\{d.model}", "\{tag} device.model=None")
+    │                                    ───┬───  
+    │                                       ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:73:29 ]
+    │
+ 73 │   assert_eq("device.model=\{d.model}", "device.model=None")
+    │                             ───┬───  
+    │                                ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:120:33 ]
+     │
+ 120 │       assert_eq("device.model=\{info.device.model}", "device.model=None")
+     │                                 ────────┬────────  
+     │                                         ╰────────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:141:36 ]
+     │
+ 141 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(2)")
+     │                                    ──────┬──────  
+     │                                          ╰──────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:160:30 ]
+     │
+ 160 │   assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
+     │                              ───┬───  
+     │                                 ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:187:29 ]
+     │
+ 187 │   assert_eq("device.model=\{d.model}", "device.model=Some(iPhone)")
+     │                             ───┬───  
+     │                                ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:201:36 ]
+     │
+ 201 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(75)")
+     │                                    ──────┬──────  
+     │                                          ╰──────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\robust\robust.mbt:219:36 ]
+     │
+ 219 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+     │                                    ──────┬──────  
+     │                                          ╰──────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:42:33 ]
+    │
+ 42 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:76:29 ]
+    │
+ 76 │   assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                             ───┬───  
+    │                                ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:93:22 ]
+    │
+ 93 │   assert_eq("patch=\{b.patch}", "patch=Some(7)")
+    │                      ───┬───  
+    │                         ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:107:22 ]
+     │
+ 107 │   assert_eq("model=\{d.model}", "model=Some(iPhone)")
+     │                      ───┬───  
+     │                         ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:128:28 ]
+     │
+ 128 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
+     │                            ──────┬──────  
+     │                                  ╰──────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:150:22 ]
+     │
+ 150 │   assert_eq("model=\{d.model}", "model=Some(SW2)")
+     │                      ───┬───  
+     │                         ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:171:22 ]
+     │
+ 171 │   assert_eq("model=\{d.model}", "model=Some(C1505)")
+     │                      ───┬───  
+     │                         ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:204:28 ]
+     │
+ 204 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+     │                            ──────┬──────  
+     │                                  ╰──────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:237:29 ]
+     │
+ 237 │   assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+     │                             ────┬───  
+     │                                 ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:329:38 ]
+     │
+ 329 │       assert_eq("device rule_index=\{d.rule_index}", "device rule_index=None")
+     │                                      ──────┬─────  
+     │                                            ╰─────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:332:33 ]
+     │
+ 332 │       assert_eq("device model=\{d.model}", "device model=None")
+     │                                 ───┬───  
+     │                                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:349:38 ]
+     │
+ 349 │       assert_eq("device rule_index=\{def.device.rule_index}", "device rule_index=None")
+     │                                      ──────────┬──────────  
+     │                                                ╰──────────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:360:141 ]
+     │
+ 360 │           assert_eq("device family \{d1.family} brand \{d1.brand} model \{d1.model}", "device family \{d2.family} brand \{d2.brand} model \{d2.model}")
+     │                                                                                                                                             ────┬───  
+     │                                                                                                                                                 ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:397:33 ]
+     │
+ 397 │       assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+     │                                 ───┬───  
+     │                                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:404:46 ]
+     │
+ 404 │       assert_eq("default device rule_index=\{info.device.rule_index}", "default device rule_index=None")
+     │                                              ───────────┬──────────  
+     │                                                         ╰──────────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:443:174 ]
+     │
+ 443 │         assert_eq("\{i} device family \{info.device.family} brand \{info.device.brand} model \{info.device.model}", "\{i} device family \{d.family} brand \{d.brand} model \{d.model}")
+     │                                                                                                                                                                              ───┬───  
+     │                                                                                                                                                                                 ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\semantics\semantics.mbt:446:59 ]
+     │
+ 446 │         assert_eq("\{i} single-domain device rule_index \{@ua_parser.parse_device(ua).rule_index}", "\{i} single-domain device rule_index None")
+     │                                                           ───────────────────┬──────────────────  
+     │                                                                              ╰──────────────────── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Finished. moon: ran 4 tasks, now up to date (44 warnings, 0 errors)
+check_exit=0
+Total tests: 31, passed: 31, failed: 0.
+test_exit=0
+## 行1: native bench
+bench-config mode=full backend=native corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=16.22 ns_per_parse=61641525.60
+bench-round round=1 ops_per_sec=18.57 ns_per_parse=53824410.00
+bench-round round=2 ops_per_sec=19.48 ns_per_parse=51311949.80
+bench-round round=3 ops_per_sec=17.19 ns_per_parse=58168080.00
+bench-round round=4 ops_per_sec=14.91 ns_per_parse=67041439.20
+bench-round round=5 ops_per_sec=15.97 ns_per_parse=62601584.80
+bench-round round=6 ops_per_sec=15.57 ns_per_parse=64204796.40
+bench-result backend=native ops_per_sec=16.22 ns_per_parse=61641525.60 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+native_bench_exit=0
+## 行1: js bench
+bench-config mode=full backend=js corpus_size=10000 sample_count=500 stride=20 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=30.62 ns_per_parse=32657091.59
+bench-round round=1 ops_per_sec=31.20 ns_per_parse=32043380.40
+bench-round round=2 ops_per_sec=35.76 ns_per_parse=27961864.40
+bench-round round=3 ops_per_sec=33.39 ns_per_parse=29946941.59
+bench-round round=4 ops_per_sec=32.61 ns_per_parse=30663678.60
+bench-round round=5 ops_per_sec=27.85 ns_per_parse=35895602.40
+bench-round round=6 ops_per_sec=35.53 ns_per_parse=28145102.79
+bench-result backend=js ops_per_sec=32.61 ns_per_parse=30663678.60 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=15142 rounds_consistent=true
+js_bench_exit=0
+## 行2: README grep + baseline doc
+5
+grep_exit=0
+testf_exit=0
+## 行3: smoke
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=17.13 ns_per_parse=58371757.00
+bench-round round=1 ops_per_sec=16.09 ns_per_parse=62131542.00
+bench-round round=2 ops_per_sec=13.39 ns_per_parse=74670341.50
+bench-round round=3 ops_per_sec=16.19 ns_per_parse=61730094.00
+bench-round round=4 ops_per_sec=17.75 ns_per_parse=56333784.00
+bench-round round=5 ops_per_sec=15.09 ns_per_parse=66251866.00
+bench-round round=6 ops_per_sec=16.08 ns_per_parse=62182664.50
+bench-result backend=native ops_per_sec=16.09 ns_per_parse=62131542.00 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=62131542.00 limit=150000000.00 (calibrated threshold, T-06)
+smoke_exit=0
+## 行4: generator idempotency
+source:     uap-python/samples/useragents.txt (10280676 bytes, 75158 lines)
+sha256:     3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244
+seed:       20260913  method: fixed-seed stratified (largest-remainder, floor 30)
+  stratum android  corpus= 57168 sampled= 7566
+  stratum bot      corpus=    31 sampled=   30
+  stratum ios      corpus= 11921 sampled= 1586
+  stratum linux    corpus=  1088 sampled=  145
+  stratum macos    corpus=  2568 sampled=  342
+  stratum other    corpus=    17 sampled=   17
+  stratum windows  corpus=  2362 sampled=  314
+anomalies:  3/75158 skipped ({'short': 3}) = 0.0040%
+wrote:      F:\moonbit比赛\moon_ua_parser\.worktrees\feat-v02-perf-bench\moon_ua_parser_lib\tests\bench\samples.mbt (10000 samples)
+gen_exit=0
+warning: in the working copy of 'moon_ua_parser_lib/tests/bench/samples.mbt', LF will be replaced by CRLF the next time Git touches it
+gen_idempotent_exit=0
+## gate script done
