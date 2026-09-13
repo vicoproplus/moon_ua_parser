@@ -1,0 +1,1106 @@
+# E6 实测证据日志 — moon publish --dry-run（mooncakes 发版前置）
+#
+- 任务: B4 / T-08（moon_ua_parser v0.2 框架对接 plan）
+- 日期: 2026-09-13
+- 宿主: Windows 10.0.19045 x64 / Git Bash
+- 会话 worktree: F:\moonbit比赛\moon_ua_parser_wt_framework（branch feat/v02-framework-middleware）
+- 工具链: moon 0.1.20260904 (94521db 2026-09-04)，feature flags: rr_moon_mod,rr_moon_pkg
+- 测量方式: stdout+stderr 合并捕获（2>&1）；每次运行外层包 GNU coreutils `timeout 60` 护栏（红线：卡住 ≤60s 终止）。实测三包均正常退出、无卡死，护栏未触发。
+- 退出码记录: `$?` 于命令后立即回显（EXIT_CODE= 行）。
+- 誊录说明: 本日志由会话按捕获原文以文件工具誊写；个别制表符/框线对齐空白可能存在非信息性微差，所有命令行、文件:行号、警告码、消息文本与退出码逐字保真。
+- 副作用声明: dry-run 在 `/_build/publish/`（gitignore 第 5 行 `/_build/` 覆盖）生成打包校验工件；除本日志外未改动任何仓库文件；未执行任何真实 `moon publish`。
+- 正式发布声明: 正式 `moon publish` 被禁止执行（前置断言不通过 = 消费方先于生产者，plan 时序类错误场景行明令禁止）。本日志全部为 dry-run（`--dry-run` = "Do not actually run the command"）。
+
+================================================================================
+[0] CLI / dry-run 旗标字面量确认
+================================================================================
+
+$ moon version
+moon 0.1.20260904 (94521db 2026-09-04)
+
+Feature flags enabled: rr_moon_mod,rr_moon_pkg
+
+$ moon publish --help
+Publish the current module
+
+Usage: moon.exe publish [OPTIONS]
+
+Options:
+  -h, --help  Print help
+
+Manifest Options:
+      --frozen  Do not sync dependencies, assuming local dependencies are up-to-date
+
+Common Options:
+      --target-dir <TARGET_DIR>  The target directory. Defaults to `<project-root>/_build`
+  -q, --quiet                    Suppress output
+  -v, --verbose                  Increase verbosity
+      --trace                    Trace the execution of the program
+      --dry-run                  Do not actually run the command
+
+结论: 本版本 CLI 的 dry-run 旗标字面量为 `--dry-run`（帮助文本原文: "Do not actually run the command"）。后续逐包命令均采用该字面量。
+
+================================================================================
+[1] 步骤 1 前置断言（时序类场景行）: 库版本收口检查
+================================================================================
+
+$ grep -n "version" moon_ua_parser_lib/moon.mod
+14:version = "0.1.0"
+
+结论: moon_ua_parser_lib/moon.mod 第 14 行 version = "0.1.0"；0.1.0 < 0.2.0 → 平台完备 T-09 未收口 → **前置断言不通过（预期结果）**。阻塞登记如下（详细块见 task-8-report.md）:
+
+    [阻塞登记 — B4/T-08 mooncakes 发版（依赖衔接点）]
+    - 触发条件: 平台完备 T-09 版本收口合并
+    - 负责人:   vicoplus
+    - 恢复动作: 版本收口后重跑本任务
+    - 目标:     回补批
+    - 断言记录: moon_ua_parser_lib/moon.mod:14 → version = "0.1.0"，0.1.0 < 0.2.0
+
+正式 `moon publish` 禁止执行。以下 [2]-[4] 为逐包 dry-run 实测（失败输出本身即 E6 实测证据）。
+
+================================================================================
+[2] 逐包 dry-run — 包 1/3: moon_ua_parser_middleware_core
+================================================================================
+
+$ cd moon_ua_parser_middleware_core && timeout 60 moon publish --dry-run 2>&1
+CMD: moon publish --dry-run (cwd=/f/moonbit比赛/moon_ua_parser_wt_framework/moon_ua_parser_middleware_core)
+Running moon check ...
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:24:13 ]
+    │
+ 24 │   let buf = StringBuilder::new()
+    │             ─────────┬────────  
+    │                      ╰────────── Warning (deprecated): Use `StringBuilder()` instead
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:50:36 ]
+    │
+ 50 │   assert_eq("\{tag} device.model=\{d.model}", "\{tag} device.model=None")
+    │                                    ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:73:29 ]
+    │
+ 73 │   assert_eq("device.model=\{d.model}", "device.model=None")
+    │                             ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:120:33 ]
+     │
+ 120 │       assert_eq("device.model=\{info.device.model}", "device.model=None")
+     │                                 ────────┬────────  
+     │                      ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:141:36 ]
+    │
+ 141 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(2)")
+    │                                    ──────┬──────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:160:30 ]
+    │
+ 160 │   assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
+    │                              ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:187:29 ]
+    │
+ 187 │   assert_eq("device.model=\{d.model}", "device.model=Some(iPhone)")
+    │                             ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:201:36 ]
+    │
+ 201 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(75)")
+    │                                    ──────┬──────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:219:36 ]
+    │
+ 219 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+    │                                    ──────┬──────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:42:33 ]
+    │
+ 42 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:76:29 ]
+    │
+ 76 │   assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                             ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:93:22 ]
+    │
+ 93 │   assert_eq("patch=\{b.patch}", "patch=Some(7)")
+    │                      ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:107:22 ]
+     │
+ 107 │   assert_eq("model=\{d.model}", "model=Some(iPhone)")
+     │                      ───┬───  
+     │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:128:28 ]
+    │
+ 128 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
+    │                            ──────┬──────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:150:22 ]
+    │
+ 150 │   assert_eq("model=\{d.model}", "model=Some(SW2)")
+    │                      ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:171:22 ]
+    │
+ 171 │   assert_eq("model=\{d.model}", "model=Some(C1505)")
+    │                      ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:204:28 ]
+    │
+ 204 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+    │                            ──────┬──────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:237:29 ]
+     │
+ 237 │   assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+     │                             ────┬───  
+     │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:329:38 ]
+    │
+ 329 │       assert_eq("device rule_index=\{d.rule_index}", "device rule_index=None")
+    │                                      ──────┬─────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:332:33 ]
+    │
+ 332 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:349:38 ]
+    │
+ 349 │       assert_eq("device rule_index=\{def.device.rule_index}", "device rule_index=None")
+    │                                      ──────────┬──────────  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:360:141 ]
+    │
+ 360 │           assert_eq("device family \{d1.family} brand \{d1.brand} model \{d1.model}", "device family \{d2.family} brand \{d2.brand} model \{d2.model}")
+    │                                                                                                                                             ────┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:397:33 ]
+    │
+ 397 │       assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                                 ───┬───  
+    │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:404:46 ]
+     │
+ 404 │       assert_eq("default device rule_index=\{info.device.rule_index}", "default device rule_index=None")
+     │                                              ───────────┬──────────  
+     │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:443:174 ]
+     │
+ 443 │         assert_eq("\{i} device family \{info.device.family} brand \{info.device.brand} model \{info.device.model}", "\{i} device family \{d.family} brand \{d.brand} model \{d.model}")
+     │                                                                                                                                                                              ────┬───  
+     │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:446:59 ]
+     │
+ 446 │         assert_eq("\{i} single-domain device rule_index \{@ua_parser.parse_device(ua).rule_index}", "\{i} single-domain device rule_index None")
+     │                                                           ───────────────────┬──────────────────  
+     │                  ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Finished. moon: ran 11 tasks, now up to date (44 warnings, 0 errors)
+Check passed
+validating packaged zip: F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\vicoproplus-moon_ua_parser_middleware_core-0.1.0.zip
+extracting packaged zip to F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\verify\mooncake_publish_checksfALKx
+running moon check on extracted package
+Running moon check ...
+Warning: you may need to run `moon update` to update the registry
+Error: Failed to calculate build plan
+
+Caused by:
+    0: Failed to resolve the module dependency graph
+    1: Failed to resolve registry dependency `vicoproplus/moon_ua_parser` for module `vicoproplus/moon_ua_parser_middleware_core`: module was not found in the registry
+
+moon check failed
+Error: `moon publish` failed
+EXIT_CODE=127
+
+结果: FAIL（退出码 127，无卡死）。本包自身打包+本包 moon check 通过（44 warnings, 0 errors）；失败点 = 提取包依赖解析：registry 缺上游生产者模块 `vicoproplus/moon_ua_parser`。失败发生在任何登录/凭证交互之前 → 非凭证类失败。
+
+================================================================================
+[3] 逐包 dry-run — 包 2/3: moon_ua_parser_crescent
+================================================================================
+
+$ cd moon_ua_parser_crescent && timeout 60 moon publish --dry-run 2>&1
+CMD: moon publish --dry-run (cwd=/f/moonbit比赛/moon_ua_parser_wt_framework/moon_ua_parser_crescent)
+Running moon check ...
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:24:13 ]
+    │
+ 24 │   let buf = StringBuilder::new()
+    │             ─────────┬────────  
+    │                      ╰────────── Warning (deprecated): Use `StringBuilder()` instead
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:50:36 ]
+    │
+ 50 │   assert_eq("\{tag} device.model=\{d.model}", "\{tag} device.model=None")
+    │                                    ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:73:29 ]
+    │
+ 73 │   assert_eq("device.model=\{d.model}", "device.model=None")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:120:33 ]
+     │
+ 120 │       assert_eq("device.model=\{info.device.model}", "device.model=None")
+     │                                 ────────┬────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:141:36 ]
+    │
+ 141 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(2)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:160:30 ]
+    │
+ 160 │   assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
+    │                              ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:187:29 ]
+    │
+ 187 │   assert_eq("device.model=\{d.model}", "device.model=Some(iPhone)")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:201:36 ]
+    │
+ 201 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(75)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:219:36 ]
+    │
+ 219 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:42:33 ]
+    │
+ 42 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:76:29 ]
+    │
+ 76 │   assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:93:22 ]
+    │
+ 93 │   assert_eq("patch=\{b.patch}", "patch=Some(7)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:107:22 ]
+     │
+ 107 │   assert_eq("model=\{d.model}", "model=Some(iPhone)")
+     │                      ───┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:128:28 ]
+    │
+ 128 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
+    │                            ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:150:22 ]
+    │
+ 150 │   assert_eq("model=\{d.model}", "model=Some(SW2)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:171:22 ]
+    │
+ 171 │   assert_eq("model=\{d.model}", "model=Some(C1505)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:204:28 ]
+    │
+ 204 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+    │                            ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:237:29 ]
+     │
+ 237 │   assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+     │                             ────┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:329:38 ]
+    │
+ 329 │       assert_eq("device rule_index=\{d.rule_index}", "device rule_index=None")
+    │                                      ──────┬─────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:332:33 ]
+    │
+ 332 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:349:38 ]
+    │
+ 349 │       assert_eq("device rule_index=\{def.device.rule_index}", "device rule_index=None")
+    │                                      ──────────┬──────────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:360:141 ]
+    │
+ 360 │           assert_eq("device family \{d1.family} brand \{d1.brand} model \{d1.model}", "device family \{d2.family} brand \{d2.brand} model \{d2.model}")
+    │                                                                                                                                             ────┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:397:33 ]
+    │
+ 397 │       assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:404:46 ]
+     │
+ 404 │       assert_eq("default device rule_index=\{info.device.rule_index}", "default device rule_index=None")
+     │                                              ───────────┬──────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:443:174 ]
+     │
+ 443 │         assert_eq("\{i} device family \{info.device.family} brand \{info.device.brand} model \{info.device.model}", "\{i} device family \{d.family} brand \{d.brand} model \{d.model}")
+     │                                                                                                                                                                              ────┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:446:59 ]
+     │
+ 446 │         assert_eq("\{i} single-domain device rule_index \{@ua_parser.parse_device(ua).rule_index}", "\{i} single-domain device rule_index None")
+     │                                                           ───────────────────┬──────────────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Finished. moon: ran 5 tasks, now up to date (44 warnings, 0 errors)
+Check passed
+validating packaged zip: F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\vicoproplus-moon_ua_parser_crescent-0.1.0.zip
+extracting packaged zip to F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\verify\mooncake_publish_checkYeOm5N
+running moon check on extracted package
+Running moon check ...
+Warning: you may need to run `moon update` to update the registry
+Warning: you may need to run `moon update` to update the registry
+Error: Failed to calculate build plan
+
+Caused by:
+    0: Failed to resolve the module dependency graph
+    1: Failed to resolve registry dependency `vicoproplus/moon_ua_parser` for module `vicoproplus/moon_ua_parser_crescent`: module was not found in the registry
+       Failed to resolve registry dependency `vicoproplus/moon_ua_parser_middleware_core` for module `vicoproplus/moon_ua_parser_crescent`: module was not found in the registry
+
+moon check failed
+Error: `moon publish` failed
+EXIT_CODE=127
+
+结果: FAIL（退出码 127，无卡死）。本包自身打包+本包 moon check 通过（44 warnings, 0 errors）；失败点 = 提取包依赖解析：registry 缺 `vicoproplus/moon_ua_parser` 与 `vicoproplus/moon_ua_parser_middleware_core` 两个上游生产者模块。非凭证类失败。
+
+================================================================================
+[4] 逐包 dry-run — 包 3/3: moon_ua_parser_mars
+================================================================================
+
+$ cd moon_ua_parser_mars && timeout 60 moon publish --dry-run 2>&1
+CMD: moon publish --dry-run (cwd=/f/moonbit比赛/moon_ua_parser_wt_framework/moon_ua_parser_mars)
+Running moon check ...
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                  ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:24:13 ]
+    │
+ 24 │   let buf = StringBuilder::new()
+    │             ─────────┬────────  
+    │                      ╰────────── Warning (deprecated): Use `StringBuilder()` instead
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:50:36 ]
+    │
+ 50 │   assert_eq("\{tag} device.model=\{d.model}", "\{tag} device.model=None")
+    │                                    ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:73:29 ]
+    │
+ 73 │   assert_eq("device.model=\{d.model}", "device.model=None")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:120:33 ]
+     │
+ 120 │       assert_eq("device.model=\{info.device.model}", "device.model=None")
+     │                                 ────────┬────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:141:36 ]
+    │
+ 141 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(2)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:160:30 ]
+    │
+ 160 │   assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
+    │                              ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:187:29 ]
+    │
+ 187 │   assert_eq("device.model=\{d.model}", "device.model=Some(iPhone)")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:201:36 ]
+    │
+ 201 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(75)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\robust\robust.mbt:219:36 ]
+    │
+ 219 │   assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+    │                                    ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:42:33 ]
+    │
+ 42 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:76:29 ]
+    │
+ 76 │   assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                             ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:93:22 ]
+    │
+ 93 │   assert_eq("patch=\{b.patch}", "patch=Some(7)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:107:22 ]
+     │
+ 107 │   assert_eq("model=\{d.model}", "model=Some(iPhone)")
+     │                      ───┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:128:28 ]
+    │
+ 128 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=Some(201)")
+    │                            ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:150:22 ]
+    │
+ 150 │   assert_eq("model=\{d.model}", "model=Some(SW2)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:171:22 ]
+    │
+ 171 │   assert_eq("model=\{d.model}", "model=Some(C1505)")
+    │                      ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:204:28 ]
+    │
+ 204 │   assert_eq("patch_minor=\{b.patch_minor}", "patch_minor=None")
+    │                            ──────┬──────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:237:29 ]
+     │
+ 237 │   assert_eq("spider model=\{d2.model}", "spider model=Some(Desktop)")
+     │                             ────┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:329:38 ]
+    │
+ 329 │       assert_eq("device rule_index=\{d.rule_index}", "device rule_index=None")
+    │                                      ──────┬─────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:332:33 ]
+    │
+ 332 │       assert_eq("device model=\{d.model}", "device model=None")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:349:38 ]
+    │
+ 349 │       assert_eq("device rule_index=\{def.device.rule_index}", "device rule_index=None")
+    │                                      ──────────┬──────────  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:360:141 ]
+    │
+ 360 │           assert_eq("device family \{d1.family} brand \{d1.brand} model \{d1.model}", "device family \{d2.family} brand \{d2.brand} model \{d2.model}")
+    │                                                                                                                                             ────┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:397:33 ]
+    │
+ 397 │       assert_eq("device model=\{d.model}", "device model=Some(Feature Phone)")
+    │                                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:404:46 ]
+     │
+ 404 │       assert_eq("default device rule_index=\{info.device.rule_index}", "default device rule_index=None")
+     │                                              ───────────┬──────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:443:174 ]
+     │
+ 443 │         assert_eq("\{i} device family \{info.device.family} brand \{info.device.brand} model \{info.device.model}", "\{i} device family \{d.family} brand \{d.brand} model \{d.model}")
+     │                                                                                                                                                                              ────┬───  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Warning: [0020]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_framework\moon_ua_parser_lib\tests\semantics\semantics.mbt:446:59 ]
+     │
+ 446 │         assert_eq("\{i} single-domain device rule_index \{@ua_parser.parse_device(ua).rule_index}", "\{i} single-domain device rule_index None")
+     │                                                           ───────────────────┬──────────────────  
+     │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+─────╯
+Finished. moon: ran 5 tasks, now up to date (44 warnings, 0 errors)
+Check passed
+validating packaged zip: F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\vicoproplus-moon_ua_parser_mars-0.1.0.zip
+extracting packaged zip to F:\moonbit比赛\moon_ua_parser_wt_framework\_build\publish\verify\mooncake_publish_checkiXFuNK
+running moon check on extracted package
+Running moon check ...
+Warning: you may need to run `moon update` to update the registry
+Warning: you may need to run `moon update` to update the registry
+Error: Failed to calculate build plan
+
+Caused by:
+    0: Failed to resolve the module dependency graph
+    1: Failed to resolve registry dependency `vicoproplus/moon_ua_parser` for module `vicoproplus/moon_ua_parser_mars`: module was not found in the registry
+       Failed to resolve registry dependency `vicoproplus/moon_ua_parser_middleware_core` for module `vicoproplus/moon_ua_parser_mars`: module was not found in the registry
+
+moon check failed
+Error: `moon publish` failed
+EXIT_CODE=127
+
+结果: FAIL（退出码 127，无卡死）。本包自身打包+本包 moon check 通过（44 warnings, 0 errors）；失败点 = 提取包依赖解析：registry 缺 `vicoproplus/moon_ua_parser` 与 `vicoproplus/moon_ua_parser_middleware_core` 两个上游生产者模块。非凭证类失败。
+
+================================================================================
+[5] 交叉验证: 失败归因（排除「本地 registry index 过期」与「凭证/登录态」两类假设）
+================================================================================
+
+D1 归因纪律: dry-run 失败后先归因再下结论。备择假设与证伪证据:
+
+(a) 假设「本地 registry index 过期导致误报 module not found」→ 证伪: mooncakes 本地 index 为 git 仓库，最后一次提交为当日（见下），且各第三方依赖（bobzhang/crescent@0.11.1、mizchi/mars@0.3.12、moonbitlang/async 等）均解析成功——若 index 失效它们也会失败。
+
+$ cd "$HOME/.moon/registry/index" && git log -1
+index last commit: 2026-09-13 10:15:03 +0800 update moonbitlang/workflow
+
+$ ls "$HOME/.moon/registry/index/vicoproplus"
+(no vicoproplus in local index)
+
+(b) 假设「上游其实已发布、仅本地未同步」→ 证伪: 直接以 HTTP 探测 mooncakes 线上 registry API（只读），生产者模块 404、已知已发布的对照模块 200:
+
+$ curl -s -o /dev/null -w "HTTP %{http_code}" https://mooncakes.io/api/v0/modules/vicoproplus/moon_ua_parser
+HTTP 404
+$ curl -s -o /dev/null -w "HTTP %{http_code}" https://mooncakes.io/api/v0/module/vicoproplus/moon_ua_parser
+HTTP 404
+$ curl -s -o /dev/null -w "HTTP %{http_code}" https://mooncakes.io/api/v0/modules/vicoproplus/moon_ua_parser_middleware_core
+HTTP 404
+$ curl -s -w "HTTP %{http_code}" https://mooncakes.io/api/v0/modules/bobzhang/crescent    (对照: 端点形状有效性)
+{"module":"bobzhang/crescent","version":"0.11.1","yanked":false,"yanked_reason":null,"metadata":{"name":"bobzhang/crescent","version":"0.11.1","deps":{"moonbitlang/x":"0.4.41","moonbitlang/async":"0.20.3"},"readme":"README.md","repository":"https://github.com/moonbit-community/crescent","license":"Apache-2.0","keywords":["http","server","web","framework","async","ai-friendly"],"description":"Crescent: A web framework for MoonBit.","preferred_target":"native","checksum":"8170a05079b1525064b7270ca13309b644ee533fb81006c1c884b136b6d30da9","created_at":"2026-09-10T00:29:56.326461+00:00"},"latest_version":"0.11.1","build_status":"success", ...}
+HTTP 200
+
+(c) 假设「凭证/登录态问题」→ 证伪: 三个 dry-run 均在「打包 → 提取 → 提取包 moon check 依赖解析」阶段失败，全程未出现任何登录提示/认证请求/凭证报错。mooncakes 登录态仍未被实测到（E6 该子项保持未实测，留待回补批在依赖齐备后验证）。
+
+结论: 失败根因 = 上游生产者模块未发布（vicoproplus/moon_ua_parser、vicoproplus/moon_ua_parser_middleware_core 在 registry 不存在）——与步骤 1 版本未收口断言同源（生产者侧收口/发布缺失），属依赖衔接阻塞，而非本批三包元数据或凭证问题。
+
+================================================================================
+[6] 汇总结论
+================================================================================
+
+- 三包 dry-run 退出码均为 127，失败形态一致；三包各自的 zip 打包与本地 moon check 阶段全部通过（44 warnings, 0 errors），无包级元数据字段错误输出。
+- 失败点统一在提取包依赖解析: registry 缺生产者模块。包 1 缺 1 个（moon_ua_parser）；包 2/包 3 各缺 2 个（moon_ua_parser、moon_ua_parser_middleware_core）。
+- A5 对账预检（dry-run 全绿前提）: 不适用——dry-run 未到达包页/元数据校验环节。已以静态文件级预检替代（见 task-8-report.md 元数据表），供回补批使用。
+- [LOCAL_DEAD_LINK — 触发=mooncakes 登录态确认]: 不登记——登录态从未被触及（失败早于任何认证环节）；本任务阻塞由版本收口阻塞登记（[1] 节）承接。
+- 回补批执行顺序（据实测推导）: T-09 版本收口（lib ≥0.2.0）→ 发布 vicoproplus/moon_ua_parser → 发布 vicoproplus/moon_ua_parser_middleware_core → 重跑本任务逐包 dry-run（届时才可能触及登录态）→ 全绿后 A5 对账。
+
