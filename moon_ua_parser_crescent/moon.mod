@@ -15,6 +15,8 @@ name = "vicoproplus/moon_ua_parser_crescent"
 
 version = "0.1.0"
 
+preferred_target = "native"
+
 readme = "README.mbt.md"
 
 repository = "https://github.com/vicoproplus/moon_ua_parser"

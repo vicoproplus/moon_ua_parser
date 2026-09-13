@@ -1,0 +1,34 @@
+# 发布回补执行记录 — 2026-09-13（用户批准按序发布四包）
+
+前置断言: `grep -n "^version" moon_ua_parser_lib/moon.mod` → 14:version = "0.2.0" ✓ (≥0.2.0, platform-complete T-09 已合并)
+登录态: `moon whoami` → Logged in as vicoproplus ✓ (遗留 #4 实测解决)
+依赖升级: middleware 三包 moon.mod lib @0.1.0→@0.2.0 (提交 5ef6d69), 回补 dry-run 实测注册表解析报生产者未发布 → 发布顺序 = lib → middleware_core → crescent → mars
+
+===== 1 lib 0.2.0 =====
+$ cd moon_ua_parser_lib && moon publish
+Check passed / Server status: 200 OK [exit 0]
+验证: moon update && moon search moon_ua_parser → vicoproplus/moon_ua_parser 0.2.0 ✓
+
+===== 2 middleware_core 0.1.0 =====
+$ cd moon_ua_parser_middleware_core && moon publish
+Check passed / Server status: 200 OK [exit 0]
+验证: registry index 刷新后 moon search 可见 ✓
+
+===== 3 crescent 0.1.0 =====
+第一次失败: 沙箱按默认 wasm 目标 check → "Selected package(s) do not support target backend 'wasm'"
+归因: 本单元 2026-09-13 将 supported_targets 收敛为 -all+native（无 wasm 证据），而沙箱缺 preferred_target 时默认 wasm
+处置: 参照 mars/crescent 框架自身 moon.mod 的声明，为两个适配包 moon.mod 补 `preferred_target = "native"`（诚实收敛保持不变——沙箱改为 native check）
+重试: Check passed / Server status: 200 OK [exit 0] ✓
+
+===== 4 mars 0.1.0 — BLOCKED =====
+失败: 沙箱 moon check (native, Windows) → mizchi/x@0.6.1 src/socket/socket_native.mbt:330 fd() Expr Type Mismatch ×4
+归因: 上游 bug (mizchi/x ≤0.6.1 vs async 0.21.3 Windows 原生 fd 类型)——workspace 内有 cfg 门控补丁, 但发布沙箱是隔离 fresh 环境, 补丁不可达; mars 框架作者从 Linux 发布故未遇
+规避路线实测: (a) registry 无 mizchi/x 新版 (moon search: 仍 0.6.1); (b) WSL Ubuntu 24 装 moon → cli.moonbitlang.com/binaries/.../moonbit-linux-x86_64.tar.gz 返回 403 (Windows 侧 HEAD 同样 403, CDN 区域拒绝); docker 不可用
+结论: mars 发布阻塞于上游 Windows 不兼容, 恢复条件 = mizchi/x 上游修复后重试 `moon publish`, 或经 Linux CI/机器发布（GH Actions publish job + token secret）
+
+===== 包页核录 (遗留 #2, 已发布三包) =====
+moon search vicoproplus → 3 模块在册 (lib 0.2.0 / middleware_core 0.1.0 / crescent 0.1.0)
+https://mooncakes.io/docs/vicoproplus/moon_ua_parser → 200
+https://mooncakes.io/docs/vicoproplus/moon_ua_parser_middleware_core → 200
+https://mooncakes.io/docs/vicoproplus/moon_ua_parser_crescent → 200
+(mars 包页待其发布后核录)
