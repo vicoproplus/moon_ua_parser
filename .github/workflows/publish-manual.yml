@@ -38,8 +38,22 @@ jobs:
 
       - name: Install MoonBit CLI (pinned 0.1.20260904)
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+          # The binaries CDN has had transient 403 outages (2026-09-13: the
+          # install script downloads fine while /binaries/* returns 403 for
+          # ~30 min). Retry the install over a window before giving up.
+          OK=0
+          for i in 1 2 3 4 5 6; do
+            if curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"; then
+              echo "installed on attempt $i"
+              OK=1
+              break
+            fi
+            echo "attempt $i failed (CDN 403?); retrying in 90s"
+            sleep 90
+          done
+          [ "$OK" -eq 1 ] || { echo "install failed after 6 attempts"; exit 1; }
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon version
 
       - name: Verify toolchain
         run: moon version --all
