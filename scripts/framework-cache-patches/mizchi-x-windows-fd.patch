@@ -1,0 +1,69 @@
+# mizchi-x-windows-fd.patch - LOCAL CACHE PATCH for mizchi/x@0.6.1
+#
+# Cause: moonbitlang/async 0.21.3 changed Tcp::fd()/TcpServer::fd() to
+# return the abstract @fd_util.Fd (opaque HANDLE on Windows native) while
+# mizchi/x <= 0.6.1's Int-returning fd() accessors no longer compile there
+# (4 Expr-Type-Mismatch errors). Unix unaffected (Fd = Int).
+# Fix: gate the Int-returning accessors to non-Windows platforms
+# (#cfg(not(platform="windows"))); no callers inside this workspace.
+# Discovered in T-05; persisted after the merged main tree hit the same
+# errors on 2026-09-13 (see mw-closure section 四).
+
+diff -ru moon_ua_parser/.mooncakes/mizchi/x/src/socket/socket_fd_native.mbt moon_ua_parser_wt_framework/.mooncakes/mizchi/x/src/socket/socket_fd_native.mbt
+--- a/.mooncakes/mizchi/x/src/socket/socket_fd_native.mbt
++++ b/.mooncakes/mizchi/x/src/socket/socket_fd_native.mbt
+@@ -1,4 +1,9 @@
+ ///|
++// LOCAL CACHE PATCH (uncommitted; .mooncakes is a gitignored cache):
++// unix keeps the Int-based fd helper; on Windows the async fd is an
++// opaque HANDLE and the Int-returning fd() accessors are gated out
++// (see socket_native.mbt / T-05 report), so gate the helper likewise.
++#cfg(not(platform="windows"))
+ fn socket_fd_to_int(fd : Int) -> Int {
+   fd
+ }
+diff -ru moon_ua_parser/.mooncakes/mizchi/x/src/socket/socket_native.mbt moon_ua_parser_wt_framework/.mooncakes/mizchi/x/src/socket/socket_native.mbt
+--- a/.mooncakes/mizchi/x/src/socket/socket_native.mbt
++++ b/.mooncakes/mizchi/x/src/socket/socket_native.mbt
+@@ -55,6 +55,14 @@
+ }
+ 
+ ///|
++// LOCAL CACHE PATCH (uncommitted; .mooncakes is a gitignored cache):
++// moonbitlang/async 0.21.3 changed Tcp::fd()/TcpServer::fd()/Udp*::fd()
++// to return the abstract @fd_util.Fd (an opaque HANDLE on Windows, plain
++// Int on unix), so the Int-returning fd() accessors no longer compile on
++// Windows native. Gate them to non-Windows platforms (byte-identical
++// behavior there); they have no callers inside this workspace. See the
++// T-05 task report for the full patch register.
++#cfg(not(platform="windows"))
+ pub fn Tcp::fd(self : Tcp) -> Int {
+   socket_fd_to_int(self.inner.fd())
+ }
+@@ -146,6 +154,8 @@
+ }
+ 
+ ///|
++// LOCAL CACHE PATCH (Windows-only fd type; see Tcp::fd above / T-05 report)
++#cfg(not(platform="windows"))
+ pub fn TcpServer::fd(self : TcpServer) -> Int {
+   socket_fd_to_int(self.inner.fd())
+ }
+@@ -207,6 +217,8 @@
+ }
+ 
+ ///|
++// LOCAL CACHE PATCH (Windows-only fd type; see Tcp::fd above / T-05 report)
++#cfg(not(platform="windows"))
+ pub fn UdpClient::fd(self : UdpClient) -> Int {
+   socket_fd_to_int(self.inner.fd())
+ }
+@@ -326,6 +338,8 @@
+ }
+ 
+ ///|
++// LOCAL CACHE PATCH (Windows-only fd type; see Tcp::fd above / T-05 report)
++#cfg(not(platform="windows"))
+ pub fn UdpServer::fd(self : UdpServer) -> Int {
+   socket_fd_to_int(self.inner.fd())
+ }

@@ -88,3 +88,14 @@ GNU patch) treat such lines as plain context — verified end-to-end above.
   `statistics?raw=true` CSV channel returned a JS-rendered HTML shell on
   this date via plain HTTP (worked at T-02 time) — re-verification of
   download stats needs the browser route (manual verification).
+
+## Patch files
+
+- `crescent-async-compat.patch` — bobzhang/crescent@0.11.1 vs
+  moonbitlang/async 0.21.x header-map type (5 sites, detailed above).
+- `mizchi-x-windows-fd.patch` — mizchi/x@0.6.1 Windows-native fd() typing
+  vs async 0.21.3 (`#cfg(not(platform="windows"))` gating of the
+  Int-returning accessors in `src/socket/socket_fd_native.mbt` +
+  `src/socket/socket_native.mbt`; Linux/CI no-op). Persisted 2026-09-13
+  after the merged main tree reproduced the 4 errors on a fresh
+  Windows fetch — applied by the same CI step (glob covers both files).
