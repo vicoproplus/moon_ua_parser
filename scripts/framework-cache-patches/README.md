@@ -20,7 +20,7 @@ dependency fetch, before the first workspace-level build/test step).
   request-header handling at the boundaries (behavior-preserving: CI-keyed
   maps look up case-insensitively natively, String-keyed helpers lowercase
   explicitly). Full mechanism/evidence: T-05 task report §5
-  (`.superpowers/sdd/2026-09-13-moon_ua_parser_v02-框架对接/task-5-report.md`),
+  (`docs/evidence/task-reports/task-5-report.md`),
   runtime evidence `docs/evidence/mw2-example-2026-09-13.log`.
 
 No published version combination of `bobzhang/crescent` × `mizchi/mars` (and

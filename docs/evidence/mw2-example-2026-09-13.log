@@ -77,4 +77,4 @@ done: 4 requests dispatched (3 healthy, 1 degraded synthetic)
 # were applied so the workspace builds green; the exact patch register and
 # the reproducibility caveat (fresh checkout needs the same patches, e.g.
 # via a CI post-fetch step or vendoring — T-06/owner decision) are in
-# .superpowers/sdd/2026-09-13-moon_ua_parser_v02-框架对接/task-5-report.md.
+# docs/evidence/task-reports/task-5-report.md.
