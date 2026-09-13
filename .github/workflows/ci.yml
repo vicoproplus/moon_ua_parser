@@ -10,7 +10,14 @@
 # CI setup action pins a version by passing it to the same script:
 #   curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "<version>"
 # (https://github.com/moonbitlang/core/blob/main/.github/actions/setup/action.yml)
-# NFR: CI must pin the exact toolchain version, so we pass 0.1.20260904.
+# NFR: CI must pin the exact toolchain version 0.1.20260904. Upstream removed
+# the per-version download paths on 2026-09-13: binaries/0.1.20260904/... and
+# cores/core-0.1.20260904.tar.gz now return S3 403 AccessDenied, and only the
+# "latest" alias still serves artifacts (it resolves to exactly 0.1.20260904,
+# verified 2026-09-13; evidence: docs/evidence/final-gate-2026-09-13.log).
+# So we transport via "latest" and HARD-ASSERT the exact version in the
+# "Verify toolchain" step: if upstream ever ships a different build under
+# "latest", CI fails loudly instead of silently drifting.
 
 name: CI
 
@@ -38,13 +45,15 @@ jobs:
       - name: Install PyYAML (pinned, used by the generator scripts)
         run: python -m pip install PyYAML==6.0.2
 
-      - name: Install MoonBit CLI (pinned 0.1.20260904)
+      - name: Install MoonBit CLI (transport=latest; exact version asserted below)
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "latest"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
-      - name: Verify toolchain
-        run: moon version --all
+      - name: Verify toolchain (assert exact pin 0.1.20260904)
+        run: |
+          moon version --all
+          moon version | grep -F "0.1.20260904"
 
       - name: Static check
         working-directory: moon_ua_parser_lib
@@ -88,7 +97,13 @@ jobs:
       - name: Tests (wasm, default target)
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
-        run: moon test -p . -p examples/middleware -p src/ua_parser -p src/ua_parser/rules -p tests/diffstats -p tests/robust -p tests/semantics
+        run: |
+          # moonc link-core of the generated diffstats/differential wasm test
+          # driver recurses deeper than Linux's default 8 MiB main-thread stack
+          # (moonc ICE "Stack overflow" on stock Linux, repro'd 2026-09-13;
+          # RUST_MIN_STACK alone does not help). Raise the limit for the link.
+          ulimit -s unlimited
+          moon test -p . -p examples/middleware -p src/ua_parser -p src/ua_parser/rules -p tests/diffstats -p tests/robust -p tests/semantics
 
       - name: Build (wasm)
         timeout-minutes: 15
