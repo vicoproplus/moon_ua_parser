@@ -19,9 +19,24 @@
 // timeout, not by a fake timing assertion.
 
 ///|
+/// Render an optional field in the uap-python `None` / `Some(v)` spelling
+/// for debug interpolation inside assertions. Interpolating the `String?`
+/// value directly routes through the deprecated core `Show for X?` impl
+/// (moon check warning [0020], "Use Debug instead of Show for debugging
+/// purposes"); interpolating the plain `String` produced here does not.
+/// The output is byte-identical to the previous direct interpolation, so
+/// every golden below is unchanged.
+fn opt_str(o : String?) -> String {
+  match o {
+    None => "None"
+    Some(v) => "Some(\{v})"
+  }
+}
+
+///|
 /// Build `s` repeated `n` times (helper for the over-long fixtures).
 fn repeat_str(s : String, n : Int) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for _ in 0..<n {
     buf.write_string(s)
   }
@@ -36,18 +51,18 @@ fn assert_all_other(tag : String, info : @ua_parser.UaInfo) -> Unit raise {
   let o = info.os
   let d = info.device
   assert_eq("\{tag} browser.family=\{b.family}", "\{tag} browser.family=Other")
-  assert_eq("\{tag} browser.major=\{b.major}", "\{tag} browser.major=None")
-  assert_eq("\{tag} browser.minor=\{b.minor}", "\{tag} browser.minor=None")
-  assert_eq("\{tag} browser.patch=\{b.patch}", "\{tag} browser.patch=None")
-  assert_eq("\{tag} browser.patch_minor=\{b.patch_minor}", "\{tag} browser.patch_minor=None")
+  assert_eq("\{tag} browser.major=\{opt_str(b.major)}", "\{tag} browser.major=None")
+  assert_eq("\{tag} browser.minor=\{opt_str(b.minor)}", "\{tag} browser.minor=None")
+  assert_eq("\{tag} browser.patch=\{opt_str(b.patch)}", "\{tag} browser.patch=None")
+  assert_eq("\{tag} browser.patch_minor=\{opt_str(b.patch_minor)}", "\{tag} browser.patch_minor=None")
   assert_eq("\{tag} os.family=\{o.family}", "\{tag} os.family=Other")
-  assert_eq("\{tag} os.major=\{o.major}", "\{tag} os.major=None")
-  assert_eq("\{tag} os.minor=\{o.minor}", "\{tag} os.minor=None")
-  assert_eq("\{tag} os.patch=\{o.patch}", "\{tag} os.patch=None")
-  assert_eq("\{tag} os.patch_minor=\{o.patch_minor}", "\{tag} os.patch_minor=None")
+  assert_eq("\{tag} os.major=\{opt_str(o.major)}", "\{tag} os.major=None")
+  assert_eq("\{tag} os.minor=\{opt_str(o.minor)}", "\{tag} os.minor=None")
+  assert_eq("\{tag} os.patch=\{opt_str(o.patch)}", "\{tag} os.patch=None")
+  assert_eq("\{tag} os.patch_minor=\{opt_str(o.patch_minor)}", "\{tag} os.patch_minor=None")
   assert_eq("\{tag} device.family=\{d.family}", "\{tag} device.family=Other")
-  assert_eq("\{tag} device.brand=\{d.brand}", "\{tag} device.brand=None")
-  assert_eq("\{tag} device.model=\{d.model}", "\{tag} device.model=None")
+  assert_eq("\{tag} device.brand=\{opt_str(d.brand)}", "\{tag} device.brand=None")
+  assert_eq("\{tag} device.model=\{opt_str(d.model)}", "\{tag} device.model=None")
 }
 
 ///|
@@ -59,18 +74,18 @@ test "empty string parses deterministically to Other everywhere" {
   let o = @ua_parser.parse_os(ua)
   let d = @ua_parser.parse_device(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Other")
-  assert_eq("browser.major=\{b.major}", "browser.major=None")
-  assert_eq("browser.minor=\{b.minor}", "browser.minor=None")
-  assert_eq("browser.patch=\{b.patch}", "browser.patch=None")
-  assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=None")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=None")
+  assert_eq("browser.minor=\{opt_str(b.minor)}", "browser.minor=None")
+  assert_eq("browser.patch=\{opt_str(b.patch)}", "browser.patch=None")
+  assert_eq("browser.patch_minor=\{opt_str(b.patch_minor)}", "browser.patch_minor=None")
   assert_eq("os.family=\{o.family}", "os.family=Other")
-  assert_eq("os.major=\{o.major}", "os.major=None")
-  assert_eq("os.minor=\{o.minor}", "os.minor=None")
-  assert_eq("os.patch=\{o.patch}", "os.patch=None")
-  assert_eq("os.patch_minor=\{o.patch_minor}", "os.patch_minor=None")
+  assert_eq("os.major=\{opt_str(o.major)}", "os.major=None")
+  assert_eq("os.minor=\{opt_str(o.minor)}", "os.minor=None")
+  assert_eq("os.patch=\{opt_str(o.patch)}", "os.patch=None")
+  assert_eq("os.patch_minor=\{opt_str(o.patch_minor)}", "os.patch_minor=None")
   assert_eq("device.family=\{d.family}", "device.family=Other")
-  assert_eq("device.brand=\{d.brand}", "device.brand=None")
-  assert_eq("device.model=\{d.model}", "device.model=None")
+  assert_eq("device.brand=\{opt_str(d.brand)}", "device.brand=None")
+  assert_eq("device.model=\{opt_str(d.model)}", "device.model=None")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("info.browser=\{info.browser}", "info.browser=\{b}")
@@ -106,18 +121,18 @@ test "8.7KB repeated chrome-like pattern with truncated tail still parses" {
   assert_eq("len=\{ua.length()}", "len=8783")
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Chrome")
-  assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
-  assert_eq("browser.minor=\{b.minor}", "browser.minor=Some(0)")
-  assert_eq("browser.patch=\{b.patch}", "browser.patch=Some(0)")
-  assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=Some(120)")
+  assert_eq("browser.minor=\{opt_str(b.minor)}", "browser.minor=Some(0)")
+  assert_eq("browser.patch=\{opt_str(b.patch)}", "browser.patch=Some(0)")
+  assert_eq("browser.patch_minor=\{opt_str(b.patch_minor)}", "browser.patch_minor=Some(0)")
   let o = @ua_parser.parse_os(ua)
   assert_eq("os.family=\{o.family}", "os.family=Windows")
-  assert_eq("os.major=\{o.major}", "os.major=Some(10)")
+  assert_eq("os.major=\{opt_str(o.major)}", "os.major=Some(10)")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("device.family=\{info.device.family}", "device.family=Other")
-      assert_eq("device.brand=\{info.device.brand}", "device.brand=None")
-      assert_eq("device.model=\{info.device.model}", "device.model=None")
+      assert_eq("device.brand=\{opt_str(info.device.brand)}", "device.brand=None")
+      assert_eq("device.model=\{opt_str(info.device.model)}", "device.model=None")
     }
     Err(_) => fail("parse must not fail on an 8.7KB chrome-like input")
   }
@@ -135,10 +150,10 @@ test "4100-char UA with embedded space run parses to chrome 99.0.1.2" {
   assert_eq("len=\{ua.length()}", "len=4100")
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Chrome")
-  assert_eq("browser.major=\{b.major}", "browser.major=Some(99)")
-  assert_eq("browser.minor=\{b.minor}", "browser.minor=Some(0)")
-  assert_eq("browser.patch=\{b.patch}", "browser.patch=Some(1)")
-  assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(2)")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=Some(99)")
+  assert_eq("browser.minor=\{opt_str(b.minor)}", "browser.minor=Some(0)")
+  assert_eq("browser.patch=\{opt_str(b.patch)}", "browser.patch=Some(1)")
+  assert_eq("browser.patch_minor=\{opt_str(b.patch_minor)}", "browser.patch_minor=Some(2)")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("os.family=\{info.os.family}", "os.family=Windows")
@@ -157,7 +172,7 @@ test "NUL inside khtml literal keeps chrome parse deterministic" {
   let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,\u{00}like Gecko) Chrome/120.0.0.0 Safari/537.36"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Chrome")
-  assert_eq("browser.major=\{b.major}", "browser.major=Some(120)")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=Some(120)")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("os.family=\{info.os.family}", "os.family=Windows")
@@ -175,16 +190,16 @@ test "0x01 inside iOS version yields mobile safari iOS iphone" {
   let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 14\u{01}3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 Safari/605.1.15"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Mobile Safari")
-  assert_eq("browser.major=\{b.major}", "browser.major=Some(14)")
-  assert_eq("browser.minor=\{b.minor}", "browser.minor=Some(3)")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=Some(14)")
+  assert_eq("browser.minor=\{opt_str(b.minor)}", "browser.minor=Some(3)")
   let o = @ua_parser.parse_os(ua)
   assert_eq("os.family=\{o.family}", "os.family=iOS")
-  assert_eq("os.major=\{o.major}", "os.major=Some(14)")
-  assert_eq("os.patch=\{o.patch}", "os.patch=None")
+  assert_eq("os.major=\{opt_str(o.major)}", "os.major=Some(14)")
+  assert_eq("os.patch=\{opt_str(o.patch)}", "os.patch=None")
   let d = @ua_parser.parse_device(ua)
   assert_eq("device.family=\{d.family}", "device.family=iPhone")
-  assert_eq("device.brand=\{d.brand}", "device.brand=Some(Apple)")
-  assert_eq("device.model=\{d.model}", "device.model=Some(iPhone)")
+  assert_eq("device.brand=\{opt_str(d.brand)}", "device.brand=Some(Apple)")
+  assert_eq("device.model=\{opt_str(d.model)}", "device.model=Some(iPhone)")
 }
 
 ///|
@@ -195,10 +210,10 @@ test "0x1f and 0x7f inside chrome shell keep chrome parse deterministic" {
   let ua = "Mozilla/5.0 \u{1f}(Windows NT 10.0; Win64; x64)\u{7f} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Chrome")
-  assert_eq("browser.major=\{b.major}", "browser.major=Some(55)")
-  assert_eq("browser.minor=\{b.minor}", "browser.minor=Some(0)")
-  assert_eq("browser.patch=\{b.patch}", "browser.patch=Some(2883)")
-  assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(75)")
+  assert_eq("browser.major=\{opt_str(b.major)}", "browser.major=Some(55)")
+  assert_eq("browser.minor=\{opt_str(b.minor)}", "browser.minor=Some(0)")
+  assert_eq("browser.patch=\{opt_str(b.patch)}", "browser.patch=Some(2883)")
+  assert_eq("browser.patch_minor=\{opt_str(b.patch_minor)}", "browser.patch_minor=Some(75)")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("os.family=\{info.os.family}", "os.family=Windows")
@@ -216,7 +231,7 @@ test "leading NUL before mozilla prefix keeps chrome parse deterministic" {
   let ua = "\u{00}Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   let b = @ua_parser.parse_browser(ua)
   assert_eq("browser.family=\{b.family}", "browser.family=Chrome")
-  assert_eq("browser.patch_minor=\{b.patch_minor}", "browser.patch_minor=Some(0)")
+  assert_eq("browser.patch_minor=\{opt_str(b.patch_minor)}", "browser.patch_minor=Some(0)")
   match @ua_parser.parse(ua) {
     Ok(info) => {
       assert_eq("os.family=\{info.os.family}", "os.family=Windows")

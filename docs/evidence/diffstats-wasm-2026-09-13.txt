@@ -1,0 +1,72 @@
+================================================================================
+diffstats wasm report — full transcript evidence (T-02 finalization)
+================================================================================
+date (local):   2026-09-13
+command:        moon run --target wasm --release tests/diffstats
+cwd:            moon_ua_parser_lib (worktree feat/v02-platform-complete, HEAD a56a85c)
+toolchain:      moon 0.1.20260904 (94521db 2026-09-04) == ci.yml pin
+                moonc 0.10.12+1634b282e (2026-09-07)
+                moonrun 0.1.20260904 (94521db 2026-09-04) [import-table patched,
+                T-01 report §1 — layer-1 fix, applies to this target]
+exit code:      0
+run window:     2026-09-13T04:09:39+08:00 → 2026-09-13T04:14:05+08:00
+run history:    first capture 2026-09-13 03:32:09→03:36:14+08:00, exit 0 (cold
+                build, module _build/wasm/release/build/tests/diffstats/
+                diffstats.wasm, 6,828,572 bytes); this evidence run 04:09 exit 0.
+                Two transient aborted invocations (03:57:54, 04:06:18) exited 1
+                with zero output while a stuck moon.exe build process (PID
+                19028) held the build directory; after terminating it, both the
+                probe run and this capture run exited 0. Environmental, not
+                reproducible by content.
+scope note:     this is the wasm --release REPORT path. It is distinct from the
+                wasm DEBUG/test module of tests/differential, which is
+                structurally blocked (125,840 locals > V8 50,000 cap) — see
+                docs/evidence/wasm-differential-blocker-2026-09-13.md.
+
+--------------------------------------------------------------------------------
+REPORT (program stdout, verbatim, full)
+--------------------------------------------------------------------------------
+domain	total	exempted	passed	failed	rate	gate	status
+browser	total=1601	exempted=0	passed=1601	failed=0	rate=100.00%	gate>=99.00%	MET
+os	total=483	exempted=0	passed=483	failed=0	rate=100.00%	gate>=97.00%	MET
+device	total=16129	exempted=0	passed=16129	failed=0	rate=100.00%	gate>=97.00%	MET
+browser failure groups: (none)
+os failure groups: (none)
+device failure groups: (none)
+GATES: ALL MET
+
+--------------------------------------------------------------------------------
+GATE VERDICT (ci.yml:87-88: browser >= 99% / os >= 97% / device >= 97%)
+--------------------------------------------------------------------------------
+browser 1601/1601 = 100.00%  >= 99.00%  MET
+os       483/483  = 100.00%  >= 97.00%  MET
+device 16129/16129= 100.00%  >= 97.00%  MET
+exempted = 0 in all three domains (denominator = total cases).
+GATES: ALL MET — process exit 0 (no abort path taken).
+
+--------------------------------------------------------------------------------
+BUILD DIAGNOSTICS
+--------------------------------------------------------------------------------
+This run used a warm build cache (module last built 03:57), so moon emitted no
+compiler diagnostics. On cold builds the graph emits the same 18 pre-existing
+warnings documented in docs/evidence/diffstats-native-2026-09-13.txt /
+diffstats-js-2026-09-13.txt (derive(Show) deprecations [0020]/[0027] in
+src/ua_parser/types.mbt and the generated tests/differential corpus, plus
+[0006] unused constructor RegexpCompileError) — task-3 scope, none originate
+from tests/diffstats.
+
+--------------------------------------------------------------------------------
+TRANSCRIPT INTEGRITY / THREE-WAY CROSS-TARGET COMPARISON
+--------------------------------------------------------------------------------
+- Report-section md5 (LF-normalized): bff7fc84866a9ad4b6ac8a79299788f9 —
+  byte-identical across all three targets: native, js and this wasm run
+  (verified by direct diff of the report sections embedded in
+  docs/evidence/diffstats-native-2026-09-13.txt,
+  docs/evidence/diffstats-js-2026-09-13.txt and this transcript).
+- Line endings: this transcript is pure LF (moonrun output); the native
+  transcript carries CRLF on the 8 report lines (Windows C runtime text-mode
+  artifact). Values, ordering and formatting are identical — integer
+  basis-point math (pct_bp()) shows no cross-target numeric drift.
+================================================================================
+end of evidence file
+================================================================================

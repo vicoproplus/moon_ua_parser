@@ -1,0 +1,344 @@
+# moon publish --dry-run evidence — 2026-09-13
+# worktree: F:\moonbit比赛\moon_ua_parser_wt_platform (feat/v02-platform-complete @ 23f7f56)
+# cwd: moon_ua_parser_lib/
+# tool: moon 0.1.20260904 (94521db 2026-09-04)
+# NOTE: formal 'moon publish' is OUT OF SCOPE here (deferred to post-T-09, user-confirmed).
+# ---- moon.mod (version fields) ----
+name = "vicoproplus/moon_ua_parser"
+version = "0.1.0"
+# ---- command: moon publish --dry-run ----
+Running moon check ...
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Finished. moon: ran 2 tasks, now up to date (18 warnings, 0 errors)
+Check passed
+validating packaged zip: F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\vicoproplus-moon_ua_parser-0.1.0.zip
+extracting packaged zip to F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY
+running moon check on extracted package
+Running moon check ...
+Using cached moonbitlang/regexp@0.3.5
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser_wt_platform\moon_ua_parser_lib\_build\publish\verify\mooncake_publish_checkxldHOY\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Finished. moon: ran 21 tasks, now up to date (18 warnings, 0 errors)
+Check passed
+Server status: 202 Accepted, detail: Dry run completed successfully. No changes were made. The dry-run was made for package vicoproplus/moon_ua_parser version 0.1.0.
+Error: `moon publish` failed
+# ---- exit code: 127 ----
+
+# ---- follow-up capture (same day): packaged zip file list ----
+# zip: _build/publish/vicoproplus-moon_ua_parser-0.1.0.zip (packaged by the dry-run above; NOT published)
+Archive:  _build/publish/vicoproplus-moon_ua_parser-0.1.0.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     2216  1980-01-01 00:00   AGENTS.md
+     4822  1980-01-01 00:00   examples/middleware/main.mbt
+      352  1980-01-01 00:00   examples/middleware/moon.pkg
+    11560  1980-01-01 00:00   LICENSE
+      735  1980-01-01 00:00   moon.mod
+        0  1980-01-01 00:00   moon.pkg
+     8435  1980-01-01 00:00   README.mbt.md
+     4800  1980-01-01 00:00   src/ua_parser/api.mbt
+     1978  1980-01-01 00:00   src/ua_parser/engine.mbt
+     5037  1980-01-01 00:00   src/ua_parser/matcher.mbt
+       91  1980-01-01 00:00   src/ua_parser/moon.pkg
+     1006  1980-01-01 00:00   src/ua_parser/pkg.generated.mbti
+      391  1980-01-01 00:00   src/ua_parser/rules/moon.pkg
+   259268  1980-01-01 00:00   src/ua_parser/rules/rules_data.mbt
+     2521  1980-01-01 00:00   src/ua_parser/rules/rules_init.mbt
+     1092  1980-01-01 00:00   src/ua_parser/rules/rules_init_test.mbt
+      480  1980-01-01 00:00   src/ua_parser/rules/rules_version.mbt
+     6065  1980-01-01 00:00   src/ua_parser/template.mbt
+     4316  1980-01-01 00:00   src/ua_parser/types.mbt
+  3558609  1980-01-01 00:00   tests/differential/diff_device.mbt
+   103875  1980-01-01 00:00   tests/differential/diff_os.mbt
+   344003  1980-01-01 00:00   tests/differential/diff_ua.mbt
+      316  1980-01-01 00:00   tests/differential/moon.pkg
+     5349  1980-01-01 00:00   tests/diffstats/main.mbt
+     1650  1980-01-01 00:00   tests/diffstats/moon.pkg
+      196  1980-01-01 00:00   tests/robust/moon.pkg
+    13490  1980-01-01 00:00   tests/robust/robust.mbt
+       60  1980-01-01 00:00   tests/semantics/moon.pkg
+    27418  1980-01-01 00:00   tests/semantics/semantics.mbt
+---------                     -------
+  4370131                     29 files
+
+# ---- exit code reconciliation ----
+# Re-run without timeout wrapper confirmed: moon publish --dry-run exits with code 127 and prints
+# 'Error: `moon publish` failed' AFTER the server already replied:
+# 'Server status: 202 Accepted, detail: Dry run completed successfully. No changes were made. The dry-run was made for package vicoproplus/moon_ua_parser version 0.1.0.'
+# i.e. server-side dry-run verdict = SUCCESS (202, no changes made); moon CLI nonetheless exits 127.
+# No publish occurred ('No changes were made'). Discrepancy recorded for post-T-09 publish task.
+
+# ================================================================
+# ---- ONLINE STATE CHECK vs moon.mod — 2026-09-13 ----
+# Network: UP. Approaches tried (3):
+#   A1) plain GET https://mooncakes.io/docs/ -> HTTP 200, JS-rendered skeleton shell only,
+#       no package data in HTML (SPA). No version info obtainable from static HTML.
+#   A2) registry API discovery via frontend bundle (assets.mooncakes.io/index-MtCwbhD1.js):
+#       routes found: /api/v0/search?kw= , /api/v0/modules , /api/v0/manifest/ , /api/v0/modules/<user>/<name>
+#   A3) direct registry API queries (curl, HTTP 200/404 semantics):
+#       GET /api/v0/search?kw=moon_ua_parser  -> 200, []   (empty result set)
+#       GET /api/v0/search?kw=vicoproplus     -> 200, [vicoproplus/moon-humanize@0.1.2 ...] (author namespace exists; moon_ua_parser absent)
+#       GET /api/v0/modules/vicoproplus/moon_ua_parser -> 404 {"detail":"Module not found"}
+#       GET /api/v0/manifest/vicoproplus/moon_ua_parser -> 404 {"detail":"Package not found"}
+#       CONTROL: GET /api/v0/modules/vicoproplus/moon-humanize -> 200, latest_version=0.1.2 (endpoint verified working)
+# RECONCILIATION:
+#   online  (mooncakes.io registry): vicoproplus/moon_ua_parser NOT PUBLISHED (no version exists)
+#   local   (moon_ua_parser_lib/moon.mod): version = 0.1.0
+#   verdict: MISMATCH (unpublished online vs 0.1.0 locally) -> per 裁决附录 (2026-09-13),
+#     formal 'moon publish' is DEFERRED to after T-09 version close (moon.mod=0.2.0) and requires
+#     explicit user confirmation (AskUserQuestion). No publish performed in this task.
+# FOLLOW-UP REGISTERED: after T-09 bump to 0.2.0, run formal 'moon publish' with user confirmation;
+#   re-verify via GET /api/v0/modules/vicoproplus/moon_ua_parser returning 200 with version 0.2.0.
+# NOTE (moon CLI quirk): 'moon publish --dry-run' exits 127 with 'Error: `moon publish` failed' even
+#   though the server replies 202 Accepted 'Dry run completed successfully. No changes were made.'
+#   Likely warning-count-related CLI-side verdict or CLI bug; carry into post-T-09 publish task.
+# NO 'moon publish' (without --dry-run) was executed. No tracked files changed.

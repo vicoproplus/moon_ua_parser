@@ -2,9 +2,22 @@
 //
 // Executable package: run with
 //   moon run --target native --release tests/diffstats
-// from the moon project root (target must be native/js: wasm cannot launch
-// on this host). Imports the generated differential package and computes
-// the per-domain pass-rate table mandated by docs/regex-migration.md:
+//   moon run --target js --release tests/diffstats
+//   moon run --target wasm --release tests/diffstats
+// from the moon project root. Target matrix (verified 2026-09-13):
+//   - native / js: always fine
+//     (docs/evidence/diffstats-{native,js}-2026-09-13.txt).
+//   - wasm --release report run: works — release codegen folds the corpus so
+//     the largest function (the differential package init) declares 26,857
+//     locals, inside the V8 engine's 50,000-local cap
+//     (docs/evidence/diffstats-wasm-2026-09-13.txt).
+//   - wasm DEBUG/test module of tests/differential: structurally blocked —
+//     its package init declares 125,840 locals > the V8 50,000 hard cap, so
+//     `moon test` under the default wasm target excludes tests/differential
+//     (T-01 evidence: docs/evidence/wasm-differential-blocker-2026-09-13.md
+//     §2; generator split to restore the wasm test gate = Followup-1).
+// Imports the generated differential package and computes the per-domain
+// pass-rate table mandated by docs/regex-migration.md:
 //
 //   rate = passed / total, where exempted cases count in the DENOMINATOR
 //   but neither as a pass nor as a failure:
