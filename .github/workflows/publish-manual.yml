@@ -68,9 +68,14 @@ jobs:
         run: moon version --all
 
       - name: Restore mooncakes credentials
+        env:
+          MOONCAKES_CREDENTIALS_B64: ${{ secrets.MOONCAKES_CREDENTIALS }}
         run: |
           mkdir -p "$HOME/.moon"
-          printf '%s' "${{ secrets.MOONCAKES_CREDENTIALS }}" > "$HOME/.moon/credentials.json"
+          # The secret stores the base64 of credentials.json — multi-line
+          # JSON does not survive direct textual interpolation.
+          printf '%s' "$MOONCAKES_CREDENTIALS_B64" | base64 -d > "$HOME/.moon/credentials.json"
+          python3 -c "import json; json.load(open('$HOME/.moon/credentials.json'))" && echo "credentials JSON valid"
           moon whoami
 
       - name: Refresh registry index
