@@ -1,0 +1,32 @@
+// Import style per T-01 workspace probe (docs/evidence/workspace-probe-
+// 2026-09-13.log §1): module-level dependencies are versioned in moon.mod
+// (resolved locally inside the moon workspace for vicoproplus members, via
+// the mooncakes registry for mizchi/mars) and this file names the imported
+// packages.
+//
+// - mizchi/mars: Server / Context / Handler registration surface.
+// - vicoproplus/moon_ua_parser/src/ua_parser: library public parse API.
+// - vicoproplus/moon_ua_parser_middleware_core: pure helper owning all
+//   assembly / degradation / forensics semantics (zero inlining here).
+import {
+  "mizchi/mars",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+  "vicoproplus/moon_ua_parser_middleware_core" @middleware_core,
+}
+
+// Integration tests drive real HTTP requests through a real mars Server
+// bound to an ephemeral 127.0.0.1 port (mars has no network-free test
+// client; the loopback round-trip is the framework's own network stack):
+// - mizchi/mars/middleware: the framework's own logger middleware, composed
+//   alongside the adapter to prove native registration.
+// - mizchi/x/http: the framework's own HTTP server binding + client.
+// - moonbitlang/async: bounded task-group coordination of server/client.
+// - moonbitlang/async/socket: raw socket client for the no-User-Agent case.
+import {
+  "mizchi/mars/middleware",
+  "mizchi/x/http",
+  "moonbitlang/async",
+  "moonbitlang/async/socket",
+} for "test"
+
+supported_targets = "-all+native"
