@@ -19,5 +19,5 @@ keywords = ["user-agent", "middleware", "ua-parser", "http"]
 description = "Shared pure helper for framework middleware adapters of vicoproplus/moon_ua_parser: UaInfo assembly, degradation judgment and forensics record construction"
 
 import {
-  "vicoproplus/moon_ua_parser@0.1.0",
+  "vicoproplus/moon_ua_parser@0.2.0",
 }

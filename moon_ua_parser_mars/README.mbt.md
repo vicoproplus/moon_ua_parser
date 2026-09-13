@@ -122,7 +122,7 @@ record to the sink.
   integration tests + example run against the resolved registry package.
 - Transitive pins (mars's own requirements): `moonbitlang/async@0.21.3`,
   `moonbitlang/x@0.5.5`, `mizchi/x@0.6.1`.
-- `vicoproplus/moon_ua_parser@0.1.0`,
+- `vicoproplus/moon_ua_parser@0.2.0`,
   `vicoproplus/moon_ua_parser_middleware_core@0.1.0` (workspace-resolved).
 - Toolchain: moon 0.1.20260904, `--target native`
   (`supported_targets = "-all+native"`, mirroring mizchi/mars itself).

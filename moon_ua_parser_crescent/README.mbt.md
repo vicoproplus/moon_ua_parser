@@ -97,7 +97,7 @@ in `X-Ua-Info`).
 - **Tested against crescent 0.11.x** — dependency pinned to
   `bobzhang/crescent@0.11.1` in `moon.mod` (upstream commit
   `d99287ae409d198e1f7c1fd606e4883188d97c02`, `moon.mod` version 0.11.1).
-- `vicoproplus/moon_ua_parser@0.1.0`,
+- `vicoproplus/moon_ua_parser@0.2.0`,
   `vicoproplus/moon_ua_parser_middleware_core@0.1.0` (workspace-resolved),
   `moonbitlang/async@0.20.3` (crescent's own requirement).
 - Toolchain: moon 0.1.20260904, `--target native`

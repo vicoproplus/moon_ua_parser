@@ -28,6 +28,6 @@ description = "Crescent framework middleware adapter for vicoproplus/moon_ua_par
 import {
   "bobzhang/crescent@0.11.1",
   "moonbitlang/async@0.20.3",
-  "vicoproplus/moon_ua_parser@0.1.0",
+  "vicoproplus/moon_ua_parser@0.2.0",
   "vicoproplus/moon_ua_parser_middleware_core@0.1.0",
 }
