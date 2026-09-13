@@ -62,6 +62,7 @@ jobs:
           fi
           export PATH="$HOME/.moon/bin:$PATH"
           moon version
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Verify toolchain
         run: moon version --all
