@@ -1,0 +1,33 @@
+// Import style per T-01 workspace probe (docs/evidence/workspace-probe-
+// 2026-09-13.log §1): module-level dependencies are versioned in moon.mod
+// (resolved locally inside the moon workspace for vicoproplus members, via
+// the mooncakes registry for bobzhang/crescent) and this file names the
+// imported packages.
+//
+// - bobzhang/crescent: App / Event / Middleware registration surface.
+// - bobzhang/crescent/core: HttpRequest / HttpResponse / StatusCode types
+//   referenced by Event.
+// - moonbitlang/core/json: JSON parse of the mounted header on read-back
+//   (the Json type itself is builtin; only the parser/accessors need the
+//   package).
+// - vicoproplus/moon_ua_parser/src/ua_parser: library public parse API.
+// - vicoproplus/moon_ua_parser_middleware_core: pure helper owning all
+//   assembly / degradation / forensics semantics (zero inlining here).
+import {
+  "bobzhang/crescent",
+  "bobzhang/crescent/core",
+  "moonbitlang/core/json",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+  "vicoproplus/moon_ua_parser_middleware_core" @middleware_core,
+}
+
+// Integration tests drive a real crescent App through the official
+// `bobzhang/crescent/test_client` (network-free dispatch), compose with the
+// framework's own `request_id()` middleware, and run as native async tests.
+import {
+  "bobzhang/crescent/middleware",
+  "bobzhang/crescent/test_client",
+  "moonbitlang/async",
+} for "test"
+
+supported_targets = "-all+native+wasm"

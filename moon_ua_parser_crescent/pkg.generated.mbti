@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser_crescent"
+
+import {
+  "bobzhang/crescent",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+  "vicoproplus/moon_ua_parser_middleware_core",
+}
+
+// Values
+pub const FORENSICS_LOG_PREFIX : String = "[moon_ua_parser]"
+
+pub const HEADER_UA_BROWSER : String = "X-Ua-Browser"
+
+pub const HEADER_UA_DEVICE : String = "X-Ua-Device"
+
+pub const HEADER_UA_INFO : String = "X-Ua-Info"
+
+pub const HEADER_UA_OS : String = "X-Ua-Os"
+
+pub fn console_forensics_sink(@moon_ua_parser_middleware_core.ForensicsRecord) -> Unit
+
+pub fn middleware(forensics_sink? : (@moon_ua_parser_middleware_core.ForensicsRecord) -> Unit) -> @crescent.Middleware
+
+pub fn mounted_ua_info(@crescent.Event) -> @ua_parser.UaInfo?
+
+pub fn parse_mounted_ua_info(String) -> @ua_parser.UaInfo?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
