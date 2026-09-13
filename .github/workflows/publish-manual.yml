@@ -82,5 +82,15 @@ jobs:
         run: moon update
 
       - name: Publish
-        working-directory: ${{ inputs.module }}
-        run: moon publish
+        run: |
+          # Publish from an ISOLATED copy of the module directory: running
+          # `moon publish` inside the workspace checkout makes newer moon
+          # versions verify against the whole workspace graph (pulling
+          # bobzhang/crescent, whose unpatched header-map types fail the
+          # fresh sandbox on all platforms). An external maintainer would
+          # publish a standalone module — registry deps only — so replicate
+          # exactly that.
+          STAGE="$(mktemp -d)"
+          cp -r "${{ inputs.module }}" "$STAGE/module"
+          cd "$STAGE/module"
+          moon publish
