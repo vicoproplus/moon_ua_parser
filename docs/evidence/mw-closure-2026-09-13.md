@@ -235,3 +235,10 @@ EXIT_GREP_CI=0
 **阻塞登记（mars 0.1.0）：** 发布沙箱（本机 fresh 环境）check 命中上游 mizchi/x@0.6.1 Windows fd() 类型错误 ×4（workspace 补丁不可达沙箱；registry 无新版；WSL 路线被 CDN 403 阻断）。恢复条件 = mizchi/x 上游修复后 `moon publish`，或经 Linux CI/机器发布。证据链见 publish-final log 第 4 节。
 
 **遗留清单终态：** #2 包页核录 = 已发布三包 ✅（mars 待发布）；#4 登录态 ✅（vicoproplus）；#6 版本收口+依赖升级 ✅；#5 跨单元终验 ✅；#1 CI run 与推送 = 待用户推送；#3 statistics 通道人工核录 = 浏览器路线待人工；#7 上游追踪 = 补丁仍必需（crescent 仍 0.11.1）+ mizchi/x fd bug 新增登记。
+
+
+## 七、CI run 回补（2026-09-13，推送后）
+
+`git push origin main` → 远程 main = 0e953e1。GitHub Actions run **34755753070**（main @ 0e953e1）→ **conclusion: success**（status completed，完整矩阵全绿；含跨单元终验逻辑的 CI 镜像）。URL: https://github.com/vicoproplus/moon_ua_parser/actions/runs/34755753070
+
+**遗留 #1 关闭。** 至此 pending 清单仅剩：#2 mars 包页（待 mars 重发）、#3 statistics 通道人工核录（浏览器路线）、#7 上游追踪（crescent 仍 0.11.1 补丁必需 + mizchi/x fd bug 待上游修复）。
