@@ -1,0 +1,58 @@
+# Manual publish workflow — Linux runner for packages whose local publish
+# sandbox cannot validate on Windows.
+#
+# Why this exists: `moon publish` runs a fresh-environment `moon check` on
+# the packaged module. On a Windows host, mizchi/x@0.6.1 (dependency of
+# mizchi/mars@0.3.12) fails to compile against moonbitlang/async@0.21.3
+# (Windows-native fd() typing — see scripts/framework-cache-patches/
+# mizchi-x-windows-fd.patch and docs/evidence/publish-final-2026-09-13.log).
+# The workspace cache patch cannot reach the isolated publish sandbox, and
+# the Linux moon binaries are CDN-403 from the maintainer's network — so
+# mars is published from here instead (ubuntu-latest, where Fd = Int and
+# the check is clean).
+#
+# Requires the MOONCAKES_CREDENTIALS secret = content of the maintainer's
+# ~/.moon/credentials.json (mooncakes login token; logged in as
+# vicoproplus). Dispatch manually with the module to publish.
+#
+# NOTE: publishing is idempotence-hostile — re-publishing an identical
+# version is rejected by the registry. Only dispatch for versions that are
+# not yet published.
+
+name: Manual publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: "Module directory to publish (relative to repo root)"
+        required: true
+        default: "moon_ua_parser_mars"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MoonBit CLI (pinned 0.1.20260904)
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.1.20260904"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Verify toolchain
+        run: moon version --all
+
+      - name: Restore mooncakes credentials
+        run: |
+          mkdir -p "$HOME/.moon"
+          printf '%s' "${{ secrets.MOONCAKES_CREDENTIALS }}" > "$HOME/.moon/credentials.json"
+          moon whoami
+
+      - name: Refresh registry index
+        run: moon update
+
+      - name: Publish
+        working-directory: ${{ inputs.module }}
+        run: moon publish
