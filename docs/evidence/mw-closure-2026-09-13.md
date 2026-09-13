@@ -205,3 +205,20 @@ EXIT_GREP_CI=0
 4. ✅ `moon install` 无参弃用形式：**保留**（`moon fetch` = unstable、`moon update` = 仅索引，无稳定显式 fetch 等价物；工具链锁定 0.1.20260904 下该形式可用）——理由已在本步骤既有注释与本轮记录。
 
 *执行: 遗留问题处理轮（用户指令），2026-09-13。合并/推送决策仍待用户。*
+
+---
+
+## 五、跨单元终验回补（2026-09-13，四单元合并后）
+
+用户批准合并后，四个 v0.2 单元已全部合入 main（merge-base a56a85c）：
+- `7f549ee` Merge feat/v02-platform-complete（版本收口 0.2.0、弃用清理）
+- `05eb742` Merge v02-rules-update（规则 SOP、replay 证据）
+- `6aa945b` Merge feat/v02-perf-bench（三后端时钟探针、bench 套件；ci.yml 冲突按「双步骤保留」解决）
+- `c661bc7` Merge feat/v02-framework-middleware（workspace + 中间件三包；ci.yml 冲突同上）
+- `42f2f91` 集成加固：mizchi-x-windows-fd.patch 固化（合并后主树在 Windows 原生复现 T-05 已知 4 错误——cfg 门控补丁跨平台安全，`*.patch` 通配一并应用）；警告基线 44→**18** 重校准（platform-complete 清理后：9 deprecated + 8 deprecated_syntax + 1 unused_constructor，全在 lib 内）
+- `5ef6d69` 中间件依赖升级 @0.1.0→**@0.2.0**（moon.mod ×3 + README ×2）
+
+**终验结果（`docs/evidence/cross-unit-gate-2026-09-13.log`，全绿）：**
+构建 0 errors；警告门禁 18/0 PASS；全量 native **54/54**；js 31/31（rules 4 + robust 9 + semantics 15 + differential 3）；生成一致性 byte-identical（日志 exit 标记因脚本相对路径缺陷缺位于第 5 步，已单独补验 exit 0）；集成测试 crescent 7/7 + mars 6/6 + helper 10/10；双示例 smoke 退出 0；bench smoke 退出 0；mbti 零 diff。wasm 门禁仍归 CI（本地 wasm 运行时损坏，既有环境事实）。
+
+**第三节阻塞项清单状态更新：** #5 跨单元终验 ✅ 已完成；#6 版本收口 ✅ 已合并 + 依赖升级完成。剩余：#1 CI run（推送后）、#2 包页核录、#3 通道人工核录、#4 登录态（dry-run/发布时实测）。
