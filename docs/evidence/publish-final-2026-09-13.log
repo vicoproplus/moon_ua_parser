@@ -17,7 +17,7 @@ Check passed / Server status: 200 OK [exit 0]
 ===== 3 crescent 0.1.0 =====
 第一次失败: 沙箱按默认 wasm 目标 check → "Selected package(s) do not support target backend 'wasm'"
 归因: 本单元 2026-09-13 将 supported_targets 收敛为 -all+native（无 wasm 证据），而沙箱缺 preferred_target 时默认 wasm
-处置: 参照 mars/crescent 框架自身 moon.mod 的声明，为两个适配包 moon.mod 补 `preferred_target = "native"`（诚实收敛保持不变——沙箱改为 native check）
+处置: 参照 mars/crescent 框架自身 moon.mod 的声明补 `preferred_target = "native"`（crescent 适配包本轮回补添加；mars 适配包 T-05 时已声明，故其失败直接表现为 native check 的 fd 错误而非 wasm 报错）——诚实收敛保持不变，沙箱改为 native check
 重试: Check passed / Server status: 200 OK [exit 0] ✓
 
 ===== 4 mars 0.1.0 — BLOCKED =====

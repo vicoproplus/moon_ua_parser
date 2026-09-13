@@ -222,3 +222,16 @@ EXIT_GREP_CI=0
 构建 0 errors；警告门禁 18/0 PASS；全量 native **54/54**；js 31/31（rules 4 + robust 9 + semantics 15 + differential 3）；生成一致性 byte-identical（日志 exit 标记因脚本相对路径缺陷缺位于第 5 步，已单独补验 exit 0）；集成测试 crescent 7/7 + mars 6/6 + helper 10/10；双示例 smoke 退出 0；bench smoke 退出 0；mbti 零 diff。wasm 门禁仍归 CI（本地 wasm 运行时损坏，既有环境事实）。
 
 **第三节阻塞项清单状态更新：** #5 跨单元终验 ✅ 已完成；#6 版本收口 ✅ 已合并 + 依赖升级完成。剩余：#1 CI run（推送后）、#2 包页核录、#3 通道人工核录、#4 登录态（dry-run/发布时实测）。
+
+---
+
+## 六、发版回补（2026-09-13，用户批准发布）
+
+**已发布并核录（`docs/evidence/publish-final-2026-09-13.log`）：**
+- `vicoproplus/moon_ua_parser` **0.2.0** — Server 200，registry+包页 HTTP 200 ✓
+- `vicoproplus/moon_ua_parser_middleware_core` **0.1.0** — Server 200，包页 200 ✓
+- `vicoproplus/moon_ua_parser_crescent` **0.1.0** — Server 200，包页 200 ✓（回补 `preferred_target = "native"` 后过沙箱 wasm 校验）
+
+**阻塞登记（mars 0.1.0）：** 发布沙箱（本机 fresh 环境）check 命中上游 mizchi/x@0.6.1 Windows fd() 类型错误 ×4（workspace 补丁不可达沙箱；registry 无新版；WSL 路线被 CDN 403 阻断）。恢复条件 = mizchi/x 上游修复后 `moon publish`，或经 Linux CI/机器发布。证据链见 publish-final log 第 4 节。
+
+**遗留清单终态：** #2 包页核录 = 已发布三包 ✅（mars 待发布）；#4 登录态 ✅（vicoproplus）；#6 版本收口+依赖升级 ✅；#5 跨单元终验 ✅；#1 CI run 与推送 = 待用户推送；#3 statistics 通道人工核录 = 浏览器路线待人工；#7 上游追踪 = 补丁仍必需（crescent 仍 0.11.1）+ mizchi/x fd bug 新增登记。
