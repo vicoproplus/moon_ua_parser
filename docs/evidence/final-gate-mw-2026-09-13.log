@@ -1,0 +1,174 @@
+# 整库集成验证证据日志 — final-gate-mw-2026-09-13.log（任务 T-07，单元范围）
+
+- 日期: 2026-09-13
+- moon 版本: `moon 0.1.20260904 (94521db 2026-09-04)`（feature flags: rr_moon_mod, rr_moon_pkg）
+- 执行位置: worktree `F:\moonbit比赛\moon_ua_parser_wt_framework`，分支 `feat/v02-framework-middleware`，HEAD `fc26bd9`（未切分支、未提交）
+- **跨单元终验 pending — 触发=性能基准合并, 负责人=vicoplus, 目标=回补批**（plan「两单元都合并后」前提未满足，本日志为单元范围全量验证）
+- 预期例外（既登记）: 本地 wasm 目标不可用（moonrun 损坏，既有环境事实）→ **CI 门禁覆盖，本地跳过**，不计失败
+- PyYAML: 6.0.2（本地已装，gen 脚本可跑）
+- 执行方式红线遵守: 长命令（项3/项4）后台运行 + 60-110s 轮询，前台命令均 ≤120s
+
+---
+
+## 项 1 — workspace 全构建
+
+命令（仓库根，相对路径）: `moon build --target native`
+退出码: 0
+输出尾:
+```
+Finished. moon: no work to do
+EXIT_CODE=0
+```
+判定: **PASS** — 0 errors（构建缓存为热，输出 "no work to do" = 工作树与既有构建产物一致；T-01 建清单后的全模块构建验证由此复跑覆盖）。
+
+## 项 2 — check
+
+命令（仓库根）: `moon check --target native`
+退出码: 0
+输出尾:
+```
+Finished. moon: ran 26 tasks, now up to date (44 warnings, 0 errors)
+EXIT_CODE=0
+```
+判定: **PASS** — 0 errors；44 warnings 全为 lib 侧弃用告警（`Show`/`derive(Show)` deprecated，指向 types.mbt / tests/semantics 等），与 T-03 记录基线 44 持平，**无新增**。
+
+## 项 3 — native 测试（全量）
+
+命令（仓库根）: `moon test --target native`
+执行方式: `run_in_background` + 每 60-110s 轮询（differential 套件本身运行慢，属正常）。
+过程记录（如实登记，非测试失败）: 第 1 次后台尝试在编译/依赖检查阶段静默退出（日志仅 3 行 `.blackbox_test.c` 编译行，无 EXIT_CODE，进程消失；按 D1 归因=环境事实，非本单元代码——同样的命令与代码第 2 次即完整通过）。按「一次重试」规则原样重跑一次。
+退出码（第 2 次完整运行）: 0
+输出尾:
+```
+--> Get /probe
+Total tests: 54, passed: 54, failed: 0.
+EXIT_CODE=0
+```
+构成核对（静态计数 test 块 + 运行总数）: lib 31（src/ua_parser/rules 4 + tests/differential 3 + tests/robust 9 + tests/semantics 15 + src/ua_parser 0）+ middleware_core 10 + crescent 7 + mars 6 = 54 ✓ 与预期 31/10/7/6 完全一致。
+判定: **PASS**。
+
+## 项 4 — js 测试
+
+命令（逐包，仓库根）:
+- `moon test --target js -p vicoproplus/moon_ua_parser/src/ua_parser`
+- `moon test --target js -p vicoproplus/moon_ua_parser/src/ua_parser/rules`
+- `moon test --target js -p vicoproplus/moon_ua_parser/tests/differential`
+- `moon test --target js -p vicoproplus/moon_ua_parser/tests/robust`
+- `moon test --target js -p vicoproplus/moon_ua_parser/tests/semantics`
+（以上在单次后台任务中顺序执行）
+退出码: 各包 EXIT=0
+输出尾（逐包）:
+```
+===PKG vicoproplus/moon_ua_parser/src/ua_parser===
+Warning: no test entry found.
+Total tests: 0, passed: 0, failed: 0.
+EXIT=0
+===PKG vicoproplus/moon_ua_parser/src/ua_parser/rules===
+Total tests: 4, passed: 4, failed: 0.
+EXIT=0
+===PKG vicoproplus/moon_ua_parser/tests/differential===
+Total tests: 3, passed: 3, failed: 0.
+EXIT=0
+===PKG vicoproplus/moon_ua_parser/tests/robust===
+Total tests: 9, passed: 9, failed: 0.
+EXIT=0
+===PKG vicoproplus/moon_ua_parser/tests/semantics===
+Total tests: 15, passed: 15, failed: 0.
+EXIT=0
+```
+js 合计: 4+3+9+15 = 31/31 绿（src/ua_parser 包本体无 test 块，属预期）。
+登记跳过（预期，moon.pkg `supported_targets` 决定）:
+```
+$ moon test --target js -p vicoproplus/moon_ua_parser_crescent
+Error: failed to run test for target Js
+Caused by: Selected package(s) do not support target backend 'js': vicoproplus/moon_ua_parser_crescent ([native, wasm])
+EXIT_CRES_JS=127
+
+$ moon test --target js -p vicoproplus/moon_ua_parser_mars
+Error: failed to run test for target Js
+Caused by: Selected package(s) do not support target backend 'js': vicoproplus/moon_ua_parser_mars ([native])
+EXIT_MARS_JS=127
+```
+判定: **PASS**（lib 31/31 绿；crescent/mars 不支持 js 为登记预期跳过，非失败）。
+
+## 项 5 — 生成一致性
+
+命令:
+```
+cd moon_ua_parser_lib && python ../scripts/gen_rules.py && python ../scripts/gen_tests.py && git diff --exit-code -- src/ua_parser/rules tests/differential
+```
+退出码: 0（EXIT_GEN=0）
+输出尾: 仅 git 的 LF/CRLF 提示行（`warning: ... LF will be replaced by CRLF the next time Git touches it`，7 个生成文件），无 diff 内容；随后从仓库根复核 `git diff --stat -- moon_ua_parser_lib/src/ua_parser/rules moon_ua_parser_lib/tests/differential` 输出为空、exit 0。
+归因说明: 生成后 `git status` 出现的 M 标记为 Windows autocrlf 行尾表现（盘上文件被脚本重写为 LF），**内容零差异**（环境事实/本地 git 配置，非生成内容漂移）。验证者已 `git checkout --` 还原盘上行尾态，工作树恢复洁净（status 非docs 项 = 0 行）。
+判定: **PASS** — 生成器输出与库内已提交生成物字节级一致。
+
+## 项 6 — smoke（两示例）
+
+6a 命令: `moon run moon_ua_parser_crescent/examples/ua_echo --target native`
+退出码: 0（EXIT_SMOKE_CRES=0）
+输出尾（节选）:
+```
+GET /probe  [Android 11 Chrome WebView]
+  user-agent : Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile DuckDuckGo/5 Safari/537.36
+  status     : 200
+  browser    : DuckDuckGo Mobile
+  os         : Android
+  device     : Generic Smartphone
+  body       : handler saw browser=DuckDuckGo Mobile os=Android device=Generic Smartphone
+
+[moon_ua_parser] degraded user-agent parse: reason=empty_fallback ua_summary="SomethingWeNeverKnewExisted"
+GET /probe  [malformed (synthetic)]
+  user-agent : SomethingWeNeverKnewExisted
+  status     : 200
+  browser    :
+  os         :
+  device     :
+  body       : handler saw browser= os= device=
+
+done: 4 requests dispatched (3 healthy, 1 degraded synthetic)
+EXIT_SMOKE_CRES=0
+```
+
+6b 命令: `moon run moon_ua_parser_mars/examples/ua_echo --target native`
+退出码: 0（EXIT_SMOKE_MARS=0）
+输出尾（节选）:
+```
+--> Get /probe
+GET /probe  [desktop Chrome / Windows]
+  user-agent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+  status     : 200
+...
+GET /probe  [iPhone DuckDuckGo / iOS 14.3]
+  status     : 200
+  body       : handler saw browser=DuckDuckGo Mobile os=iOS device=iPhone
+...
+[moon_ua_parser] degraded user-agent parse: reason=empty_fallback ua_summary="SomethingWeNeverKnewExisted"
+GET /probe  [malformed (synthetic)]
+  status     : 200
+  body       : handler saw browser= os= device=
+
+done: 4 requests dispatched (3 healthy, 1 degraded synthetic)
+EXIT_SMOKE_MARS=0
+```
+判定: **PASS ×2** — 均退出码 0、输出含三组（browser/os/device）结果 + 降级行（`reason=empty_fallback ua_summary=...` 取证格式，spec §3 降级语义）、有界运行自行退出。
+
+## 项 7 — 生成物边界核对
+
+命令（仓库根）: `git diff main...HEAD --stat -- uap-core/ scripts/gen_rules.py scripts/gen_tests.py`
+退出码: 0
+输出: 空（无任何文件命中）
+判定: **PASS** — 中间件单元未触碰 rules/differential 生成链与 uap-core。
+
+---
+
+## 附加验证（rubric 关联项）
+
+- **R5 库公开 API 面**: `moon info` → exit 0；已提交的 4 个 `pkg.generated.mbti`（lib src / middleware_core / crescent / mars）与再生成内容**零内容 diff**（仅 autocrlf 行尾 M，已还原）；`moon_ua_parser_lib/src/ua_parser/pkg.generated.mbti` 公开面仍为 4 个 pub fn（parse / parse_browser / parse_device / parse_os），未变更。
+- **R7 CI 增量**: `git diff main...HEAD --stat -- .github/workflows/ci.yml` = 46 insertions / 0 deletions → 只增不改既有 job。
+- **R12 工具链锁定**: 本机 `moon version` = 0.1.20260904；`.github/workflows/ci.yml` 安装行 `curl ... | bash -s "0.1.20260904"`（约 line 41-43）一致。
+
+## 总判定
+
+**GREEN WITH REGISTERED EXCEPTIONS** — 7/7 项全 PASS。
+登记例外: (a) crescent/mars 对 js target 的跳过属预期（supported_targets 限定）; (b) wasm 本地跳过，CI 门禁覆盖（moonrun 损坏为既有环境事实）; (c) **跨单元终验 pending — 触发=性能基准合并, 负责人=vicoplus, 目标=回补批**。
+过程异常（已归因、不计失败）: 项 3 第 1 次后台运行静默退出（环境事实，重试一次即全绿，证据见项 3 过程记录）。

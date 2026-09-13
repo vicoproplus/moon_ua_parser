@@ -1,0 +1,80 @@
+# T-05 / A6 evidence — moon_ua_parser_mars example app (mw2)
+# Date: 2026-09-13
+# Worktree: F:\moonbit比赛\moon_ua_parser_wt_framework
+# Branch: feat/v02-framework-middleware
+# Toolchain: moon 0.1.20260904, --target native
+#
+# Command (one command, from the workspace root):
+#
+#     $ moon run moon_ua_parser_mars/examples/ua_echo --target native
+#
+# Exit code: 0 (bounded run: the example dispatches exactly four requests
+# over an ephemeral 127.0.0.1 listener and closes it via `defer srv.close()`
+# when the task-group body exits — nothing stays resident; the foreground
+# command was additionally wrapped in a 90 s timeout)
+#
+# What this shows (R6): the middleware is registered on a real mars Server
+# together with the framework's own logger_simple middleware (the `--> Get
+# /probe` lines are mars's log channel; mizchi/mars logs the method in
+# capitalized form "Get"); four requests are dispatched through the
+# framework's own network stack (mizchi/x native HTTP server + raw-socket
+# client, because the mizchi/x HTTP client would merge its own default
+# User-Agent into the request).
+# - Requests 1-3 (real UAs): the handler reads the three mounted groups
+#   browser / os / device back from the typed Variables mount (ctx.vars)
+#   via @moon_ua_parser_mars.mounted_ua_info; families match the uap-core
+#   goldens cited in integration_test.mbt.
+# - Request 4 (malformed, SYNTHETIC UA "SomethingWeNeverKnewExisted",
+#   not from any uap-core golden file): the default console forensics (FO)
+#   channel emits the {ua_summary, reason} record (line prefixed
+#   [moon_ua_parser]) BEFORE the request block, the response status stays
+#   200 (non-5xx), and the mounted families are empty (empty UaInfo) —
+#   degradation per spec §3, semantics entirely from
+#   vicoproplus/moon_ua_parser_middleware_core. The FO line shares the
+#   println sink with mars's own logger middleware output.
+#
+# Full captured output (stdout+stderr merged as produced):
+
+--> Get /probe
+GET /probe  [desktop Chrome / Windows]
+  user-agent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+  status     : 200
+  body       : handler saw browser=Chrome os=Windows device=Other
+
+--> Get /probe
+GET /probe  [iPhone DuckDuckGo / iOS 14.3]
+  user-agent : Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.3 Mobile/15E148 DuckDuckGo/7 Safari/605.1.15
+  status     : 200
+  body       : handler saw browser=DuckDuckGo Mobile os=iOS device=iPhone
+
+--> Get /probe
+GET /probe  [Android 11 Chrome WebView]
+  user-agent : Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile DuckDuckGo/5 Safari/537.36
+  status     : 200
+  body       : handler saw browser=DuckDuckGo Mobile os=Android device=Generic Smartphone
+
+--> Get /probe
+[moon_ua_parser] degraded user-agent parse: reason=empty_fallback ua_summary="SomethingWeNeverKnewExisted"
+GET /probe  [malformed (synthetic)]
+  user-agent : SomethingWeNeverKnewExisted
+  status     : 200
+  body       : handler saw browser= os= device=
+
+done: 4 requests dispatched (3 healthy, 1 degraded synthetic)
+
+# ---------------------------------------------------------------------------
+# Workspace coexistence finding recorded 2026-09-13 (T-05 re-dispatch run)
+# ---------------------------------------------------------------------------
+# mizchi/mars@0.3.12 (selection §⑤ pin) requires moonbitlang/async@0.21.3,
+# whose http.Request.headers type changed from Map[String, String] to
+# Map[CaseInsensitiveString, String]. A moon workspace resolves ONE version
+# per registry package across all members (`moon -C moon_ua_parser_crescent
+# tree` shows bobzhang/crescent@0.11.1 resolving to async@0.21.3 although
+# its own pin is 0.20.3), so bobzhang/crescent@0.11.1 (and, Windows-only,
+# mizchi/x@0.6.1's Int-returning fd() accessors) do not compile in the
+# shared graph as published. Local, gitignored .mooncakes adaptation
+# patches (behavior-preserving, each marked "LOCAL CACHE PATCH" in place)
+# were applied so the workspace builds green; the exact patch register and
+# the reproducibility caveat (fresh checkout needs the same patches, e.g.
+# via a CI post-fetch step or vendoring — T-06/owner decision) are in
+# docs/evidence/task-reports/task-5-report.md.

@@ -1,0 +1,6 @@
+# Root-only workspace build caches (T-01). Root-anchored on purpose: these two
+# patterns cover the workspace-level `/_build/` and `/.mooncakes/` at the repo
+# root; caches inside member packages (e.g. moon_ua_parser_lib/.mooncakes/)
+# stay governed by each package's own .gitignore.
+/_build/
+/.mooncakes/

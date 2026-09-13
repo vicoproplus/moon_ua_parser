@@ -1,0 +1,9 @@
+# Git attributes for the moon_ua_parser workspace.
+#
+# Patch files under scripts/framework-cache-patches/ must keep their exact
+# byte content (LF, no EOL rewriting) or `git apply --check` fails after a
+# Windows autocrlf=true checkout. CI applies them with
+# `git -c core.autocrlf=false apply`, which pins application config but
+# cannot re-checkout an already-mangled file — so the attribute pins the
+# file itself (final-review follow-up, 2026-09-13).
+*.patch -text

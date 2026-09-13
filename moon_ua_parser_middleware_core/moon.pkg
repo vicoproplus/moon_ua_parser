@@ -1,0 +1,7 @@
+// Import style per T-01 workspace probe (docs/evidence/workspace-probe-
+// 2026-09-13.log §1): the moon.mod dependency is versioned
+// ("vicoproplus/moon_ua_parser@0.1.0", resolved locally inside the moon
+// workspace), and the package import names the library package path.
+import {
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}

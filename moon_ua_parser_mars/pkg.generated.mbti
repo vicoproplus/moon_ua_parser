@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser_mars"
+
+import {
+  "mizchi/mars",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+  "vicoproplus/moon_ua_parser_middleware_core",
+}
+
+// Values
+pub const FORENSICS_LOG_PREFIX : String = "[moon_ua_parser]"
+
+pub const KEY_UA_BROWSER : String = "ua_parser.browser"
+
+pub const KEY_UA_DEVICE : String = "ua_parser.device"
+
+pub const KEY_UA_OS : String = "ua_parser.os"
+
+pub fn console_forensics_sink(@moon_ua_parser_middleware_core.ForensicsRecord) -> Unit
+
+pub fn middleware(forensics_sink? : (@moon_ua_parser_middleware_core.ForensicsRecord) -> Unit) -> @mars.Handler
+
+pub fn mounted_ua_info(@mars.Context) -> @ua_parser.UaInfo?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

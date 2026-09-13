@@ -1,0 +1,28 @@
+// Example app (T-05 / R6): registers the UA-parser middleware on a real
+// mars Server and dispatches four real HTTP requests through the
+// framework's own network stack — no fixed port (ephemeral 127.0.0.1:0),
+// bounded lifetime (the listener is closed via `defer` after the four
+// responses; nothing stays resident), deterministic stdout output.
+//
+// - mizchi/mars: Server / route registration.
+// - mizchi/mars/middleware: the framework's own logger middleware.
+// - mizchi/x/http: the framework's HTTP server binding.
+// - moonbitlang/async + async/socket: bounded task-group coordination and
+//   the raw socket demo client.
+// - moonbitlang/core/encoding: exact Content-Length computation.
+// - vicoproplus/moon_ua_parser_mars: this adapter.
+import {
+  "mizchi/mars",
+  "mizchi/mars/middleware",
+  "mizchi/x/http",
+  "moonbitlang/async",
+  "moonbitlang/async/socket" @async_socket,
+  "moonbitlang/x/encoding",
+  "vicoproplus/moon_ua_parser_mars",
+}
+
+// moon 0.1.20260904 marks a runnable entry package with pkgtype
+// "executable" (same as moon_ua_parser_crescent/examples/ua_echo).
+pkgtype(kind: "executable")
+
+supported_targets = "-all+native"

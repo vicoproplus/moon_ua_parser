@@ -1,0 +1,16 @@
+// Example app (T-04 / R6): registers the UA-parser middleware on a real
+// crescent App and dispatches four requests through `App::dispatch` —
+// no network binding, deterministic stdout output.
+import {
+  "bobzhang/crescent",
+  "bobzhang/crescent/middleware",
+  "moonbitlang/async",
+  "moonbitlang/core/encoding/utf8",
+  "vicoproplus/moon_ua_parser_crescent",
+}
+
+// moon 0.1.20260904 marks a runnable entry package with pkgtype
+// "executable" (same as moon_ua_parser_lib/examples/middleware).
+pkgtype(kind: "executable")
+
+supported_targets = "-all+native"
