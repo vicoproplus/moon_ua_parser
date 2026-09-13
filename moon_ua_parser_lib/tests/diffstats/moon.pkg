@@ -14,9 +14,8 @@
 //   - wasm DEBUG/test module of tests/differential: structurally blocked —
 //     its package init declares 125,840 locals > the V8 50,000 hard cap, so
 //     `moon test` under the default wasm target excludes tests/differential
-//     (T-01 evidence, .superpowers/sdd/*/task-1-report.md §3; generator split
-//     to restore the wasm test gate = Followup-1; details:
-//     docs/evidence/wasm-differential-blocker-2026-09-13.md).
+//     (T-01 evidence: docs/evidence/wasm-differential-blocker-2026-09-13.md
+//     §2; generator split to restore the wasm test gate = Followup-1).
 // Imports the generated differential package and computes the per-domain
 // pass-rate table mandated by docs/regex-migration.md:
 //

@@ -42,6 +42,16 @@ cd hello_ua
 moon add vicoproplus/moon_ua_parser
 ```
 
+> **Publishing status:** as of 2026-09-13 the mooncakes registry has no
+> published version of `vicoproplus/moon_ua_parser` yet (the registry API
+> returns 404 for the module), so the `moon add` step above fails until the
+> formal `moon publish` runs — a user-gated action, currently pending. The
+> packaging itself is already dry-run-verified: the server accepted the
+> package with status 202 and a 29-file zip (see
+> [`../docs/evidence/publish-dryrun-2026-09-13.log`](../docs/evidence/publish-dryrun-2026-09-13.log)
+> and the Publishing note in [`../CHANGELOG.md`](../CHANGELOG.md)). Once the
+> registry lists version 0.2.0, this quickstart works as written.
+
 Declare the package import in `cmd/main/moon.pkg` (the entry package created
 by `moon new`):
 
@@ -96,10 +106,12 @@ os      : iOS 9.3.1
 device  : iPhone / Apple / iPhone
 ```
 
-The same program runs on all three backends today (`moon run --target native`
-/ `moon run --target js` / `moon run --target wasm`); on Windows 10 the
-`moonrun` runtime of the pinned toolchain needs an upstream fix before wasm
-programs will load.
+The library and its test gates are proven on all three backends (native, js,
+wasm — see [Differential quality](#differential-quality)); the quickstart
+program above runs on native and js today, and on wasm wherever the
+`moonrun` runtime loads (Windows 11 / Windows Server 2022 and later; on
+Windows 10 the stock `moonrun` runtime of the pinned toolchain needs an
+upstream fix before wasm programs will load).
 
 ## API
 

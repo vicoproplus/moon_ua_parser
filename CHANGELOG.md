@@ -72,6 +72,23 @@ final close.
   build or `GetProcAddress`-style probing (the local patch is lost on moon
   reinstall/upgrade and must then be re-applied).
 
+### Publishing
+
+- The mooncakes registry has no published version of
+  `vicoproplus/moon_ua_parser` yet: as of 2026-09-13 the registry API returns
+  404 for the module. The formal `moon publish` for 0.2.0 is a user-gated
+  external action and is pending explicit user confirmation — no publish has
+  occurred.
+- Packaging is dry-run-verified for the 0.1.0 manifest then current:
+  `moon publish --dry-run` packaged a 29-file zip and the server accepted it
+  (status 202, "Dry run completed successfully. No changes were made"), with
+  a known CLI quirk — the moon CLI exits 127 after the server's 202 —
+  registered and carried into the publish task. Evidence:
+  `docs/evidence/publish-dryrun-2026-09-13.log`.
+- Consumers should `moon add vicoproplus/moon_ua_parser` only after the
+  registry shows version 0.2.0; until then the quickstart's `moon add` step
+  fails.
+
 ## [0.1.0] - 2026-09-10
 
 Retrospective entry for the initial delivery (terminal state commit `a56a85c`).
@@ -107,9 +124,11 @@ Retrospective entry for the initial delivery (terminal state commit `a56a85c`).
 - Middleware-style request-entry example (`examples/middleware`).
 - Module metadata and README (`moon_ua_parser_lib/README.mbt.md`).
 - CI workflow: pinned toolchain 0.1.20260904, static check, interface drift
-  check (`moon info` + zero diff), generation consistency, tests on the three
-  backends, and the native differential gate report
-  (`.github/workflows/ci.yml`).
+  check (`moon info` + zero diff), generation consistency, and the native
+  differential gate report (`.github/workflows/ci.yml`); at v0.1.0 the
+  workflow had no recorded runs and its wasm test step was structurally red
+  (the differential wasm module exceeded V8's local cap) — that issue was
+  only diagnosed and resolved in v0.2.0.
 
 [0.2.0]: https://github.com/vicoproplus/moon_ua_parser/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/vicoproplus/moon_ua_parser/releases/tag/v0.1.0
