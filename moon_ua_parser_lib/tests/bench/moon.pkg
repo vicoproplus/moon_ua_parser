@@ -1,0 +1,34 @@
+// Benchmark runner (T-03) — executable package.
+//
+// Run (from the moon project root moon_ua_parser_lib/):
+//   moon run --target native --release tests/bench
+//   moon run --target js --release tests/bench
+//   moon run --target wasm --release tests/bench  (works on this host)
+//   moon run --target native --release tests/bench -- --smoke
+//
+// The per-backend label files below are selected via options(targets: ...),
+// the same mechanism moonbitlang/core/bench uses for its monotonic clock
+// implementations. The timing seam itself needs no backend branching: the
+// backend-specific clock lives behind moonbitlang/core/bench, and all
+// statistics are backend-free (see main.mbt).
+//
+// Imports:
+//   moonbitlang/core/bench                     @core_bench — monotonic clock seam
+//   moonbitlang/core/env                       @env        — args() for --smoke
+//   vicoproplus/moon_ua_parser/src/ua_parser   @ua_parser  — engine under test
+
+pkgtype(kind: "executable")
+
+import {
+  "moonbitlang/core/bench" @core_bench,
+  "moonbitlang/core/env",
+  "vicoproplus/moon_ua_parser/src/ua_parser",
+}
+
+options(
+  targets: {
+    "clock_js.mbt": [ "js" ],
+    "clock_native.mbt": [ "native", "llvm" ],
+    "clock_wasm.mbt": [ "wasm", "wasm-gc" ],
+  },
+)
