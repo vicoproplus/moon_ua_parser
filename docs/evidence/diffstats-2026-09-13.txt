@@ -1,0 +1,8 @@
+domain	total	exempted	passed	failed	rate	gate	status
+browser	total=1601	exempted=0	passed=1601	failed=0	rate=100.00%	gate>=99.00%	MET
+os	total=483	exempted=0	passed=483	failed=0	rate=100.00%	gate>=97.00%	MET
+device	total=16129	exempted=0	passed=16129	failed=0	rate=100.00%	gate>=97.00%	MET
+browser failure groups: (none)
+os failure groups: (none)
+device failure groups: (none)
+GATES: ALL MET

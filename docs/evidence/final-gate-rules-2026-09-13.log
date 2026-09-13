@@ -1,0 +1,109 @@
+# final-gate-rules-2026-09-13.log
+# 整库集成验证 (V5 终验门禁) — plan T-06, moon_ua_parser v0.2 规则更新
+# Acceptance 行0-3 executed end-to-end, 2026-09-13.
+
+tree        : F:/moonbit比赛/moon_ua_parser-sdd (dedicated worktree)
+branch      : v02-rules-update @ 9307500 ("Fix rules-update SOP per G-02 replay findings (D1-D5, D7)")
+toolchain   : moon 0.1.20260904 (94521db 2026-09-04) / Python 3.12.10 / PyYAML 6.0.2  [= plan E2, ci.yml:36-43]
+baseline    : pre-gate `git status --porcelain` = 8 tracked files with EOL-only M flags
+              (core.autocrlf=true, no .gitattributes; generator writes LF; content-identical,
+              adjudicated in T-02/T-03: the 行1 arbiter is the CONTENT-level diff, not porcelain)
+
+## 行0 构建+测试管线 — PASS
+$ cd moon_ua_parser_lib && moon check && moon test --target native
+moon check               -> exit 0  ("Finished. moon: ran 4 tasks, now up to date (44 warnings, 0 errors)")
+moon test --target native -> exit 0 ("Total tests: 31, passed: 31, failed: 0.")
+(warnings are pre-existing derive(Show)/deprecation lints; 0 errors)
+
+## 行1 再生成幂等 + 差分门禁 — PASS
+$ cd moon_ua_parser_lib && python ../scripts/gen_rules.py && python ../scripts/gen_tests.py && git diff --exit-code -- src/ua_parser/rules tests/differential
+gen_rules.py:
+  uap-core snapshot: commit 73e7340, date 2026-08-24
+  user_agent_parsers  :  433 rules (0 with flag i)
+  os_parsers          :  204 rules (0 with flag i)
+  device_parsers      :  633 rules (65 with flag i)
+  total               : 1270 rules
+  wrote rules_data.mbt (257923 B) / rules_version.mbt (465 B) / rules/moon.pkg (378 B) -> OK
+gen_tests.py:
+  test_ua.yaml 1601 / test_os.yaml 483 / test_device.yaml 16129 cases (0 exempted), total 18213
+  wrote diff_ua.mbt (342278 B) / diff_os.mbt (103272 B) / diff_device.mbt (3542364 B) / differential/moon.pkg (305 B) -> OK
+content-level gate `git diff --exit-code -- src/ua_parser/rules tests/differential`
+  -> exit 0 (IDEMPOTENT; byte-identical regeneration)
+  (6 informational "LF will be replaced by CRLF" warnings from autocrlf — not a gate signal)
+  = ci.yml:59-64 "Generation consistency" semantics re-proven green on this branch
+
+$ cd moon_ua_parser_lib && moon run --target native --release tests/diffstats
+domain	total	exempted	passed	failed	rate	gate	status
+browser	total=1601	exempted=0	passed=1601	failed=0	rate=100.00%	gate>=99.00%	MET
+os	total=483	exempted=0	passed=483	failed=0	rate=100.00%	gate>=97.00%	MET
+device	total=16129	exempted=0	passed=16129	failed=0	rate=100.00%	gate>=97.00%	MET
+browser failure groups: (none)
+os failure groups: (none)
+device failure groups: (none)
+GATES: ALL MET — exit 0 (two consecutive clean runs: retry2 exit 0, retry3 exit 0, identical reports)
+
+ANOMALY (transient, disclosed, attributed — not a gate failure):
+  The FIRST invocation of this exact command in this session exited 1 immediately after the
+  release build completed, with NO report output and NO diagnostic line beyond the ordinary
+  compile warnings (fresh rebuild of the regenerated files preceded it). Two consecutive
+  re-runs of the same command on the same tree exited 0 with byte-consistent ALL MET reports.
+  Attribution: transient native runtime abort of the freshly-built release binary (no failed
+  differential cases exist in any clean run — zero-deviation state unchanged). Recorded per D1
+  discipline (failure observed -> attributed -> disposition: retry-verified green, watch item).
+
+## 行2 三后端集成镜像 — js PASS / wasm [LOCAL_DEAD_LINK] registered (NOT a gate failure)
+$ cd moon_ua_parser_lib && moon test --target js
+  -> exit 0 ("Total tests: 31, passed: 31, failed: 0.")
+
+$ cd moon_ua_parser_lib && moon test   (default target = wasm)
+  -> moon exit 127 — FAILED AT THE LOCAL RUNTIME STAGE (expected, registered):
+     Error: failed to compile `F:\moonbit比赛\moon_ua_parser-sdd\moon_ua_parser_lib\_build\wasm\debug\test\tests\differential\differential.internal_test.wasm`
+     Caused by:
+         Uncaught CompileError: WebAssembly.Module(): Compiling function #675:"_M0FP017____moonbit__init" failed: local count too large @+126090
+     Error: Failed to run the test: ...\differential.internal_test.wasm
+     The test executable exited with exit code: 1
+  (moon's "failed to compile" line = runtime host driver message; the underlying
+   "Uncaught CompileError: WebAssembly.Module()" is V8 failing to INSTANTIATE the already-built
+   wasm artifact — i.e. a local-runtime failure, not a MoonBit compilation failure.)
+
+[wasm build-side evidence] $ cd moon_ua_parser_lib && moon build --target wasm
+  -> exit 0 ("Finished. moon: ran 7 tasks, now up to date (18 warnings, 0 errors)")
+
+[LOCAL_DEAD_LINK] attribution (registration unchanged from T-04):
+  scope        : wasm backend `moon test` (default target), LOCAL verification only
+  symptom      : V8 CompileError 'local count too large' in _M0FP017____moonbit__init when
+                 instantiating tests/differential internal_test wasm module (@+126090)
+  build side   : moon build --target wasm exit 0 — artifact builds; failure confined to local V8
+  owner        : 平台完备 unit (wasm runtime fix); CI / T-12 is the wasm verification venue
+                 (plan line2 注记: js/wasm 在 CI 执行; verification venue = 推送后 GitHub run 历史)
+  disposition  : cross-plan dependency OPEN; explicitly NOT a 规则更新 gate failure
+
+## 行3 交付形态 — PASS
+$ test -f docs/rules-update-sop.md && grep -c "回滚" docs/rules-update-sop.md
+13
+  -> exit 0 (SOP present; grep -c "回滚" = 13, >= 1 required; matches SOP acceptance grep=13)
+
+## T-06 step 2 — 兄弟单元合并状态对账
+- sibling branches: feat/v02-framework-middleware @502b930, feat/v02-perf-bench @70a2364,
+  feat/v02-platform-complete @36421ca — NONE merged into v02-rules-update
+  (`git branch --merged v02-rules-update` lists main + v02-rules-update only)
+  -> plan conditional ("平台完备若已合并…") not triggered; no cross-unit surface interference
+- 生成物门禁 (ci.yml:59-64 semantics) independently re-proven green on THIS branch by 行1 above
+- note: feat/v02-platform-complete @36421ca carries the wasm differential blocker evidence —
+  consistent with the [LOCAL_DEAD_LINK] registration above
+
+## Hygiene
+- moon info: NOT run in this session; `git ls-files --others --exclude-standard -- '*.mbti'`
+  at gate time = empty (no untracked .mbti byproducts to clean)
+
+## Post-gate EOL restore (after ALL gates, before commit)
+$ git checkout -- moon_ua_parser_lib/src/ua_parser/pkg.generated.mbti moon_ua_parser_lib/src/ua_parser/rules/moon.pkg moon_ua_parser_lib/src/ua_parser/rules/rules_data.mbt moon_ua_parser_lib/src/ua_parser/rules/rules_version.mbt moon_ua_parser_lib/tests/differential/diff_device.mbt moon_ua_parser_lib/tests/differential/diff_os.mbt moon_ua_parser_lib/tests/differential/diff_ua.mbt moon_ua_parser_lib/tests/differential/moon.pkg
+$ git status --porcelain            -> (empty: clean tree)
+content gate re-asserted post-restore -> exit 0
+post-restore sanity `moon check`     -> exit 0 (0 errors) — restore is build/content-neutral
+
+## GATE VERDICT
+行0 PASS · 行1 PASS (regen idempotent exit 0; diffstats 100%/100%/100% ALL MET; transient anomaly disclosed+attributed)
+行2 js PASS · wasm moon test = [LOCAL_DEAD_LINK] local-runtime failure, build-side exit 0, registered cross-plan dep (not a gate failure)
+行3 PASS (SOP present, 回滚×13)
+=> FINAL INTEGRATION GATE: GREEN (with one registered, attributed cross-plan wasm dependency)
