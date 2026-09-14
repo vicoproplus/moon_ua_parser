@@ -1,0 +1,8 @@
+=== GATE-4: middleware per-package integration tests ===
+Total tests: 10, passed: 10, failed: 0.
+EXIT_MWCORE=0
+Total tests: 7, passed: 7, failed: 0.
+EXIT_CRESCENT=0
+--> Get /probe
+Total tests: 6, passed: 6, failed: 0.
+EXIT_MARS=0

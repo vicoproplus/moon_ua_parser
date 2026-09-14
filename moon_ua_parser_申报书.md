@@ -33,4 +33,3 @@ mooncakes.io 上已有 Crescent、mars（Hono 风格）、pony（Chi 风格）�
 
 - 规则来源：ua-parser/uap-core（./uap-core），Apache-2.0
 - 接口参考：ua-parser/uap-python（./uap-python），Apache-2.0
-- 本项目：moon_ua_parser，Apache-2.0，保留版权与 NOTICE 声明，README 注明参考范围

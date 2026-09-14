@@ -17,7 +17,7 @@ moon add vicoproplus/moon_ua_parser_middleware_core
 moon add vicoproplus/moon_ua_parser_crescent
 ```
 
-> Pre-release note: `vicoproplus/moon_ua_parser_crescent` is not yet published to the mooncakes registry — `moon add` applies after the first release; until then, users inside this repository's `moon.work` workspace already consume the package as a local path dependency.
+> Published: `vicoproplus/moon_ua_parser_crescent` 0.1.0 is live on the mooncakes registry (2026-09-13; publish evidence `docs/evidence/publish-final-2026-09-13.log` in the source repository) — `moon add` works as written.
 
 ## Register
 

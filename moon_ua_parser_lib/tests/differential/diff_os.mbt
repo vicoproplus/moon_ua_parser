@@ -12,6 +12,13 @@
 // means zero exemptions). Exempted cases stay in the array but
 // are skipped by the test block and counted by
 // `<domain>_exempted_count`.
+//
+// Corpus chunked into private functions (≤ the CHUNK_CASES cap)
+// and concatenated: a single package-level literal declared
+// 125,840 wasm locals under debug codegen (V8 cap 50,000) and
+// was statically rejected on the default wasm target. Chunk
+// functions bound each body's local count; the public array is
+// the order-preserving concat of the chunks (Followup-1).
 // Exempted indices for this domain: (none)
 
 ///|
@@ -29,8 +36,9 @@ pub(all) struct OsCase {
 } derive(Eq, Show)
 
 ///|
-/// All test_os.yaml cases, in upstream order.
-pub let os_cases : Array[OsCase] = [
+/// os cases [0..<483] of 483, in upstream order.
+fn os_chunk_0() -> Array[OsCase] {
+  [
   OsCase::{ input : "atc/1.0 watchOS/5.1.3 model/Watch3,4 hwp/t8004 build/16S535 (6; dt:156)", family : Some("WatchOS"), major : Some("5"), minor : Some("1"), patch : Some("3"), patch_minor : None },
   OsCase::{ input : "atc/1.0 watchOS/5.2 model/Watch4,4 hwp/t8006 build/16T225 (6; dt:193)", family : Some("WatchOS"), major : Some("5"), minor : Some("2"), patch : None, patch_minor : None },
   OsCase::{ input : "(null)/(null) watchOS/5.1.1 model/Watch3,3 hwp/t8004 build/16R600 (6; dt:155)", family : Some("WatchOS"), major : Some("5"), minor : Some("1"), patch : Some("1"), patch_minor : None },
@@ -514,7 +522,15 @@ pub let os_cases : Array[OsCase] = [
   OsCase::{ input : "APN/1.0 HashiCorp/1.0 Terraform/1.8.1 (+https://www.terraform.io) terraform-provider-aws/4.67.0 (+https://registry.terraform.io/providers/hashicorp/aws) aws-sdk-go-v2/1.18.0 os/macos lang/go/1.19.8 md/GOOS/darwin md/GOARCH/arm64 api/identitystore/1.16.11", family : Some("Mac OS X"), major : None, minor : None, patch : None, patch_minor : None },
   OsCase::{ input : "APN/1.0 HashiCorp/1.0 Terraform/1.8.0 (+https://www.terraform.io) terraform-provider-aws/4.67.0 (+https://registry.terraform.io/providers/hashicorp/aws) aws-sdk-go/1.44.261 (go1.19.8; darwin; arm64)", family : Some("Mac OS X"), major : None, minor : None, patch : None, patch_minor : None },
   OsCase::{ input : "Mozilla/5.0 (TAS-AL00 Build/HUAWEITAS-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/97.0.4692.98 Mobile Safari/537.36 T7/13.76 BDOS/1.0 (HarmonyOS 3.0.0) SP-engine/3.17.0 baiduboxapp/13.76.0.10 (Baidu; P1 12) NABar/1.0", family : Some("HarmonyOS"), major : Some("3"), minor : Some("0"), patch : Some("0"), patch_minor : None },
-]
+  ]
+}
+
+///|
+/// All test_os.yaml cases, in upstream order.
+/// Concatenation of the private chunk functions above (the split
+/// only bounds each function's debug-codegen local count; order is
+/// preserved, so the array position stays the 0-based YAML index.
+pub let os_cases : Array[OsCase] = os_chunk_0()
 
 ///|
 /// 0-based indices of cases exempted from differential assertions

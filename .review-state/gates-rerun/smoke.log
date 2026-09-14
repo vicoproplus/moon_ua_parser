@@ -1,0 +1,12 @@
+=== GATE-7 smoke rerun ===
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=18.41 ns_per_parse=54293829.99
+bench-round round=1 ops_per_sec=18.91 ns_per_parse=52872805.50
+bench-round round=2 ops_per_sec=18.38 ns_per_parse=54386041.50
+bench-round round=3 ops_per_sec=18.44 ns_per_parse=54219564.49
+bench-round round=4 ops_per_sec=18.53 ns_per_parse=53965711.00
+bench-round round=5 ops_per_sec=17.94 ns_per_parse=55714976.00
+bench-round round=6 ops_per_sec=18.21 ns_per_parse=54900554.00
+bench-result backend=native ops_per_sec=18.41 ns_per_parse=54293829.99 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=54293829.99 limit=150000000.00 (calibrated threshold, T-06)
+EXIT_SMOKE=0

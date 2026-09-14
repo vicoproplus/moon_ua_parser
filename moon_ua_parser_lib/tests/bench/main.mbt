@@ -226,16 +226,19 @@ fn max_int(values : Array[Int]) -> Int {
 }
 
 ///|
-/// Format a non-negative Double with exactly 2 decimal places in plain
-/// decimal form (never exponent form) so every key=value token in the
-/// report stays greppable and keeps the required >=2 decimals of
-/// precision.
+/// Format a Double (possibly negative) with exactly 2 decimal places in
+/// plain decimal form (never exponent form) so every key=value token in
+/// the report stays greppable and keeps the required >=2 decimals of
+/// precision. Negative values keep the sign on the whole part
+/// (e.g. the noisy template_est estimate can go negative).
 fn fmt_fixed2(v : Double) -> String {
-  let scaled = (v * 100.0).floor().to_int64()
+  let neg = v < 0.0
+  let scaled = ((if neg { -v } else { v }) * 100.0).floor().to_int64()
   let whole = (scaled / 100L).to_string()
   let frac = scaled % 100L
   let frac_txt = if frac < 10L { "0\{frac}" } else { "\{frac}" }
-  "\{whole}.\{frac_txt}"
+  let sign = if neg { "-" } else { "" }
+  "\{sign}\{whole}.\{frac_txt}"
 }
 
 ///|

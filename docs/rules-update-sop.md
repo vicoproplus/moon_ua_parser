@@ -62,7 +62,7 @@ git diff --exit-code && echo "START: content-clean"
 ```
 
 - **预期输出/判定**：`git diff --exit-code` 退出 0（打印 `START: content-clean`）即内容级干净，可开工。
-- `git status --porcelain` **允许出现 M 旗标**：本仓库 `core.autocrlf=true` 且无 `.gitattributes`，EOL-only 伪脏（HEAD blob LF、worktree 检出 CRLF）会让 porcelain 显示 M 而 `git diff` 无内容行。以内容级 `git diff --exit-code` 为准，porcelain 旗标不是阻断项，也不要去"修复"它（§3.4）。
+- `git status --porcelain` **允许出现 M 旗标**：本仓库 `core.autocrlf=true` 且无 `.gitattributes`（2026-09-13 注：仓库根此后新增了仅覆盖 `*.patch` 的 `.gitattributes`（`-text`，补丁字节保真用），不触及本节所述的 .mbt 源文件与生成物 EOL 行为），EOL-only 伪脏（HEAD blob LF、worktree 检出 CRLF）会让 porcelain 显示 M 而 `git diff` 无内容行。以内容级 `git diff --exit-code` 为准，porcelain 旗标不是阻断项，也不要去"修复"它（§3.4）。
 - 若 `git diff --exit-code` 非 0：存在真实未提交改动，先处理（提交或按 §6 还原）再继续。
 
 ### 1.3 基线身份确认
@@ -300,10 +300,10 @@ git diff --exit-code -- src/ua_parser/rules tests/differential && echo "IDEMPOTE
 
 - 在**仓库根**执行同 pathspec（`git diff --exit-code -- src/ua_parser/rules tests/differential`）会因 pathspec 落空匹配 0 个文件而**空转通过**（exit 0 但什么都没验证）——2026-09-13 实测确认。仓库根执行时必须带 `moon_ua_parser_lib/` 前缀。ci.yml:59-64 的该步骤 working-directory 即 `moon_ua_parser_lib`。
 
-**陷阱二（EOL）**：本仓库 `core.autocrlf=true` 且无 `.gitattributes`；HEAD blob 为 LF、worktree 检出为 CRLF、生成器以 `newline="\n"` 写 LF。因此再生成后 `git status --porcelain` 很可能显示生成文件 `M` 旗标，而内容零变化（git 转换安全性 dirtying，T-03 实测 9/9 文件 blob-id 与 HEAD 一致）。规则：
+**陷阱二（EOL）**：本仓库 `core.autocrlf=true` 且无 `.gitattributes`（2026-09-13 注：仓库根此后新增了仅覆盖 `*.patch` 的 `.gitattributes`，与本节所述生成物 EOL 行为无关）；HEAD blob 为 LF、worktree 检出为 CRLF、生成器以 `newline="\n"` 写 LF。因此再生成后 `git status --porcelain` 很可能显示生成文件 `M` 旗标，而内容零变化（git 转换安全性 dirtying，T-03 实测 9/9 文件 blob-id 与 HEAD 一致）。规则：
 
 - **幂等判据 = 内容级 `git diff --exit-code`（上面的命令）。禁止用「porcelain 为空」作幂等判据**——porcelain 只会误报。
-- **禁止**通过添加 `.gitattributes` 或修改 `core.autocrlf` 来"修"EOL（会波及全仓库行为）。
+- **禁止**通过添加 `.gitattributes` 或修改 `core.autocrlf` 来"修"EOL（会波及全仓库行为）。2026-09-13 注：此禁令针对用 `.gitattributes` 改写全仓 EOL 行为；仅覆盖 `*.patch` 字节保真的条目不在禁令内——仓库根已落地该形态（见 §1.2 注）。
 - EOL 脏位如需清场，用 `git checkout -- <files>` 还原——还原即消除 M 旗标，内容不变。
 
 - **预期输出/判定**：

@@ -23,10 +23,10 @@ domains.
   matcher (alternation order, replacement templates, group fallbacks,
   catch-all "Spider" rules, "Other" fallbacks).
 - **Three backends**: MoonBit native, JavaScript, and WebAssembly
-  (`preferred_target = "wasm"`). The differential suite runs green on native
-  and js; on wasm the test gate is the 7 non-differential packages (28 tests)
-  and `moon build --target wasm` succeeds, while the differential suite's wasm
-  test module is structurally unexecutable (see
+  (`preferred_target = "wasm"`). The differential suite runs green on all
+  three backends (wasm restored 2026-09-14 by chunk-functioning the
+  generated corpus — previously the single-literal debug wasm module
+  exceeded V8's 50,000-local cap; see
   [Differential quality](#differential-quality)).
 - **Diagnostic rule indices**: `parse(ua, with_rule_index=true)` reports the
   0-based index of the winning rule per domain (file order in
@@ -42,15 +42,16 @@ cd hello_ua
 moon add vicoproplus/moon_ua_parser
 ```
 
-> **Publishing status:** as of 2026-09-13 the mooncakes registry has no
-> published version of `vicoproplus/moon_ua_parser` yet (the registry API
-> returns 404 for the module), so the `moon add` step above fails until the
-> formal `moon publish` runs — a user-gated action, currently pending. The
-> packaging itself is already dry-run-verified: the server accepted the
-> package with status 202 and a 29-file zip (see
+> **Publishing status:** published — `vicoproplus/moon_ua_parser` 0.2.0 is
+> live on the mooncakes registry (2026-09-13; `moon search` and the package
+> page verified, see
+> [`../docs/evidence/publish-final-2026-09-13.log`](../docs/evidence/publish-final-2026-09-13.log)).
+> The `moon add` step above works as written. Historical note: before the
+> formal publish the packaging was dry-run-verified only (server accepted
+> with status 202 and a 29-file zip; known CLI quirk — the moon CLI exits
+> 127 after the server's 202 — see
 > [`../docs/evidence/publish-dryrun-2026-09-13.log`](../docs/evidence/publish-dryrun-2026-09-13.log)
-> and the Publishing note in [`../CHANGELOG.md`](../CHANGELOG.md)). Once the
-> registry lists version 0.2.0, this quickstart works as written.
+> and the Publishing note in [`../CHANGELOG.md`](../CHANGELOG.md)).
 
 Declare the package import in `cmd/main/moon.pkg` (the entry package created
 by `moon new`):
@@ -213,14 +214,16 @@ targets — native, js, and wasm `--release`
 
 Methodology notes:
 
-- The differential suite runs as tests on the native and js backends. Its
-  wasm test module is structurally unexecutable: under debug codegen the
-  generated corpus package's initialization function declares 125,840 wasm
-  locals — 2.52x V8's hard 50,000 per-function cap — so V8 rejects the module
-  statically (the `--release` codegen folds the corpus literals to 26,857
-  locals, which is why the wasm `--release` report above runs). The wasm test
-  gate therefore covers the 7 non-differential packages, and a generator
-  split is registered as follow-up work to restore it. Details:
+- The differential suite runs as tests on all three backends. The wasm test
+  module was structurally unexecutable until 2026-09-14: under debug codegen
+  the generated corpus package's initialization function declared 125,840
+  wasm locals — 2.52x V8's hard 50,000 per-function cap — so V8 rejected the
+  module statically (the `--release` codegen folds the corpus literals to
+  26,857 locals, which is why the wasm `--release` report above always ran).
+  `scripts/gen_tests.py` now emits the corpus as private chunk functions (≤
+  3,000 cases each) concatenated into the public array, which keeps every
+  function under the cap and restores `moon test` on wasm (3/3 differential
+  green; the wasm test gate is bare `moon test` again). Details:
   [`../docs/evidence/wasm-differential-blocker-2026-09-13.md`](../docs/evidence/wasm-differential-blocker-2026-09-13.md).
 
 - Browser-domain assertions compare `family` / `major` / `minor` / `patch`.

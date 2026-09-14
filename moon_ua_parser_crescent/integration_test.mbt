@@ -220,3 +220,29 @@ async test "missing User-Agent header: empty mount + forensics, no 5xx" {
   assert_eq(captured.val.length(), 1)
   assert_eq(captured.val[0].reason, @middleware_core.REASON_EMPTY_FALLBACK)
 }
+
+///|
+/// Malformed mounted-header read-back (SYNTHETIC, not from any uap-core
+/// golden): `parse_mounted_ua_info` is a public API consuming a raw header
+/// value the client controls — non-JSON, non-object JSON, and wrong-shape
+/// objects must degrade to `None` (never panic), while the minimal valid
+/// schema still round-trips. Pins the adapter's catch-all and the total
+/// match in `ua_info_from_json` (2026-09-13 review follow-up).
+async test "malformed mounted header: read-back degrades to None, valid schema still parses" {
+  // Not JSON at all: the adapter's catch-all degrades to None.
+  assert_eq(parse_mounted_ua_info("not json") is Some(_), false)
+  // JSON but not an object: from_json's non-object branch returns None.
+  assert_eq(parse_mounted_ua_info("[1,2,3]") is Some(_), false)
+  // Object whose domain fields are not objects: rejected.
+  assert_eq(
+    parse_mounted_ua_info("{\"browser\":1,\"os\":\"Windows\",\"device\":\"Phone\"}") is Some(_),
+    false,
+  )
+  // Object with only one domain: all three domains are required -> None.
+  assert_eq(parse_mounted_ua_info("{\"browser\":{\"family\":\"X\"}}") is Some(_), false)
+  // Positive control: the minimal valid schema still round-trips.
+  let minimal = parse_mounted_ua_info(
+    "{\"browser\":{\"family\":\"X\"},\"os\":{\"family\":\"Y\"},\"device\":{\"family\":\"Z\"}}",
+  )
+  assert_eq(minimal is Some(_), true)
+}

@@ -1,0 +1,63 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser/src/ua_parser/rules"
+
+import {
+  "moonbitlang/regexp",
+}
+
+// Values
+pub const UAP_CORE_COMMIT : String = "73e7340"
+
+pub const UAP_CORE_DATE : String = "2026-08-24"
+
+pub let device_regexps : Array[@regexp.Regexp]
+
+pub let device_rules : Array[DeviceRuleData]
+
+pub let os_regexps : Array[@regexp.Regexp]
+
+pub let os_rules : Array[OsRuleData]
+
+pub let ua_regexps : Array[@regexp.Regexp]
+
+pub let ua_rules : Array[UaRuleData]
+
+// Errors
+
+// Types and methods
+pub(all) struct DeviceRuleData {
+  pattern : String
+  flag_i : Bool
+  family : Array[TemplatePart]?
+  brand : Array[TemplatePart]?
+  model : Array[TemplatePart]?
+}
+
+pub(all) struct OsRuleData {
+  pattern : String
+  flag_i : Bool
+  family : Array[TemplatePart]?
+  v1 : Array[TemplatePart]?
+  v2 : Array[TemplatePart]?
+  v3 : Array[TemplatePart]?
+  v4 : Array[TemplatePart]?
+}
+
+pub enum TemplatePart {
+  Literal(String)
+  Group(Int)
+}
+
+pub(all) struct UaRuleData {
+  pattern : String
+  flag_i : Bool
+  family : Array[TemplatePart]?
+  v1 : Array[TemplatePart]?
+  v2 : Array[TemplatePart]?
+  v3 : Array[TemplatePart]?
+  v4 : Array[TemplatePart]?
+}
+
+// Type aliases
+
+// Traits

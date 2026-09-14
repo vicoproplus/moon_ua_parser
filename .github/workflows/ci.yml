@@ -64,8 +64,10 @@ jobs:
         run: moon update
 
       # ---------------------------------------------------------------------
-      # v0.2 framework middleware (T-06) — INSERTED before the first moon
-      # command; the existing steps below are untouched (PRD 10.6 S3).
+      # v0.2 framework middleware (T-06) — INSERTED before the first
+      # workspace-level compile (the moon update step above refreshes only
+      # the registry index, no dependency fetch); the existing steps below
+      # are untouched (PRD 10.6 S3).
       #
       # The moon workspace (moon.work) resolves ONE shared dependency graph
       # for all members into the root .mooncakes/ (gitignored, so a fresh
@@ -117,27 +119,24 @@ jobs:
         run: moon test --target js
 
       # preferred_target is wasm in moon.mod, so this is the wasm runtime gate.
-      # Bare `moon test` is structurally red on every platform: the generated
-      # debug-codegen wasm module of tests/differential declares 125,840 locals
-      # in its package-init function, over the V8 engine's 50,000 hard cap, so
-      # moonrun (V8-based everywhere) rejects the module statically before any
-      # test runs. CI never surfaced this because this workflow had 0 runs.
-      # Evidence: docs/evidence/wasm-differential-blocker-2026-09-13.md.
-      # Followup-1 (split tests/differential into several packages in
-      # scripts/gen_tests.py, then regenerate) is the registered fix that
-      # restores the wasm differential test gate. Until then, the gate is the
-      # 7 non-differential packages, listed explicitly (28 tests, proven green
-      # on wasm).
+      # Followup-1 landed (2026-09-14): scripts/gen_tests.py now emits each
+      # corpus as private chunk functions (≤ 3000 cases each) concatenated
+      # into the public array, so no single function's debug-codegen wasm
+      # local count exceeds V8's 50,000 hard cap — the single-package literal
+      # previously declared 125,840 locals and was statically rejected on
+      # every V8-based runtime. Bare `moon test` now runs the differential
+      # suite on wasm (evidence: docs/evidence/wasm-differential-blocker-
+      # 2026-09-13.md §5).
+      #   moonc link-core of the generated diffstats/differential wasm test
+      #   driver recurses deeper than Linux's default 8 MiB main-thread stack
+      #   (moonc ICE "Stack overflow" on stock Linux, repro'd 2026-09-13;
+      #   RUST_MIN_STACK alone does not help). Raise the limit for the link.
       - name: Tests (wasm, default target)
         timeout-minutes: 15
         working-directory: moon_ua_parser_lib
         run: |
-          # moonc link-core of the generated diffstats/differential wasm test
-          # driver recurses deeper than Linux's default 8 MiB main-thread stack
-          # (moonc ICE "Stack overflow" on stock Linux, repro'd 2026-09-13;
-          # RUST_MIN_STACK alone does not help). Raise the limit for the link.
           ulimit -s unlimited
-          moon test -p . -p examples/middleware -p src/ua_parser -p src/ua_parser/rules -p tests/diffstats -p tests/robust -p tests/semantics
+          moon test
 
       - name: Build (wasm)
         timeout-minutes: 15
@@ -184,12 +183,36 @@ jobs:
       # Middleware integration tests: one moon test -p selector per
       # framework adapter (crescent = header mounting, mars = Variables
       # mounting); run from the repo root against the shared workspace graph.
-      - name: Middleware integration tests (crescent + mars)
+      - name: Middleware integration tests (middleware_core + crescent + mars)
         timeout-minutes: 15
         working-directory: .
         run: |
+          # middleware_core's unit tests must run in CI too (2026-09-13
+          # review finding): its Err-branch degradation contract
+          # (REASON_PARSE_ERROR) is unreachable from the adapter integration
+          # tests while real parsing never fails, so this step is that
+          # branch's only CI coverage.
+          moon test --target native -p moon_ua_parser_middleware_core
           moon test --target native -p moon_ua_parser_crescent
           moon test --target native -p moon_ua_parser_mars
+          # middleware_core is a pure helper with zero native-capability call
+          # sites and no supported_targets restriction — this line is its
+          # cross-target evidence (2026-09-13 review follow-up; the two
+          # adapters stay -all+native by declared design).
+          moon test --target js -p moon_ua_parser_middleware_core
+
+      # Interface drift gate for the middleware packages: the lib-scoped
+      # "Interface drift check" step above runs inside moon_ua_parser_lib, so
+      # its pathspec cannot match the sibling packages' committed
+      # pkg.generated.mbti (2026-09-13 review finding). moon info at the
+      # workspace root regenerates every member's interface files;
+      # core.autocrlf=false keeps the diff content-level on any host.
+      - name: Interface drift check (middleware packages)
+        timeout-minutes: 15
+        working-directory: .
+        run: |
+          moon info
+          git -c core.autocrlf=false diff --exit-code -- 'moon_ua_parser_middleware_core/*.mbti' 'moon_ua_parser_crescent/*.mbti' 'moon_ua_parser_mars/*.mbti'
 
       # Warning-baseline gate (final-review recommendation): the
       # workspace-wide `moon check --target native` warning set must never

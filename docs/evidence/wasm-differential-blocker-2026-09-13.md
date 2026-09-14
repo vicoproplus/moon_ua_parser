@@ -1,12 +1,19 @@
 # wasm × differential corpus — structural blocker record (2026-09-13)
 
-Status: **blocker stands, scope = the debug/test wasm module only.** The wasm
-test gate is the 7 non-differential packages (ruling B; T-01: 28/28 green);
-re-verification queued as R-1. The three-domain differential REPORT path is
-unblocked on all three targets — native, js and wasm `--release` (see
-`diffstats-{native,js,wasm}-2026-09-13.txt`, report sections byte-identical,
-md5 `bff7fc84866a9ad4b6ac8a79299788f9`). Followup-1 (generator split) remains
-registered to restore the wasm differential **TEST** gate.
+Status (updated 2026-09-14): **RESOLVED — Followup-1 landed; see §5.** The
+wasm differential TEST gate is restored: the generator now chunk-functions
+the corpus and bare `moon test` (default wasm target) runs the differential
+suite green (3/3 local; evidence §5). The historical 2026-09-13 status
+below is kept verbatim as the Ruling B / registration record.
+
+Status (2026-09-13): **blocker stands, scope = the debug/test wasm module
+only.** The wasm test gate is the 7 non-differential packages (ruling B;
+T-01: 28/28 green); re-verification queued as R-1. The three-domain
+differential REPORT path is unblocked on all three targets — native, js and
+wasm `--release` (see `diffstats-{native,js,wasm}-2026-09-13.txt`, report
+sections byte-identical, md5 `bff7fc84866a9ad4b6ac8a79299788f9`). Followup-1
+(generator split) remains registered to restore the wasm differential
+**TEST** gate.
 
 ## 1. The structural obstacle
 
@@ -98,3 +105,36 @@ Therefore the precise statement is:
 
 Ruling B's acceptance (native+js, later widened in T-02 finalization to include
 the wasm report as core deliverable evidence) is met on all three targets.
+
+## 5. Resolved — Followup-1 landed (2026-09-14)
+
+The generator-level fix that this document registered as **Followup-1** is
+now in place (toolchain `moon 0.1.20260904`, Windows 10 local, 2026-09-14):
+`scripts/gen_tests.py` no longer emits the corpus as a single package-level
+array literal. It emits private chunk functions
+(`<domain>_chunk_0() … <domain>_chunk_N()`, at most `CHUNK_CASES = 3000`
+entries each, so ~21,000 wasm locals: ~7 locals/case measured here times the
+chunk size, well under V8's 50,000 cap) and concatenates them into the
+public array via the core `Array` `Add` impl. The public surface
+(`pkg.generated.mbti`, diffstats' `@differential` entry points) is unchanged.
+
+Verified green (all gates, local Windows 10, moonrun V8-based):
+
+- `moon test --target wasm -p vicoproplus/moon_ua_parser/tests/differential`
+  → `Total tests: 3, passed: 3, failed: 0.` (was previously the static
+  `local count too large` rejection).
+- bare `moon test` (default wasm target) inside `moon_ua_parser_lib` →
+  `Total tests: 41, passed: 41, failed: 0. [wasm]` + the native example route.
+- regression sweep (native 55/55, js 41/41, native+wasm `--release`
+  diffstats reports all three domains 100.00% and byte-consistent with the
+  pre-fix md5 `bff7fc84866a9ad4b6ac8a79299788f9`, perf smoke pass
+  ~42.8 ms/parse < 150 ms limit).
+- idempotent regeneration: a second `python scripts/gen_tests.py` run leaves
+  `tests/differential` byte-identical.
+
+The CI wasm test step (`ci.yml` "Tests (wasm, default target)") was reverted
+from the explicit 7-package list to bare `moon test`, keeping the
+`ulimit -s unlimited` line that the Linux link-core stack-depth workaround
+still requires. Sections 1–4 above are kept verbatim as the historical
+record of Ruling B and the Followup-1 registration.
+

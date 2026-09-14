@@ -1,0 +1,694 @@
+=== FIX-VERIFY 1: middleware_core on js (decides supported_targets disposition) ===
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Total tests: 10, passed: 10, failed: 0.
+EXIT_MWCORE_JS=0
+
+=== FIX-VERIFY 2: workspace check (warning baseline) ===
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Finished. moon: ran 10 tasks, now up to date (18 warnings, 0 errors)
+EXIT_CHECK=0
+TOTAL_WARNINGS=30 (must be <= 18)
+DEP_OUTSIDE_LIB=0 (must be 0)
+
+=== FIX-VERIFY 3: crescent package tests (expect 8/8) ===
+moon_ua_parser_crescent.internal_test.c
+ua_echo.internal_test.c
+moon_ua_parser_crescent.blackbox_test.c
+ua_echo.blackbox_test.c
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Total tests: 8, passed: 8, failed: 0.
+EXIT_CRESCENT=0
+
+=== FIX-VERIFY 4: full native suite (workspace root) ===
+ua_parser.internal_test.c
+ua_parser.blackbox_test.c
+middleware.internal_test.c
+moon_ua_parser_mars.internal_test.c
+moon_ua_parser_middleware_core.blackbox_test.c
+robust.blackbox_test.c
+rules.internal_test.c
+ua_echo.internal_test.c
+semantics.blackbox_test.c
+bench.internal_test.c
+moon_ua_parser.blackbox_test.c
+diffstats.internal_test.c
+differential.blackbox_test.c
+robust.internal_test.c
+semantics.internal_test.c
+moon_ua_parser_middleware_core.internal_test.c
+middleware.blackbox_test.c
+rules.blackbox_test.c
+moon_ua_parser_mars.blackbox_test.c
+bench.blackbox_test.c
+ua_echo.blackbox_test.c
+diffstats.blackbox_test.c
+differential.internal_test.c
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+--> Get /probe
+Total tests: 55, passed: 55, failed: 0.
+EXIT_NATIVE=0
+
+=== FIX-VERIFY 5: bench smoke (fmt_fixed2 touched) ===
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+bench-config mode=smoke backend=native corpus_size=10000 sample_count=200 stride=50 warmup_rounds=2 timed_rounds=7 strata=7 smoke_threshold_ns_per_parse=150000000.00 (calibrated, T-06)
+bench-round round=0 ops_per_sec=25.76 ns_per_parse=38818784.50
+bench-round round=1 ops_per_sec=24.20 ns_per_parse=41317554.50
+bench-round round=2 ops_per_sec=24.96 ns_per_parse=40056193.50
+bench-round round=3 ops_per_sec=24.63 ns_per_parse=40596770.50
+bench-round round=4 ops_per_sec=25.34 ns_per_parse=39451260.50
+bench-round round=5 ops_per_sec=24.85 ns_per_parse=40236960.00
+bench-round round=6 ops_per_sec=25.77 ns_per_parse=38791863.50
+bench-result backend=native ops_per_sec=24.96 ns_per_parse=40056193.50 sample_set_hash=sha256:3640d3b74cd4efd6e5e1723d8e23493e3399b8b616d977cd5e18fb66302c4244 samples_checksum=6122 rounds_consistent=true
+smoke-verdict result=pass ns_per_parse=40056193.50 limit=150000000.00 (calibrated threshold, T-06)
+EXIT_SMOKE=0
+
+=== FIX-VERIFY 6: new workspace mbti drift gate command ===
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:19:17 ]
+    │
+ 19 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:25:16 ]
+    │
+ 25 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:26:14 ]
+    │
+ 26 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:46:17 ]
+    │
+ 46 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:52:16 ]
+    │
+ 52 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:53:14 ]
+    │
+ 53 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:67:11 ]
+    │
+ 67 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:73:16 ]
+    │
+ 73 │   rule_index : Int?
+    │                ──┬─  
+    │                  ╰─── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:89:14 ]
+    │
+ 89 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0006]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:99:3 ]
+    │
+ 99 │   RegexpCompileError(String)
+    │   ─────────┬────────  
+    │            ╰────────── Warning (unused_constructor): Variant 'RegexpCompileError' is never constructed
+────╯
+Warning: [0027]
+     ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\src\ua_parser\types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Show)
+     │              ──┬─  
+     │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+─────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:26:11 ]
+    │
+ 26 │   model : String?
+    │           ───┬───  
+    │              ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_device.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:28:17 ]
+    │
+ 28 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_os.mbt:29:14 ]
+    │
+ 29 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Warning: [0020]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:32:17 ]
+    │
+ 32 │   patch_minor : String?
+    │                 ───┬───  
+    │                    ╰───── Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+────╯
+Warning: [0027]
+    ╭─[ F:\moonbit比赛\moon_ua_parser\moon_ua_parser_lib\tests\differential\diff_ua.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Show)
+    │              ──┬─  
+    │                ╰─── Warning (deprecated_syntax): `derive(Show)` is deprecated. Use `derive(Debug)` or manually implement the `Show` trait instead.
+────╯
+Finished. moon: ran 5 tasks, now up to date (18 warnings, 0 errors)
+EXIT_INFO=0
+EXIT_MBTI_MW=0
+FIX_VERIFY_DONE

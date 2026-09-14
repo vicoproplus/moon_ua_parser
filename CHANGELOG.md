@@ -5,6 +5,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project aims to follow [Semantic Versioning](https://semver.org/).
 
+
+## [Unreleased]
+
+### Fixed
+
+- Followup-1 landed: the wasm differential TEST gate is restored.
+  `scripts/gen_tests.py` now emits each differential corpus as private chunk
+  functions (≤ 3,000 cases each, ~21,000 wasm locals under debug codegen)
+  and concatenates them into the public array, replacing the single
+  package-level literal whose package-init function declared 125,840 wasm
+  locals — 2.52x V8's hard per-function cap of 50,000 — which V8 rejected
+  statically on every V8-based runtime (moonrun included). The public
+  surface (`pkg.generated.mbti`, tests/diffstats entry points) is unchanged;
+  case order is preserved so array position still equals the 0-based YAML
+  index. Verified: `moon test --target wasm
+  -p vicoproplus/moon_ua_parser/tests/differential` → 3/3, bare `moon test`
+  (default wasm) → 41/41, native 55/55, js 41/41, native+wasm `--release`
+  diffstats reports unchanged (all three domains 100.00%, report-section md5
+  `bff7fc84866a9ad4b6ac8a79299788f9`), perf smoke pass; regeneration is
+  idempotent (byte-identical). Evidence:
+  `docs/evidence/wasm-differential-blocker-2026-09-13.md` §5.
+- CI: the wasm test step converted back from the explicit 7-package form to
+  bare `moon test` (the Linux link-core `ulimit -s unlimited` workaround is
+  kept), now that the differential package no longer exceeds the V8 cap.
+
 ## [0.2.0] - 2026-09-13
 
 Scope: this entry covers the platform-completeness (平台完备) unit of the v0.2
@@ -48,7 +73,8 @@ final close.
   gate scope with the structural blocker note, and the three-target diffstats
   report replacing the native-only table.
 - Deprecation migration in handwritten test files: `Show`-routed debug call
-  sites migrated to `Debug` semantics, 26 call sites -> 0 (tests/semantics 17,
+  sites migrated to `Debug` semantics, 26 deprecation warnings -> 0
+  (tests/semantics 17,
   tests/robust 9, including `StringBuilder::new` -> `StringBuilder()`). The
   `derive(Show)` relied on by the frozen interface contract is kept (11
   documented residuals in `src/ua_parser/types.mbt`); the 6 generated
@@ -74,20 +100,22 @@ final close.
 
 ### Publishing
 
-- The mooncakes registry has no published version of
-  `vicoproplus/moon_ua_parser` yet: as of 2026-09-13 the registry API returns
-  404 for the module. The formal `moon publish` for 0.2.0 is a user-gated
-  external action and is pending explicit user confirmation — no publish has
-  occurred.
-- Packaging is dry-run-verified for the 0.1.0 manifest then current:
-  `moon publish --dry-run` packaged a 29-file zip and the server accepted it
-  (status 202, "Dry run completed successfully. No changes were made"), with
-  a known CLI quirk — the moon CLI exits 127 after the server's 202 —
-  registered and carried into the publish task. Evidence:
+- **Published (2026-09-13):** all four packages are live on the mooncakes
+  registry — `vicoproplus/moon_ua_parser` 0.2.0 plus
+  `moon_ua_parser_middleware_core` / `moon_ua_parser_crescent` /
+  `moon_ua_parser_mars` at 0.1.0. The formal publish ran through the GH
+  Actions Linux workflow (`.github/workflows/publish-manual.yml`, run
+  34762686652) because the Windows publish sandbox hits the upstream
+  mizchi/x fd defect; `moon search` and the registry package pages were
+  verified. Evidence: `docs/evidence/publish-final-2026-09-13.log`.
+- Consumers: `moon add vicoproplus/moon_ua_parser` (and the three companion
+  packages) works against the published versions.
+- History: before the formal publish, the registry API returned 404 for the
+  module and packaging was dry-run-verified only — `moon publish --dry-run`
+  packaged a 29-file zip and the server accepted it (status 202, "Dry run
+  completed successfully. No changes were made"), with a known CLI quirk
+  (the moon CLI exits 127 after the server's 202). Evidence:
   `docs/evidence/publish-dryrun-2026-09-13.log`.
-- Consumers should `moon add vicoproplus/moon_ua_parser` only after the
-  registry shows version 0.2.0; until then the quickstart's `moon add` step
-  fails.
 
 ## [0.1.0] - 2026-09-10
 

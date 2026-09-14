@@ -13,6 +13,28 @@ and writes, into ``moon_ua_parser_lib/tests/differential/``:
 - ``diff_device.mbt`` -- device cases likewise over ``parse_device``.
 - ``moon.pkg``        -- package manifest (imports ``src/ua_parser``).
 
+WHY THE CORPUS IS CHUNKED INTO FUNCTIONS (Followup-1): under **debug**
+codegen the package-initialization function of the generated package used to
+declare **125,840 wasm locals** (the corpus was emitted as a single
+package-level ``pub let … = [ … ]`` literal), 2.52x the V8 engine's hard
+per-function cap of 50,000. V8 rejects such a module statically — on every
+V8-based runtime, moonrun included — before running a single test, so
+``moon test`` under the default wasm target could never execute the
+differential suite. The fix keeps the public surface byte-identical but
+emits each corpus as a sequence of private **chunk functions**
+(``<domain>_chunk_0() … <domain>_chunk_N()``, at most ``CHUNK_CASES``
+entries each) and concatenates them into the public array with the core
+``Array`` ``Add`` impl. Each chunk function's local count is bounded by its
+own body (~7/case measured, so ≤3,000 cases ≈ 21,000 locals, well under the
+cap) while the package init now only chains the chunk results — a handful of
+locals. Release codegen folds the literals and was never blocked (the
+folded full corpus init measured 26,857 locals), so the diffstats --release
+report path is unaffected.
+
+Case order is preserved exactly: chunk boundaries are contiguous slices of
+the upstream order and concatenation is order-preserving, so the 0-based
+array position remains the 0-based ``test_cases`` YAML index.
+
 Encoding contract (None vs Some):
 - The upstream YAML encodes "no expectation" in two ways: a MISSING key and
   an EMPTY value (``patch:`` / ``patch: ''``). Both convert to ``None`` in
@@ -67,7 +89,7 @@ exemptions). Shape::
 Indices are 0-based positions into the corresponding YAML ``test_cases``
 order. An exempted case stays in the generated array at its upstream
 position but is SKIPPED by the looping assertion, COUNTED in a generated
-``pub const <domain>_exempted_count : Int``, listed in the generated file
+``pub let <domain>_exempted_count : Int``, listed in the generated file
 header comment, and carried in a ``<domain>_exempted`` index array.
 
 The script locates its inputs from its own location first, then relative
@@ -115,6 +137,12 @@ ERROR_LOG = REPO_ROOT / "scripts" / "gen_tests.error.log"
 EXEMPTIONS_PATH = REPO_ROOT / "scripts" / "test_exemptions.json"
 GENERATOR_NAME = "scripts/gen_tests.py"
 REGENERATE_CMD = "python scripts/gen_tests.py"
+
+# Maximum cases per chunk function. Each case materializes ~7 wasm locals
+# under debug codegen (125,840 locals / 18,213 cases measured on the
+# single-package corpus), so 3,000 cases ≈ 21,000 locals stays well under
+# V8's 50,000 hard per-function cap (Followup-1).
+CHUNK_CASES = 3000
 
 
 class GenError(Exception):
@@ -364,8 +392,36 @@ def header(source: str) -> str:
             "// means zero exemptions). Exempted cases stay in the array but",
             "// are skipped by the test block and counted by",
             "// `<domain>_exempted_count`.",
+            "//",
+            "// Corpus chunked into private functions (≤ the CHUNK_CASES cap)",
+            "// and concatenated: a single package-level literal declared",
+            "// 125,840 wasm locals under debug codegen (V8 cap 50,000) and",
+            "// was statically rejected on the default wasm target. Chunk",
+            "// functions bound each body's local count; the public array is",
+            "// the order-preserving concat of the chunks (Followup-1).",
         ]
     )
+
+
+def _chunked_chunks(cases: list[dict]) -> list[list[dict]]:
+    """Split the case list into contiguous chunks of at most CHUNK_CASES."""
+    return [cases[i:i + CHUNK_CASES] for i in range(0, len(cases), CHUNK_CASES)]
+
+
+def render_case_literal(domain: Domain, cases: list[dict], offset: int) -> list[str]:
+    """Render the `Struct::{ ... }` entries for a contiguous case slice.
+
+    `offset` is the global 0-based index of the slice's first case, used only
+    in the generated comments (the entries themselves carry no index literal).
+    """
+    lines = []
+    for local, case in enumerate(cases):
+        index = offset + local
+        where = f"{domain.yaml_name}[{index}]"
+        items = [f"input : {moonbit_quote(case[domain.user_agent_key])}"]
+        items += [f"{f} : {expected_field(case, f, where)}" for f in domain.fields]
+        lines.append(f"  {domain.struct_name}::{{ {', '.join(items)} }},")
+    return lines
 
 
 def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -> str:
@@ -390,17 +446,43 @@ def render_domain_file(domain: Domain, cases: list[dict], exempted: list[int]) -
         lines.append(f"  {field} : String?")
     lines.append("} derive(Eq, Show)")
     lines.append("")
+
+    # Corpus: chunk functions + order-preserving concatenation. Each chunk
+    # function keeps its own wasm-debug local count under V8's 50,000 cap;
+    # the public array is the concat (Followup-1).
+    chunks = _chunked_chunks(cases)
+    total = len(cases)
+    for n, chunk in enumerate(chunks):
+        start = n * CHUNK_CASES
+        end = start + len(chunk)
+        lines.append("///|")
+        lines.append(
+            f"/// {domain.key} cases [{start}..<{end}] of {total}, in upstream order."
+        )
+        lines.append(
+            f"fn {domain.key}_chunk_{n}() -> Array[{domain.struct_name}] {{"
+        )
+        lines.append("  [")
+        lines.extend(render_case_literal(domain, chunk, start))
+        lines.append("  ]")
+        lines.append("}")
+        lines.append("")
     lines.append("///|")
     lines.append(f"/// All {domain.yaml_name} cases, in upstream order.")
-    lines.append(f"pub let {domain.array_name} : Array[{domain.struct_name}] = [")
-    case_lines = []
-    for index, case in enumerate(cases):
-        where = f"{domain.yaml_name}[{index}]"
-        items = [f"input : {moonbit_quote(case[domain.user_agent_key])}"]
-        items += [f"{f} : {expected_field(case, f, where)}" for f in domain.fields]
-        case_lines.append(f"  {domain.struct_name}::{{ {', '.join(items)} }},")
-    lines.extend(case_lines)
-    lines.append("]")
+    lines.append(
+        "/// Concatenation of the private chunk functions above (the split"
+    )
+    lines.append(
+        "/// only bounds each function's debug-codegen local count; order is"
+    )
+    lines.append("/// preserved, so the array position stays the 0-based YAML index.")
+    if len(chunks) == 1:
+        concat = f"{domain.key}_chunk_0()"
+    else:
+        concat = f"{domain.key}_chunk_0()"
+        for n in range(1, len(chunks)):
+            concat = f"({concat}) + {domain.key}_chunk_{n}()"
+    lines.append(f"pub let {domain.array_name} : Array[{domain.struct_name}] = {concat}")
     lines.append("")
     lines.append("///|")
     lines.append("/// 0-based indices of cases exempted from differential assertions")
@@ -592,9 +674,10 @@ def main() -> None:
         path = OUTPUT_DIR / f"diff_{domain.key}.mbt"
         atomic_write(path, content)
         total += len(cases)
+        n_chunks = len(_chunked_chunks(cases))
         print(
             f"{domain.yaml_name:18s}: {len(cases):6d} cases "
-            f"({len(exemptions[domain.key])} exempted)"
+            f"({len(exemptions[domain.key])} exempted, {n_chunks} chunk(s))"
         )
     pkg_path = OUTPUT_DIR / "moon.pkg"
     atomic_write(pkg_path, render_moon_pkg())

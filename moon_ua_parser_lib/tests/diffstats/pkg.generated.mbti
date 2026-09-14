@@ -1,0 +1,13 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser/tests/diffstats"
+
+// Values
+
+// Errors
+
+// Types and methods
+type DomainStats
+
+// Type aliases
+
+// Traits

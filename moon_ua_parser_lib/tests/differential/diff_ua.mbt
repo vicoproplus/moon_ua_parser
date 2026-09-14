@@ -12,6 +12,13 @@
 // means zero exemptions). Exempted cases stay in the array but
 // are skipped by the test block and counted by
 // `<domain>_exempted_count`.
+//
+// Corpus chunked into private functions (≤ the CHUNK_CASES cap)
+// and concatenated: a single package-level literal declared
+// 125,840 wasm locals under debug codegen (V8 cap 50,000) and
+// was statically rejected on the default wasm target. Chunk
+// functions bound each body's local count; the public array is
+// the order-preserving concat of the chunks (Followup-1).
 // Exempted indices for this domain: (none)
 
 // NOT ASSERTED (kept as generated data): patch_minor --
@@ -33,8 +40,9 @@ pub(all) struct UaCase {
 } derive(Eq, Show)
 
 ///|
-/// All test_ua.yaml cases, in upstream order.
-pub let ua_cases : Array[UaCase] = [
+/// ua cases [0..<1601] of 1601, in upstream order.
+fn ua_chunk_0() -> Array[UaCase] {
+  [
   UaCase::{ input : "Luminary/1.0", family : Some("Luminary"), major : Some("1"), minor : Some("0"), patch : None, patch_minor : None },
   UaCase::{ input : "Luminary/70 CFNetwork/978.0.7 Darwin/18.5.0", family : Some("Luminary"), major : Some("70"), minor : None, patch : None, patch_minor : None },
   UaCase::{ input : "Luminary/70 CFNetwork/975.0.3 Darwin/18.2.0", family : Some("Luminary"), major : Some("70"), minor : None, patch : None, patch_minor : None },
@@ -1636,7 +1644,15 @@ pub let ua_cases : Array[UaCase] = [
   UaCase::{ input : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0 Mypal/74.1.4", family : Some("Mypal Browser"), major : Some("74"), minor : Some("1"), patch : Some("4"), patch_minor : None },
   UaCase::{ input : "Mozilla/5.0 (macOS; AArch64) Ladybird/1.0 Chrome/146.0.0.0 AppleWebKit/537.36 Safari/537.36", family : Some("Ladybird"), major : Some("1"), minor : Some("0"), patch : None, patch_minor : None },
   UaCase::{ input : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 Teams/26106.2110.4675.2592 (50)", family : Some("Microsoft Teams"), major : Some("26106"), minor : Some("2110"), patch : Some("4675"), patch_minor : None },
-]
+  ]
+}
+
+///|
+/// All test_ua.yaml cases, in upstream order.
+/// Concatenation of the private chunk functions above (the split
+/// only bounds each function's debug-codegen local count; order is
+/// preserved, so the array position stays the 0-based YAML index.
+pub let ua_cases : Array[UaCase] = ua_chunk_0()
 
 ///|
 /// 0-based indices of cases exempted from differential assertions

@@ -4,18 +4,20 @@
 //   moon run --target native --release tests/diffstats
 //   moon run --target js --release tests/diffstats
 //   moon run --target wasm --release tests/diffstats
-// from the moon project root. Target matrix (verified 2026-09-13):
+// from the moon project root. Target matrix (verified 2026-09-13, wasm test
+// gate restored 2026-09-14):
 //   - native / js: always fine
 //     (docs/evidence/diffstats-{native,js}-2026-09-13.txt).
 //   - wasm --release report run: works — release codegen folds the corpus so
-//     the largest function (the differential package init) declares 26,857
-//     locals, inside the V8 engine's 50,000-local cap
+//     the largest function declares 26,857 locals, inside the V8 engine's
+//     50,000-local cap
 //     (docs/evidence/diffstats-wasm-2026-09-13.txt).
-//   - wasm DEBUG/test module of tests/differential: structurally blocked —
-//     its package init declares 125,840 locals > the V8 50,000 hard cap, so
-//     `moon test` under the default wasm target excludes tests/differential
-//     (T-01 evidence: docs/evidence/wasm-differential-blocker-2026-09-13.md
-//     §2; generator split to restore the wasm test gate = Followup-1).
+//   - wasm DEBUG/test module of tests/differential: restored (Followup-1,
+//     2026-09-14) — scripts/gen_tests.py now emits the corpus as private
+//     chunk functions (≤ 3,000 cases each) concatenated into the public
+//     array, instead of one package-level literal whose init declared
+//     125,840 locals > the V8 50,000 hard cap and was statically rejected
+//     (docs/evidence/wasm-differential-blocker-2026-09-13.md §5).
 // Imports the generated differential package and computes the per-domain
 // pass-rate table mandated by docs/regex-migration.md:
 //

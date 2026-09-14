@@ -12,6 +12,13 @@
 // means zero exemptions). Exempted cases stay in the array but
 // are skipped by the test block and counted by
 // `<domain>_exempted_count`.
+//
+// Corpus chunked into private functions (≤ the CHUNK_CASES cap)
+// and concatenated: a single package-level literal declared
+// 125,840 wasm locals under debug codegen (V8 cap 50,000) and
+// was statically rejected on the default wasm target. Chunk
+// functions bound each body's local count; the public array is
+// the order-preserving concat of the chunks (Followup-1).
 // Exempted indices for this domain: (none)
 
 ///|
@@ -27,8 +34,9 @@ pub(all) struct DeviceCase {
 } derive(Eq, Show)
 
 ///|
-/// All test_device.yaml cases, in upstream order.
-pub let device_cases : Array[DeviceCase] = [
+/// device cases [0..<3000] of 16129, in upstream order.
+fn device_chunk_0() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "atc/1.0 watchOS/5.1.3 model/Watch3,4 hwp/t8004 build/16S535 (6; dt:156)", family : Some("Apple Watch"), brand : Some("Apple"), model : Some("Watch3,4") },
   DeviceCase::{ input : "atc/1.0 watchOS/5.2 model/Watch4,4 hwp/t8006 build/16T225 (6; dt:193)", family : Some("Apple Watch"), brand : Some("Apple"), model : Some("Watch4,4") },
   DeviceCase::{ input : "(null)/(null) watchOS/5.1.1 model/Watch3,3 hwp/t8004 build/16R600 (6; dt:155)", family : Some("Apple Watch"), brand : Some("Apple"), model : Some("Watch3,3") },
@@ -3029,6 +3037,13 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.1-update1; de-; HTC Legend Build/ERE27) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17", family : Some("HTC Legend"), brand : Some("HTC"), model : Some("Legend") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.2; ru-ru; htc_legend Build/OPENMASTER) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1,gzip(gfe),gzip(gfe)", family : Some("HTC legend"), brand : Some("HTC"), model : Some("legend") },
   DeviceCase::{ input : "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0; HTC; LEO)", family : Some("HTC LEO"), brand : Some("HTC"), model : Some("LEO") },
+  ]
+}
+
+///|
+/// device cases [3000..<6000] of 16129, in upstream order.
+fn device_chunk_1() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.2; en-us; HTC_Lexikon Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", family : Some("HTC Lexikon"), brand : Some("HTC"), model : Some("Lexikon") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android Donut; en-us; HTC_Lexikon_C Build/Donut) AppleWebKit/528.2 (KHTML, like Gecko) Version/3.1.2 Mobile Safari/525.20.1 CSOUTH-6325", family : Some("HTC Lexikon C"), brand : Some("HTC"), model : Some("Lexikon C") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.1-update1; de-de; HTC Liberty Build/ERE27) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17", family : Some("HTC Liberty"), brand : Some("HTC"), model : Some("Liberty") },
@@ -6029,6 +6044,13 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "Mozilla/5.0 (Linux; Android 2.3.4; LG-P690f Build/GRJ22) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.58 Mobile Safari/537.31 OPR/14.0.1074.57453", family : Some("LG-P690f"), brand : Some("LG"), model : Some("P690f") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.3.4; En-nz; LG-P692 Build/GRJ22) AppleWebKit/533.1 (KHTML, Like Gecko) Version/4.0 Mobile Safari/533.1 MMS/LG-Android-MMS-V1.0/1.2", family : Some("LG-P692"), brand : Some("LG"), model : Some("P692") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.3.4; ar-; LG-P698 Build/GRJ22) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", family : Some("LG-P698"), brand : Some("LG"), model : Some("P698") },
+  ]
+}
+
+///|
+/// device cases [6000..<9000] of 16129, in upstream order.
+fn device_chunk_2() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "Mozilla/5.0 (Linux; Android 2.3.4; LG-P698f Build/GRJ22) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.58 Mobile Safari/537.31 OPR/14.0.1074.57453", family : Some("LG-P698f"), brand : Some("LG"), model : Some("P698f") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; U; Android 2.3.3; en-us; LG-P699 Build/GINGERBREAD) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1 MMS/LG-Android-MMS-V1.0/1.2,gzip(gfe),gzip(gfe),gzip(gfe)", family : Some("LG-P699"), brand : Some("LG"), model : Some("P699") },
   DeviceCase::{ input : "Mozilla/5.0 (Android 4.0.3; LG-P700 Build/IML74K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.94 Mobile Safari/537.36", family : Some("LG-P700"), brand : Some("LG"), model : Some("P700") },
@@ -9029,6 +9051,13 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "NOKIA-6101", family : Some("Nokia 6101"), brand : Some("Nokia"), model : Some("6101") },
   DeviceCase::{ input : "NOKIA-6102", family : Some("Nokia 6102"), brand : Some("Nokia"), model : Some("6102") },
   DeviceCase::{ input : "NOKIA-6102I", family : Some("Nokia 6102I"), brand : Some("Nokia"), model : Some("6102I") },
+  ]
+}
+
+///|
+/// device cases [9000..<12000] of 16129, in upstream order.
+fn device_chunk_3() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "Nokia-6102i", family : Some("Nokia 6102i"), brand : Some("Nokia"), model : Some("6102i") },
   DeviceCase::{ input : "NOKIA-6103", family : Some("Nokia 6103"), brand : Some("Nokia"), model : Some("6103") },
   DeviceCase::{ input : "NOKIA-6108", family : Some("Nokia 6108"), brand : Some("Nokia"), model : Some("6108") },
@@ -12029,6 +12058,13 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "SAMSUNG-GT-E3300I Opera/9.80 (J2ME/MIDP; Opera Mini/4.4.33546/30.3316; U; en) Presto/2.8.119 Version/11.10", family : Some("Samsung GT-E3300I"), brand : Some("Samsung"), model : Some("GT-E3300I") },
   DeviceCase::{ input : "SAMSUNG-GT-E3300L", family : Some("Samsung GT-E3300L"), brand : Some("Samsung"), model : Some("GT-E3300L") },
   DeviceCase::{ input : "SAMSUNG-GT-E3300V Opera/9.80 (J2ME/MIDP; Opera Mini/4.4.33943/34.873; U; th) Presto/2.8.119 Version/11.10", family : Some("Samsung GT-E3300V"), brand : Some("Samsung"), model : Some("GT-E3300V") },
+  ]
+}
+
+///|
+/// device cases [12000..<15000] of 16129, in upstream order.
+fn device_chunk_4() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "Layar/3.1 Android/2.1-update1 (Samsung GT-I5500)", family : Some("Samsung GT-I5500"), brand : Some("Samsung"), model : Some("GT-I5500") },
   DeviceCase::{ input : "Layar/4.0 Android/2.2 (Samsung GT-I5500B)", family : Some("Samsung GT-I5500B"), brand : Some("Samsung"), model : Some("GT-I5500B") },
   DeviceCase::{ input : "Layar/4.0 Android/2.2 (Samsung GT-I5510)", family : Some("Samsung GT-I5510"), brand : Some("Samsung"), model : Some("GT-I5510") },
@@ -15029,6 +15065,13 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "Mozilla/4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 8.12; MSIEMobile 6.0) Sprint T7380", family : Some("SprintT7380"), brand : Some("Sprint"), model : Some("T7380") },
   DeviceCase::{ input : "Mozilla/4.0 (compatible; MSIE 6.0; Windows CE; IEMobile 7.11) Sprint Treo850e", family : Some("SprintTreo850e"), brand : Some("Sprint"), model : Some("Treo850e") },
   DeviceCase::{ input : "HbbTV/1.1.1 (; ST; FLTk3D; 1.0; 1.0;) NetFront/3.5", family : Some("HbbTV"), brand : Some("ST"), model : Some("FLTk3D") },
+  ]
+}
+
+///|
+/// device cases [15000..<16129] of 16129, in upstream order.
+fn device_chunk_5() -> Array[DeviceCase] {
+  [
   DeviceCase::{ input : "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0; SUMSUNG; OMNIA 7)", family : Some("SUMSUNG OMNIA 7"), brand : Some("SUMSUNG"), model : Some("OMNIA 7") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; Android 4.0.4; TAGIMID140 Build/IMM76D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166  Safari/535.19", family : Some("TAGIMID140"), brand : Some("Tagi"), model : Some("MID140") },
   DeviceCase::{ input : "Mozilla/5.0 (Linux; Android 4.1.1; TAGI MID 950 Build/JRO03H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.72 Safari/537.36 OPR/16.0.1212.65583", family : Some("TAGI MID950"), brand : Some("Tagi"), model : Some("MID950") },
@@ -16158,7 +16201,15 @@ pub let device_cases : Array[DeviceCase] = [
   DeviceCase::{ input : "ABC/4.3.392 version 6.2.15, build 392 (moto g stylus; motorola moto g stylus; Android 11) AppleWebKit", family : Some("motorola moto g stylus"), brand : Some("Motorola"), model : Some("motorola moto g stylus") },
   DeviceCase::{ input : "ABC/4.3.392 version 6.2.15, build 392 (moto g play (2021); motorola moto g play (2021); Android 11) AppleWebKit", family : Some("motorola moto g play (2021)"), brand : Some("Motorola"), model : Some("motorola moto g play (2021)") },
   DeviceCase::{ input : "Mozilla/5.0 (compatible; Linux x86_64; python-requests/2.32.3; RecipeRadar/0.1; +https://www.reciperadar.com)", family : Some("Spider"), brand : Some("Spider"), model : Some("Desktop") },
-]
+  ]
+}
+
+///|
+/// All test_device.yaml cases, in upstream order.
+/// Concatenation of the private chunk functions above (the split
+/// only bounds each function's debug-codegen local count; order is
+/// preserved, so the array position stays the 0-based YAML index.
+pub let device_cases : Array[DeviceCase] = (((((device_chunk_0()) + device_chunk_1()) + device_chunk_2()) + device_chunk_3()) + device_chunk_4()) + device_chunk_5()
 
 ///|
 /// 0-based indices of cases exempted from differential assertions

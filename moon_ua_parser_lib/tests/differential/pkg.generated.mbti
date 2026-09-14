@@ -1,0 +1,53 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vicoproplus/moon_ua_parser/tests/differential"
+
+// Values
+pub let device_cases : Array[DeviceCase]
+
+pub let device_exempted_count : Int
+
+pub fn device_failures() -> Array[String]
+
+pub let os_cases : Array[OsCase]
+
+pub let os_exempted_count : Int
+
+pub fn os_failures() -> Array[String]
+
+pub let ua_cases : Array[UaCase]
+
+pub let ua_exempted_count : Int
+
+pub fn ua_failures() -> Array[String]
+
+// Errors
+
+// Types and methods
+pub(all) struct DeviceCase {
+  input : String
+  family : String?
+  brand : String?
+  model : String?
+} derive(Eq, Show)
+
+pub(all) struct OsCase {
+  input : String
+  family : String?
+  major : String?
+  minor : String?
+  patch : String?
+  patch_minor : String?
+} derive(Eq, Show)
+
+pub(all) struct UaCase {
+  input : String
+  family : String?
+  major : String?
+  minor : String?
+  patch : String?
+  patch_minor : String?
+} derive(Eq, Show)
+
+// Type aliases
+
+// Traits
